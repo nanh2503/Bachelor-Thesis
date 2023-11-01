@@ -24,6 +24,7 @@ import { Badge } from '@mui/material'
 import { BadgeContentSpan } from '../../shared-components/UserDropdown'
 import Avatar from '@mui/material/Avatar'
 import Typography from '@mui/material/Typography'
+import { useSelector } from 'src/app/hooks'
 
 interface Props {
   hidden: boolean
@@ -66,6 +67,7 @@ const Navigation = (props: Props) => {
   // ** States
   const [groupActive, setGroupActive] = useState<string[]>([])
   const [currentActiveGroup, setCurrentActiveGroup] = useState<string[]>([])
+  const {isLoggedIn} = useSelector((state) => state.loginState)
 
   // ** Ref
   const shadowRef = useRef(null)
@@ -108,7 +110,8 @@ const Navigation = (props: Props) => {
   return (
     <Drawer {...props}>
       <VerticalNavHeader {...props} />
-      <Box sx={{ pt: 2, pb: 3, px: 4, ml: 3, mt: 2 }}>
+        { isLoggedIn && (
+        <Box sx={{ pt: 2, pb: 3, px: 4, ml: 3, mt: 2 }}>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Badge
             overlap='circular'
@@ -124,7 +127,8 @@ const Navigation = (props: Props) => {
             </Typography>
           </Box>
         </Box>
-      </Box>
+        </Box>
+        )}
       <StyledBoxForShadow
         ref={shadowRef}
         sx={{

@@ -2,7 +2,7 @@
 import ApexChartWrapper from 'src/@core/styles/libs/react-apexcharts'
 
 // ** Demo Components Imports
-import { Button, Card, CardContent, Typography } from '@mui/material'
+import { Card, CardContent, Typography } from '@mui/material'
 import { styled, useTheme } from '@mui/material/styles'
 import themeConfig from 'src/configs/themeConfig'
 

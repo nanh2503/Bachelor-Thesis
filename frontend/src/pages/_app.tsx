@@ -1,8 +1,11 @@
 // ** Next Imports
 import Head from 'next/head'
 import { Router } from 'next/router'
-import type { NextPage } from 'next'
+import type { NextPage } from 'next/types'
 import type { AppProps } from 'next/app'
+import { ReactNode } from "react"
+import { Provider } from 'react-redux'
+import {store} from '../app/store'
 
 // ** Loader Import
 import NProgress from 'nprogress'
@@ -30,9 +33,13 @@ import 'react-perfect-scrollbar/dist/css/styles.css'
 // ** Global css styles
 import '../../styles/globals.css'
 
+type Page<P = {}> = NextPage<P> & {
+  getLayout?: (page: ReactNode) => ReactNode;
+};
+
 // ** Extend App Props with Emotion
 type ExtendedAppProps = AppProps & {
-  Component: NextPage
+  Component: Page
   emotionCache: EmotionCache
 }
 
@@ -53,13 +60,15 @@ if (themeConfig.routingLoader) {
 
 // ** Configure JSS & ClassName
 const App = (props: ExtendedAppProps) => {
+  
   const { Component, emotionCache = clientSideEmotionCache, pageProps } = props
 
   // Variables
-  const getLayout = Component.getLayout ?? (page => <UserLayout>{page}</UserLayout>)
+  const getLayout = Component.getLayout ?? ((page: ReactNode) => <UserLayout>{page}</UserLayout>)
 
   return (
-    <CacheProvider value={emotionCache}>
+   <Provider store = {store}>
+     <CacheProvider value={emotionCache}>
       <Head>
         <title>{`${themeConfig.templateName} - Material Design React Admin Template`}</title>
         <meta
@@ -78,6 +87,7 @@ const App = (props: ExtendedAppProps) => {
         </SettingsConsumer>
       </SettingsProvider>
     </CacheProvider>
+   </Provider>
   )
 }
 

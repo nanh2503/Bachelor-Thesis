@@ -3,21 +3,19 @@ import { ChangeEvent, MouseEvent, ReactNode, useState } from 'react'
 
 // ** Next Imports
 import Link from 'next/link'
-import { useRouter } from 'next/router'
 
 // ** MUI Components
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import Divider from '@mui/material/Divider'
 import Checkbox from '@mui/material/Checkbox'
-import TextField from '@mui/material/TextField'
 import InputLabel from '@mui/material/InputLabel'
 import Typography from '@mui/material/Typography'
 import IconButton from '@mui/material/IconButton'
 import CardContent from '@mui/material/CardContent'
 import FormControl from '@mui/material/FormControl'
 import OutlinedInput from '@mui/material/OutlinedInput'
-import { styled, useTheme } from '@mui/material/styles'
+import { styled } from '@mui/material/styles'
 import MuiCard, { CardProps } from '@mui/material/Card'
 import InputAdornment from '@mui/material/InputAdornment'
 import MuiFormControlLabel, { FormControlLabelProps } from '@mui/material/FormControlLabel'
@@ -38,10 +36,18 @@ import BlankLayout from 'src/@core/layouts/BlankLayout'
 
 // ** Demo Imports
 import FooterIllustrationsV1 from 'src/views/pages/auth/FooterIllustration'
+import { handleLoginService } from 'src/services/userServices'
+import { AxiosError, AxiosResponse } from 'axios'
+import { useSelector, useDispatch } from 'src/app/hooks'
+import { setUser } from 'src/app/redux/slices/loginSlice'
+import { useRouter } from 'next/router'
 
 interface State {
-  password: string
-  showPassword: boolean
+  email: string,
+  password: string,
+  showPassword: boolean,
+  errCode: number,
+  errMessage: string,
 }
 
 // ** Styled Components
@@ -65,13 +71,18 @@ const FormControlLabel = styled(MuiFormControlLabel)<FormControlLabelProps>(({ t
 const LoginPage = () => {
   // ** State
   const [values, setValues] = useState<State>({
+    email: '',
     password: '',
-    showPassword: false
+    showPassword: false,
+    errCode: -1,
+    errMessage:'',
   })
 
+
   // ** Hook
-  const theme = useTheme()
   const router = useRouter()
+  const dispatch = useDispatch()
+  const {isLoggedIn, user} = useSelector((state) => state.loginState)
 
   const handleChange = (prop: keyof State) => (event: ChangeEvent<HTMLInputElement>) => {
     setValues({ ...values, [prop]: event.target.value })
@@ -83,6 +94,33 @@ const LoginPage = () => {
 
   const handleMouseDownPassword = (event: MouseEvent<HTMLButtonElement>) => {
     event.preventDefault()
+  }
+
+  const handleLogin = async () => {
+    console.log('values: ',values.email);
+    try{
+      const response = await handleLoginService(values.email, values.password)
+      
+      // @ts-ignore
+      const data = response.data;
+      if(data && data.errCode !== 0){
+        values.errMessage = data.errMessage
+        console.log('Login error');
+      }
+      if (data && data.errCode === 0) {
+        dispatch(setUser(data.user))
+        router.push("/")
+        console.log("Login succeed!")
+      }
+    }catch(e){
+      const errorResponse = ((e as AxiosError).response ?? {}) as AxiosResponse;
+        if (errorResponse.data) {
+            values.errMessage = errorResponse.data.message;
+        } else {
+            // Xử lý trường hợp 'data' không tồn tại trong 'errorResponse'
+            console.error('Data is undefined in errorResponse:', errorResponse);
+        }
+    }
   }
 
   return (
@@ -121,7 +159,16 @@ const LoginPage = () => {
             <Typography variant='body2'>Please sign-in to your account and start the adventure</Typography>
           </Box>
           <form noValidate autoComplete='off' onSubmit={e => e.preventDefault()}>
-            <TextField autoFocus fullWidth id='email' label='Email' sx={{ marginBottom: 4 }} />
+          <FormControl fullWidth>
+              <InputLabel htmlFor='auth-login-email'>Email</InputLabel>
+              <OutlinedInput
+                label='Email'
+                value={values.email}
+                id='auth-login-email'
+                onChange={handleChange('email')}
+                sx={{mb: 5}}
+              />
+            </FormControl>
             <FormControl fullWidth>
               <InputLabel htmlFor='auth-login-password'>Password</InputLabel>
               <OutlinedInput
@@ -157,7 +204,7 @@ const LoginPage = () => {
               size='large'
               variant='contained'
               sx={{ marginBottom: 7 }}
-              onClick={() => router.push('/')}
+              onClick={handleLogin}
             >
               Login
             </Button>

@@ -17,6 +17,7 @@ import { Settings } from 'src/@core/context/settingsContext'
 // ** Components
 import ModeToggler from 'src/@core/layouts/components/shared-components/ModeToggler'
 import UserDropdown from 'src/@core/layouts/components/shared-components/UserDropdown'
+import { useSelector } from 'src/app/hooks'
 
 interface Props {
   hidden: boolean
@@ -25,6 +26,7 @@ interface Props {
   saveSettings: (values: Settings) => void
 }
 
+
 const AppBarContent = (props: Props) => {
   // ** Props
   const { hidden, settings, saveSettings, toggleNavVisibility } = props
@@ -32,6 +34,7 @@ const AppBarContent = (props: Props) => {
   // ** Hook
   const hiddenSm = useMediaQuery((theme: Theme) => theme.breakpoints.down('sm'))
   const isLargeScreen = useMediaQuery((theme: Theme) => theme.breakpoints.up('lg'))
+  const {isLoggedIn} = useSelector((state) => state.loginState)
 
   return (
     <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -57,7 +60,8 @@ const AppBarContent = (props: Props) => {
           }}
         />
       </Box>
-      <Box sx={{ ml: isLargeScreen ? 80 : 10 }}>
+      {!isLoggedIn && (
+        <Box sx={{ ml: isLargeScreen ? 80 : 10 }}>
         <Button
           variant='contained'
           href='/pages/login'
@@ -73,9 +77,10 @@ const AppBarContent = (props: Props) => {
           Sign up
         </Button>
       </Box>
+      )}
       <Box className='actions-right' sx={{ display: 'flex', alignItems: 'center' }}>
         <ModeToggler settings={settings} saveSettings={saveSettings} />
-        <UserDropdown />
+        {isLoggedIn && <UserDropdown />}
       </Box>
     </Box>
   )

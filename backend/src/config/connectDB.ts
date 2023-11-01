@@ -1,35 +1,20 @@
 import mongoose from "mongoose";
+import User from "../models/userModels";
 
-const databaseConnect = () => {
-    mongoose.connect(process.env.DATABASE_URL, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true
-    }).then(() => {
-        console.log("Connect to MongoDB successfully")
-    }).catch(err => {
+export default async function connectDB() {
+    try {
+        const dbUrl = process.env.DATABASE_URL|| '';
+        await mongoose.connect(dbUrl)
+        console.log('Connect to MongoDB successfully')
+    } catch (err) {
         console.log(err)
-    })
+    }
 }
 
-// const question3 = new Blog({
-//     id: 5,
-//     question: "Rows and silences are ______ and parcel of any marriage.",
-//     options: {
-//         A: 'package',
-//         B: 'stamps',
-//         C: 'packet',
-//         D: 'part'
-//     },
-//     answer: null,
-//     trueAnswer: "D",
+// const user = new User({
+//     username: 'Nganh',
+//     email: 'anh@gmail.com',
+//     password:'032002',
 // })
 
-// question3.save()
-
-// const answer = new Test({
-//     answer: "test",
-// })
-
-// answer.save()
-
-module.exports = databaseConnect;
+// user.save()
