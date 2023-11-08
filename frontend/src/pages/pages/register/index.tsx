@@ -37,10 +37,20 @@ import BlankLayout from 'src/@core/layouts/BlankLayout'
 
 // ** Demo Imports
 import FooterIllustrationsV1 from 'src/views/pages/auth/FooterIllustration'
+import { AxiosError, AxiosResponse } from 'axios'
+import { useDispatch } from 'src/app/hooks'
+import { setUser } from 'src/app/redux/slices/loginSlice'
+import { useRouter } from 'next/router'
+import { handleRegisterService } from 'src/services/userServices'
 
 interface State {
-  password: string
-  showPassword: boolean
+  username: string,
+  email: string,
+  password: string,
+  cfPassword: string,
+  showPassword: boolean,
+  errCode: number,
+  errMessage: string,
 }
 
 // ** Styled Components
@@ -66,9 +76,18 @@ const FormControlLabel = styled(MuiFormControlLabel)<FormControlLabelProps>(({ t
 const RegisterPage = () => {
   // ** States
   const [values, setValues] = useState<State>({
+    username: '',
+    email: '',
     password: '',
-    showPassword: false
+    cfPassword: '',
+    showPassword: false,
+    errCode: -1,
+    errMessage: '',
   })
+
+  // ** Hook
+  const router = useRouter()
+  const dispatch = useDispatch()
 
   const handleChange = (prop: keyof State) => (event: ChangeEvent<HTMLInputElement>) => {
     setValues({ ...values, [prop]: event.target.value })
@@ -78,6 +97,34 @@ const RegisterPage = () => {
   }
   const handleMouseDownPassword = (event: MouseEvent<HTMLButtonElement>) => {
     event.preventDefault()
+  }
+
+  const handleRegister = async () => {
+    console.log('values: ', values.email);
+    try {
+      const response = await handleRegisterService(values.username, values.email, values.password, values.cfPassword)
+
+      // @ts-ignore
+      const data = response.data;
+      if (data && data.errCode !== 0) {
+        setValues(prevState => ({ ...prevState, errMessage: data.errMessage }));
+        console.log('error: ', values.errMessage);
+        console.log('Register error');
+      }
+      if (data && data.errCode === 0) {
+        dispatch(setUser(data.user))
+        router.push("/login")
+        console.log("Register succeed!")
+      }
+    } catch (e) {
+      const errorResponse = ((e as AxiosError).response ?? {}) as AxiosResponse;
+      if (errorResponse.data) {
+        setValues(prevState => ({ ...prevState, errMessage: errorResponse.data.message }));
+      } else {
+        // Xử lý trường hợp 'data' không tồn tại trong 'errorResponse'
+        console.error('Data is undefined in errorResponse:', errorResponse);
+      }
+    }
   }
 
   return (
@@ -146,7 +193,7 @@ const RegisterPage = () => {
                 label='Password'
                 value={values.password}
                 id='auth-register-password'
-                onChange={handleChange('password')}
+                onChange={handleChange('cfPassword')}
                 type={values.showPassword ? 'text' : 'password'}
                 endAdornment={
                   <InputAdornment position='end'>
@@ -175,7 +222,23 @@ const RegisterPage = () => {
                 </Fragment>
               }
             />
-            <Button fullWidth size='large' type='submit' variant='contained' sx={{ marginBottom: 7 }}>
+
+            {values.errMessage &&
+              <Box sx={{ mt: -3, mb: 3 }}>
+                <Typography variant='body2' sx={{ color: 'red' }}>
+                  {values.errMessage}
+                </Typography>
+              </Box>
+            }
+
+            <Button
+              fullWidth
+              size='large'
+              type='submit'
+              variant='contained'
+              sx={{ marginBottom: 7 }}
+              onClick={() => handleRegister()}
+            >
               Sign up
             </Button>
             <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'center' }}>

@@ -38,7 +38,7 @@ import BlankLayout from 'src/@core/layouts/BlankLayout'
 import FooterIllustrationsV1 from 'src/views/pages/auth/FooterIllustration'
 import { handleLoginService } from 'src/services/userServices'
 import { AxiosError, AxiosResponse } from 'axios'
-import { useSelector, useDispatch } from 'src/app/hooks'
+import { useDispatch } from 'src/app/hooks'
 import { setUser } from 'src/app/redux/slices/loginSlice'
 import { useRouter } from 'next/router'
 
@@ -75,14 +75,15 @@ const LoginPage = () => {
     password: '',
     showPassword: false,
     errCode: -1,
-    errMessage:'',
+    errMessage: '',
   })
 
 
   // ** Hook
   const router = useRouter()
   const dispatch = useDispatch()
-  const {isLoggedIn, user} = useSelector((state) => state.loginState)
+
+  // const { isLoggedIn, user } = useSelector((state) => state.loginState)
 
   const handleChange = (prop: keyof State) => (event: ChangeEvent<HTMLInputElement>) => {
     setValues({ ...values, [prop]: event.target.value })
@@ -97,14 +98,15 @@ const LoginPage = () => {
   }
 
   const handleLogin = async () => {
-    console.log('values: ',values.email);
-    try{
+    console.log('values: ', values.email);
+    try {
       const response = await handleLoginService(values.email, values.password)
-      
+
       // @ts-ignore
       const data = response.data;
-      if(data && data.errCode !== 0){
-        values.errMessage = data.errMessage
+      if (data && data.errCode !== 0) {
+        setValues(prevState => ({ ...prevState, errMessage: data.errMessage }));
+        console.log('error: ', values.errMessage);
         console.log('Login error');
       }
       if (data && data.errCode === 0) {
@@ -112,16 +114,18 @@ const LoginPage = () => {
         router.push("/")
         console.log("Login succeed!")
       }
-    }catch(e){
+    } catch (e) {
       const errorResponse = ((e as AxiosError).response ?? {}) as AxiosResponse;
-        if (errorResponse.data) {
-            values.errMessage = errorResponse.data.message;
-        } else {
-            // Xử lý trường hợp 'data' không tồn tại trong 'errorResponse'
-            console.error('Data is undefined in errorResponse:', errorResponse);
-        }
+      if (errorResponse.data) {
+        setValues(prevState => ({ ...prevState, errMessage: errorResponse.data.message }));
+      } else {
+        // Xử lý trường hợp 'data' không tồn tại trong 'errorResponse'
+        console.error('Data is undefined in errorResponse:', errorResponse);
+      }
     }
   }
+
+  console.log('err: ', values.errMessage);
 
   return (
     <Box className='content-center'>
@@ -159,14 +163,14 @@ const LoginPage = () => {
             <Typography variant='body2'>Please sign-in to your account and start the adventure</Typography>
           </Box>
           <form noValidate autoComplete='off' onSubmit={e => e.preventDefault()}>
-          <FormControl fullWidth>
+            <FormControl fullWidth>
               <InputLabel htmlFor='auth-login-email'>Email</InputLabel>
               <OutlinedInput
                 label='Email'
                 value={values.email}
                 id='auth-login-email'
                 onChange={handleChange('email')}
-                sx={{mb: 5}}
+                sx={{ mb: 5 }}
               />
             </FormControl>
             <FormControl fullWidth>
@@ -199,15 +203,24 @@ const LoginPage = () => {
                 <LinkStyled onClick={e => e.preventDefault()}>Forgot Password?</LinkStyled>
               </Link>
             </Box>
+            {values.errMessage &&
+              <Box sx={{ mt: -3, mb: 3 }}>
+                <Typography variant='body2' sx={{ color: 'red' }}>
+                  {values.errMessage}
+                </Typography>
+              </Box>
+            }
+
             <Button
               fullWidth
               size='large'
               variant='contained'
               sx={{ marginBottom: 7 }}
-              onClick={handleLogin}
+              onClick={() => handleLogin()}
             >
               Login
             </Button>
+
             <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'center' }}>
               <Typography variant='body2' sx={{ marginRight: 2 }}>
                 New on our platform?
