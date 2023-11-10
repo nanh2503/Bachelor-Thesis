@@ -22,9 +22,10 @@ export const handleLogin = async (req: Request, res: Response): Promise<void> =>
     if (!email || !password) {
         const errorResponse: UserData = {
             errCode: 1,
-            errMessage: 'Missing inputs parameter!'
+            errMessage: 'Missing inputs parameter!',
+            user: {}
         };
-        res.status(500).json(errorResponse);
+        res.status(200).json(errorResponse);
         return;
     }
 
@@ -45,22 +46,26 @@ export const handleRegister = async (req: Request, res: Response): Promise<void>
     let password = req.body.password;
     let cfPassword = req.body.cfPassword;
 
+    console.log('username: ', username);
+
     if (!username || !email || !password || !cfPassword) {
-        const errorResponse: UserData = {
+        console.log('echk');
+        const response: UserData = {
             errCode: 1,
-            errMessage: 'Missing inputs parameter!'
+            errMessage: 'Missing inputs parameter!',
+            user: {}
         };
-        res.status(500).json(errorResponse);
+        res.status(200).json(response);
         return;
+    } else {
+        let userData = await handleUserRegister(username, email, password, cfPassword);
+
+        const response: UserData = {
+            errCode: userData.errCode,
+            errMessage: userData.errMessage,
+            user: userData.user ? userData.user : {}
+        };
+
+        res.status(200).json(response);
     }
-
-    let userData = await handleUserRegister(username, email, password, cfPassword);
-
-    const response: UserData = {
-        errCode: userData.errCode,
-        errMessage: userData.errMessage,
-        user: userData.user ? userData.user : {}
-    };
-
-    res.status(200).json(response);
 }
