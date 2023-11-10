@@ -9,7 +9,6 @@ import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import Divider from '@mui/material/Divider'
 import Checkbox from '@mui/material/Checkbox'
-import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
 import InputLabel from '@mui/material/InputLabel'
 import IconButton from '@mui/material/IconButton'
@@ -100,12 +99,13 @@ const RegisterPage = () => {
   }
 
   const handleRegister = async () => {
-    console.log('values: ', values.email);
+    console.log('values: ', values.username);
     try {
       const response = await handleRegisterService(values.username, values.email, values.password, values.cfPassword)
 
       // @ts-ignore
       const data = response.data;
+      console.log('data: ',data);
       if (data && data.errCode !== 0) {
         setValues(prevState => ({ ...prevState, errMessage: data.errMessage }));
         console.log('error: ', values.errMessage);
@@ -113,7 +113,7 @@ const RegisterPage = () => {
       }
       if (data && data.errCode === 0) {
         dispatch(setUser(data.user))
-        router.push("/login")
+        router.push("/pages/login")
         console.log("Register succeed!")
       }
     } catch (e) {
@@ -126,6 +126,8 @@ const RegisterPage = () => {
       }
     }
   }
+
+  console.log('err: ', values.errMessage);
 
   return (
     <Box className='content-center'>
@@ -162,8 +164,26 @@ const RegisterPage = () => {
             <Typography variant='body2'>Make your app management easy and fun!</Typography>
           </Box>
           <form noValidate autoComplete='off' onSubmit={e => e.preventDefault()}>
-            <TextField autoFocus fullWidth id='username' label='Username' sx={{ marginBottom: 4 }} />
-            <TextField fullWidth type='email' label='Email' sx={{ marginBottom: 4 }} />
+          <FormControl fullWidth>
+              <InputLabel htmlFor='auth-register-username'>Username</InputLabel>
+              <OutlinedInput
+                label='Username'
+                value={values.username}
+                id='auth-register-username'
+                onChange={handleChange('username')}
+                sx={{ mb: 5 }}
+              />
+            </FormControl>
+            <FormControl fullWidth>
+              <InputLabel htmlFor='auth-register-email'>Email</InputLabel>
+              <OutlinedInput
+                label='Email'
+                value={values.email}
+                id='auth-register-email'
+                onChange={handleChange('email')}
+                sx={{ mb: 5 }}
+              />
+            </FormControl>
             <FormControl fullWidth>
               <InputLabel htmlFor='auth-register-password'>Password</InputLabel>
               <OutlinedInput
@@ -191,7 +211,7 @@ const RegisterPage = () => {
               <InputLabel htmlFor='auth-register-password'>Confirm Password</InputLabel>
               <OutlinedInput
                 label='Password'
-                value={values.password}
+                value={values.cfPassword}
                 id='auth-register-password'
                 onChange={handleChange('cfPassword')}
                 type={values.showPassword ? 'text' : 'password'}
