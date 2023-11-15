@@ -1,18 +1,18 @@
 import express from "express";
 import bodyParser from "body-parser"
 import * as dotenv from "dotenv"
-import {webRoutes} from "./routes/web"
-import connectDB from "./config/connectDB";
+import { webRoutes } from "./routes/web"
+import connectDB from "./configs/connectDB";
 
 dotenv.config();
 
 let app = express()
 
 const urlReact = process.env.URL_REACT || '';
-console.log('urlReact: ',urlReact);
+console.log('urlReact: ', urlReact);
 
-app.use((req, res, next)=>{
-     res.setHeader('Access-Control-Allow-Origin', urlReact);
+app.use((req, res, next) => {
+    res.setHeader('Access-Control-Allow-Origin', urlReact);
 
     /**Request methods you wish to allow*/
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
@@ -35,6 +35,6 @@ connectDB()
 
 let port = process.env.PORT;
 
-app.listen(port, ()=>{
-    console.log('Backend is running on port',port);
+app.listen(port, () => {
+    console.log('Backend is running on port', port);
 })
