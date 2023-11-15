@@ -34,7 +34,10 @@ const AppBarContent = (props: Props) => {
   // ** Hook
   const hiddenSm = useMediaQuery((theme: Theme) => theme.breakpoints.down('sm'))
   const isLargeScreen = useMediaQuery((theme: Theme) => theme.breakpoints.up('lg'))
-  const {isLoggedIn} = useSelector((state) => state.loginState)
+  const textFieldWidth = isLargeScreen ? '500px' : '300px'
+  const { isLoggedIn } = useSelector((state) => state.loginState)
+
+  console.log('settings: ', settings);
 
   return (
     <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -48,35 +51,55 @@ const AppBarContent = (props: Props) => {
             <Menu />
           </IconButton>
         ) : null}
+        <Button
+          variant='contained'
+          href="/pages/upload"
+          sx={{
+            backgroundColor: '#1bb76e',
+            borderRadius: '3px',
+            width: 'auto',
+            mt: 3,
+          }}
+          startIcon={
+            <img src="https://s.imgur.com/desktop-assets/desktop-assets/icon-new-post.da483e9d9559c3b4e912.svg" />
+          }
+        >
+          {isLargeScreen ? "New post" : null}
+        </Button>
+
         <TextField
           size='small'
-          sx={{ '& .MuiOutlinedInput-root': { borderRadius: 4 } }}
+          sx={
+            settings.mode === 'light'
+              ? { '& .MuiOutlinedInput-root': { borderRadius: 1, backgroundColor: 'white', color: 'black', width: textFieldWidth, mt: 3, ml: 5 } }
+              : { '& .MuiOutlinedInput-root': { borderRadius: 1, backgroundColor: '#312D4B', color: 'white', width: textFieldWidth, mt: 3, ml: 5 } }}
           InputProps={{
-            startAdornment: (
-              <InputAdornment position='start'>
-                <Magnify fontSize='small' />
+            endAdornment: (
+              <InputAdornment position='end'>
+                <Magnify fontSize='medium' />
               </InputAdornment>
             )
           }}
+          placeholder='Images, #tags, @users oh my!'
         />
       </Box>
       {!isLoggedIn && (
-        <Box sx={{ ml: isLargeScreen ? 80 : 10 }}>
-        <Button
-          variant='contained'
-          href='/pages/login'
-          sx={{ color: 'white', backgroundColor: 'green', border: 'none', ml: 10 }}
-        >
-          Sign in
-        </Button>
-        <Button
-          variant='contained'
-          href='/pages/register'
-          sx={{ color: 'white', backgroundColor: 'orange', border: 'none', ml: 5 }}
-        >
-          Sign up
-        </Button>
-      </Box>
+        <Box sx={{ ml: isLargeScreen ? 50 : 0 }}>
+          <Button
+            variant='contained'
+            href='/pages/login'
+            sx={{ color: 'white', backgroundColor: 'green', border: 'none', ml: 10, mt: 3 }}
+          >
+            Sign in
+          </Button>
+          <Button
+            variant='contained'
+            href='/pages/register'
+            sx={{ color: 'white', backgroundColor: 'orange', border: 'none', ml: 5, mt: 3 }}
+          >
+            Sign up
+          </Button>
+        </Box>
       )}
       <Box className='actions-right' sx={{ display: 'flex', alignItems: 'center' }}>
         <ModeToggler settings={settings} saveSettings={saveSettings} />
