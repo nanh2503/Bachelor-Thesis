@@ -1,120 +1,91 @@
-// ** Next Imports
-import Link from 'next/link'
+import React from 'react';
+import { Box, Button, Input, Typography } from '@mui/material';
 
-// ** MUI Components
-import Box from '@mui/material/Box'
-import Button from '@mui/material/Button'
-import Divider from '@mui/material/Divider'
-import Checkbox from '@mui/material/Checkbox'
-import Typography from '@mui/material/Typography'
-import InputLabel from '@mui/material/InputLabel'
-import IconButton from '@mui/material/IconButton'
-import { ReactNode, useState } from 'react'
-import { useRouter } from 'next/router'
-import { useDispatch } from 'src/app/hooks'
-import BlankLayout from 'src/@core/layouts/BlankLayout'
+import './style.module.scss';
 
-interface State {
-    username: string,
-    email: string,
-    password: string,
-    cfPassword: string,
-    showPassword: boolean,
-    errCode: number,
-    errMessage: string,
-}
-
-const RegisterPage = () => {
-    // ** States
-    const [values, setValues] = useState<State>({
-        username: '',
-        email: '',
-        password: '',
-        cfPassword: '',
-        showPassword: false,
-        errCode: -1,
-        errMessage: '',
-    })
-
-    // ** Hook
-    const router = useRouter()
-    const dispatch = useDispatch()
-
-    return (
-        <Box
-            sx={{
-                mt: 30,
-                height: '100%',
-                width: '100%',
-                minWidth: '300px',
-                minHeight: '150px',
-                backgroundColor: '#fff',
-                overflow: 'hidden',
-                boxShadow: '0 6px 10px 0 rgba(27,28,30,.31)',
-                flexDirection: 'column',
-                display: 'flex',
-                color: '#000',
-                borderRadius: '6px',
-                position: 'relative'
-            }}
-        >
-            <Button
-                type='button'
-                aria-label='close'
-                sx={{
-                    position: 'absolute',
-                    top: '-35px',
-                    right: '-35px',
-                    width: '88px',
-                    height: '88px',
-                    border: '0',
-                    background: 'transparent',
-                    cursor: 'pointer',
-                    outline: 'none',
-                    zIndex: 6,
-                }}
-            >
-                <img src="https://s.imgur.com/desktop-assets/desktop-assets/upload_dialog_close.090c128bffd440597750.svg" alt="Close" />
-            </Button>
-
-
-            <Box
-                sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    background: '#000',
-                    color: '#fff',
-                    height: '320px',
-                    overflow: 'hidden',
-                    float:'left'
-                }}
-            >
-                <Box
-                    sx={{
-                        display: 'flex',
-                        width: '264px',
-                        margin: '0 auto',
-                        height: '72px',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        border: '3px dashed rgba(255,255,255,.4)',
-                        borderRadius: '6px',
-                        position: 'relative',
-                        lineHeight: '40px',
-                        verticalAlign: 'middle',
-                        mixBlendMode: 'overlay',
-                    }}
-                >
-
-                </Box>
-                <Box></Box>
+const UploadPage = () => {
+  return (
+    <Box className="Dialog UploadDialog">
+      <Box className="Dialog-wrapper">
+        <Button variant="contained" aria-label="close" className="PopUpClose">
+          <img
+            src="https://s.imgur.com/desktop-assets/desktop-assets/upload_dialog_close.090c128bffd440597750.svg"
+            alt="Close"
+          />
+        </Button>
+        <Box className="PopUpContainer">
+          <Box className="PopUpDrop">
+            <Box className="PopUpDrop-content" sx={{ opacity: 1 }}>
+              <Box className="PopUpDrop-indicator"></Box>
+              <Typography variant="body1" className="PopUpDrop-label">
+                Drop images here
+              </Typography>
             </Box>
-        </Box >
-    )
-}
+            <Box className="PopUpDrop-Comets" sx={{ opacity: 0 }}>
+              <Box className="PopUpDrop-Comets-Comet PopUpDrop-Comets-Comet1" sx={{ opacity: 1, transform: 'none' }}></Box>
+              <Box className="PopUpDrop-Comets-Comet PopUpDrop-Comets-Comet2" sx={{ opacity: 1, transform: 'none' }}></Box>
+            </Box>
+            <Box className="PopUpDrop-Stars" sx={{ opacity: 0 }}>
+              <Box className="PopUpDrop-Stars-Star PopUpDrop-Stars-Star1" sx={{ transform: 'none' }}></Box>
+              <Box className="PopUpDrop-Stars-Star PopUpDrop-Stars-Star2" sx={{ transform: 'none' }}></Box>
+              <Box className="PopUpDrop-Stars-Star PopUpDrop-Stars-Star3" sx={{ transform: 'none' }}></Box>
+              <Box className="PopUpDrop-Stars-Star PopUpDrop-Stars-Star4" sx={{ transform: 'none' }}></Box>
+            </Box>
+            <Box className="PopUpDrop-Bg"></Box>
+            <Box className="PopUpDrop-Daylight" sx={{ opacity: 1 }}></Box>
+            <Box className="PopUpDrop-DaylightSky" sx={{ opacity: 1 }}></Box>
+            <Box className="PopUpDrop-Observatory"></Box>
+            <Box className="PopUpDrop-DropArea"></Box>
+          </Box>
+          <Box className="PopUpActions">
+            <Input
+              id="file-input"
+              type="file"
+              name="files"
+              className="PopUpActions-fileInput"
+            />
+            <label htmlFor="file-input" className="PopUpActions-filePicker">
+              <img
+                src="https://s.imgur.com/desktop-assets/desktop-assets/icon-photo.e5fd72ac37a762a402ea.svg"
+                alt="Choose Photo/Video"
+              />
+              Choose Photo/Video
+            </label>
+            <Box className="PopUpActions-divider">
+              <span className="PopUpActions-divider--line"></span>
+              or
+              <span className="PopUpActions-divider--line"></span>
+            </Box>
+            <Box className="PopUpActions-textPicker">
+              <Input placeholder="Paste image or URL" tabIndex={12} />
+            </Box>
+            <Box className="PopUpActions-extra">
+              <Button type="button" tabIndex={13}>
+                <img src="https://s.imgur.com/desktop-assets/desktop-assets/meme.1719bac60b7861cbd5e9.svg" alt="Meme Gen" />
+                Meme Gen
+              </Button>
+              <Button type="button" disabled tabIndex={14}>
+                <img src="https://s.imgur.com/desktop-assets/desktop-assets/browse.7a7c32874c696f6255a8.svg" alt="My Uploads" />
+                My Uploads
+              </Button>
+            </Box>
+          </Box>
+        </Box>
+        <Box className="PopUpTOS">
+          <Typography variant="body1">
+            By creating a post, you agree to Imgur's{' '}
+            <a href="https://imgur.com/tos" target="_blank" rel="noopener noreferrer" tabIndex={15}>
+              Terms of Service
+            </a>{' '}
+            and{' '}
+            <a href="https://imgur.com/privacy" target="_blank" rel="noopener noreferrer" tabIndex={16}>
+              Privacy Policy
+            </a>
+          </Typography>
+        </Box>
+      </Box>
+    </Box>
+  );
+};
 
-RegisterPage.getLayout = (page: ReactNode) => <BlankLayout>{page}</BlankLayout>
-
-export default RegisterPage
-
+export default UploadPage;

@@ -23,7 +23,8 @@ const CardFacebook = () => {
         </Typography>
         <Typography variant='body2' sx={{ marginBottom: 3, color: 'common.white' }}>
           You’ve read about the importance of being courageous, rebellious and imaginative. These are all vital
-          ingredients in an effective.
+          ingredients in an 
+          ive.
         </Typography>
         <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between' }}>
           <Box sx={{ mr: 2, display: 'flex', alignItems: 'center' }}>
