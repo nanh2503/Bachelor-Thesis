@@ -57,8 +57,10 @@
     "axios": "^1.6.0",
     "clsx": "^1.1.1",
     "dotenv": "^16.3.1",
+    "framer-motion": "^10.12.8",
     "mdi-material-ui": "^7.1.0",
     "next": "12.0.4",
+    "next-router": "^1.3.6",
     "node-sass": "npm:sass",
     "nprogress": "^0.2.0",
     "react": "17.0.2",
@@ -69,7 +71,6 @@
     "react-popper": "^2.2.5",
     "react-redux": "^8.1.3",
     "redux-thunk": "^2.4.2",
-    "sass": "^1.69.5",
     "ts-node": "^10.9.1"
   },
   "devDependencies": {
@@ -91,7 +92,8 @@
     "eslint-plugin-import": "^2.25.4",
     "next-transpile-modules": "^9.0.0",
     "prettier": "2.5.1",
-    "typescript": "4.5.2",
-    "sass-loader": "6.0.6"
+    "sass": "^1.69.5",
+    "sass-loader": "6.0.6",
+    "typescript": "4.5.2"
   }
 }

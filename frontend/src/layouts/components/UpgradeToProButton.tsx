@@ -11,6 +11,7 @@ import CardContent from '@mui/material/CardContent'
 
 // ** Third Party Imports
 import { usePopper } from 'react-popper'
+import './component.scss'
 
 const BuyNowButton = () => {
   // ** States
