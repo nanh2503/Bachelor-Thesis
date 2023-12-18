@@ -6,12 +6,12 @@ const UploadPage: React.FC = () => {
   const router = useRouter();
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
 
+  console.log('setSelectedFiles-upload: ', selectedFiles);
   useEffect(() => {
     if (selectedFiles.length > 0) {
-      const fileNames = selectedFiles.map(file => file.name).join(','); // Chuyển mảng tên file thành chuỗi, cách nhau bởi dấu ","
       router.push({
         pathname: '/pages/review',
-        query: { selectedFiles: fileNames }, // Truyền chuỗi tên file qua query parameter
+        query: { selectedFiles: selectedFiles.map(file => URL.createObjectURL(file)) },
       });
     }
   }, [selectedFiles, router]);
