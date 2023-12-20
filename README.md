@@ -14,3 +14,7 @@ yarn/ yarn install/ npm install
 # Run the project
 Backend: yarn dev/ npm run dev
 Frontend: yarn dev/ npm run dev
+
+# Functions in project:
+Log in, Sign in, Log out.
+Upload images, Review images.
