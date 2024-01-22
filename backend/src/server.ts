@@ -3,6 +3,7 @@ import bodyParser from "body-parser"
 import * as dotenv from "dotenv"
 import { webRoutes } from "./routes/web"
 import connectDB from "./configs/connectDB";
+import { errorHandler } from "./middlewares/error";
 
 dotenv.config();
 
@@ -32,6 +33,8 @@ app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }))
 webRoutes(app)
 connectDB()
+
+app.use(errorHandler)
 
 let port = process.env.PORT;
 

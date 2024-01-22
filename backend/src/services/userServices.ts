@@ -1,17 +1,5 @@
+import { UserData } from "../controllers/userController";
 import User from "../models/userModels";
-
-interface User {
-    username: string;
-    email: string;
-    password: string;
-    cfPassword: string;
-}
-
-export interface UserData {
-    errCode: number,
-    errMessage: string,
-    user?: User,
-}
 
 export const handleUserLogin = (email: string, password: string): Promise<UserData> => {
     return new Promise(async (resolve, reject) => {
@@ -77,9 +65,9 @@ export const handleUserRegister = (username: string, email: string, password: st
 
                     await newUser.save();
 
-                    userData.errCode = 0,
-                        userData.errMessage = 'Registration successful!',
-                        userData.user = newUser.toObject();
+                    userData.errCode = 0;
+                    userData.errMessage = 'Registration successful!';
+                    userData.user = newUser.toObject();
                 } else {
                     userData.errCode = 2;
                     userData.errMessage = "Password and confirm password are not the same.";

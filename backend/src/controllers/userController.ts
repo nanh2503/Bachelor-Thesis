@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { handleUserLogin, handleUserRegister } from "../services/userServices";
 
-interface User {
+interface UserInterface {
     username: string;
     email: string;
     password: string;
@@ -11,7 +11,7 @@ interface User {
 export interface UserData {
     errCode: number;
     errMessage: string;
-    user?: Partial<User>;
+    user?: Partial<UserInterface>;
 }
 
 export const handleLogin = async (req: Request, res: Response): Promise<void> => {
@@ -25,7 +25,7 @@ export const handleLogin = async (req: Request, res: Response): Promise<void> =>
             errMessage: 'Missing inputs parameter!',
             user: {}
         };
-        res.status(200).json(errorResponse);
+        res.status(400).json(errorResponse);
         return;
     }
 
@@ -55,7 +55,7 @@ export const handleRegister = async (req: Request, res: Response): Promise<void>
             errMessage: 'Missing inputs parameter!',
             user: {}
         };
-        res.status(200).json(response);
+        res.status(400).json(response);
         return;
     } else {
         let userData = await handleUserRegister(username, email, password, cfPassword);

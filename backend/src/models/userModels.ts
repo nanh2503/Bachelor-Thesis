@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-interface UserInterface {
+export interface UserInterface {
     username: string,
     email: string,
     password: string,
@@ -10,33 +10,33 @@ interface UserInterface {
 }
 
 const schema = new mongoose.Schema<UserInterface>({
-    username:{
+    username: {
         type: String,
         required: true
     },
-    email:{
+    email: {
         type: String,
         required: true,
         unique: true,
     },
-    password:{
+    password: {
         type: String,
         required: true
     },
-    phonenum:{
+    phonenum: {
         type: String,
         required: false
     },
-    image:{
+    image: {
         type: String,
         required: false
     },
-    avatar:{
+    avatar: {
         type: String,
         required: false
     },
 })
 
-const User = mongoose.models.user || mongoose.model<UserInterface>('user',schema)
+const User = mongoose.models.user || mongoose.model<UserInterface>('user', schema)
 
 export default User;
