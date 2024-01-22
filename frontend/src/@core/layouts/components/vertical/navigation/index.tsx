@@ -69,8 +69,6 @@ const Navigation = (props: Props) => {
   const [currentActiveGroup, setCurrentActiveGroup] = useState<string[]>([])
   const {isLoggedIn} = useSelector((state) => state.loginState)
 
-  console.log('isLoggedIn: ',isLoggedIn);
-
   // ** Ref
   const shadowRef = useRef(null)
 

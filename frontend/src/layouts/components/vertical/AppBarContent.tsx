@@ -37,8 +37,6 @@ const AppBarContent = (props: Props) => {
   const textFieldWidth = isLargeScreen ? '500px' : '300px'
   const { isLoggedIn } = useSelector((state) => state.loginState)
 
-  console.log('settings: ', settings);
-
   return (
     <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
       <Box className='actions-left' sx={{ mr: 2, display: 'flex', alignItems: 'center' }}>

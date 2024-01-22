@@ -1,10 +1,10 @@
 import { combineReducers } from "redux";
-import loginSlice, { LoginState } from "../slices/loginSlice";
+import loginReducer, { LoginState } from "../slices/loginSlice";
 
-export type AppState = {
+export type RootState = {
     loginState: LoginState;
 }
 
-export const rootReducers = combineReducers<AppState>({
-    loginState: loginSlice
-})
+export const rootReducers = combineReducers<RootState>({
+    loginState: loginReducer
+});

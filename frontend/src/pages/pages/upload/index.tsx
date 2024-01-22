@@ -6,12 +6,20 @@ const UploadPage: React.FC = () => {
   const router = useRouter();
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
 
-  console.log('setSelectedFiles-upload: ', selectedFiles);
   useEffect(() => {
     if (selectedFiles.length > 0) {
+      const imageFiles = selectedFiles.filter(file => file.type.startsWith('image/'));
+      const videoFiles = selectedFiles.filter(file => file.type.startsWith('video/'));
+
+      const imageUrls = imageFiles.map(file => ({ type: 'image', url: URL.createObjectURL(file) }));
+      const videoUrls = videoFiles.map(file => ({ type: 'video', url: URL.createObjectURL(file) }));
+
       router.push({
         pathname: '/pages/review',
-        query: { selectedFiles: selectedFiles.map(file => URL.createObjectURL(file)) },
+        query: {
+          images: imageUrls.map(file => file.url),
+          videos: videoUrls.map(file => file.url),
+        },
       });
     }
   }, [selectedFiles, router]);
