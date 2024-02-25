@@ -36,11 +36,12 @@ import BlankLayout from 'src/@core/layouts/BlankLayout'
 
 // ** Demo Imports
 import FooterIllustrationsV1 from 'src/views/pages/auth/FooterIllustration'
-import { handleLoginService } from 'src/services/userServices'
+import { handleFetchData, handleLoginService } from 'src/services/userServices'
 import { AxiosError, AxiosResponse } from 'axios'
 import { useDispatch } from 'src/app/hooks'
 import { setUser } from 'src/app/redux/slices/loginSlice'
 import { useRouter } from 'next/router'
+import { setFileList } from 'src/app/redux/slices/fileSlice'
 
 interface State {
   email: string,
@@ -97,6 +98,17 @@ const LoginPage = () => {
     event.preventDefault()
   }
 
+  const fetchData = async (user: string) => {
+    console.log('user: ', user);
+    try {
+      const response = await handleFetchData(user);
+
+      return response.data.file;
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
   const handleLogin = async () => {
     console.log('values: ', values.email);
     try {
@@ -111,6 +123,8 @@ const LoginPage = () => {
       }
       if (data && data.errCode === 0) {
         dispatch(setUser(data.user))
+        const fileList = await fetchData(data.user.username)
+        dispatch(setFileList(fileList))
         router.push("/")
         console.log("Login succeed!")
       }

@@ -24,6 +24,7 @@ import MessageOutline from 'mdi-material-ui/MessageOutline'
 import HelpCircleOutline from 'mdi-material-ui/HelpCircleOutline'
 import { logoutUser } from 'src/app/redux/slices/loginSlice'
 import { useDispatch } from 'src/app/hooks'
+import { setFileList } from 'src/app/redux/slices/fileSlice'
 
 // ** Styled Components
 export const BadgeContentSpan = styled('span')(({ theme }) => ({
@@ -55,6 +56,7 @@ const UserDropdown = () => {
 
   const handleLogOut = () => {
     dispatch(logoutUser())
+    dispatch(setFileList([]))
   }
 
   const styles = {

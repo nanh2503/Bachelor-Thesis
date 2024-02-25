@@ -1,17 +1,21 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { Input, Button } from '@mui/material';
-import { handleGetSignatureForUpload, handleUploadBackendService, handleUploadCloudService } from 'src/services/userServices';
+import { handleFetchData, handleGetSignatureForUpload, handleUploadBackendService, handleUploadCloudService } from 'src/services/userServices';
 import { ThreeDots } from 'react-loader-spinner';
+import { useDispatch, useSelector } from 'src/app/hooks';
+import { updateFileList } from 'src/app/redux/slices/fileSlice';
 
 const ReviewPage = () => {
     const router = useRouter();
     const [images, setImages] = useState<File[]>([])
     const [videos, setVideos] = useState<File[]>([])
     const [reviewFiles, setReviewFiles] = useState<{ type: string; url: string }[]>([]);
-    const [titles, setTitles] = useState<string[]>([]);
+    const [titles, setTitles] = useState<string>('');
     const [descriptions, setDescriptions] = useState<string[]>([]);
     const [loading, setLoading] = useState(false);
+    const user = useSelector((state) => state.loginState.user)
+    const dispatch = useDispatch()
 
     useEffect(() => {
         const fetchFiles = async () => {
@@ -74,10 +78,8 @@ const ReviewPage = () => {
         fetchFiles();
     }, [router.query]);
 
-    const handleTitleChange = (index: number, value: string) => {
-        const newTitles = [...titles];
-        newTitles[index] = value;
-        setTitles(newTitles);
+    const handleTitleChange = (value: string) => {
+        setTitles(value);
     };
 
     const handleDescriptionChange = (index: number, value: string) => {
@@ -86,46 +88,34 @@ const ReviewPage = () => {
         setDescriptions(newDescriptions);
     };
 
-    const uploadFile = async (type: string, timestamp: number, signature: string) => {
-        const data = new FormData();
+    const uploadFile = async (type: string, timestamp: number, signature: string, files: File[]) => {
         const folder = type === 'image' ? 'images' : 'videos';
-
-        if (type === 'image' && !!images) {
-            images.map((image) => {
-                data.append("file", image)
-            })
-        } else if (type === 'video' && !!videos) {
-            videos.map((video) => {
-                data.append("file", video)
-
-            })
-        }
-        data.append("timestamp", timestamp.toString())
-        data.append("signature", signature)
-
-        const apiKey = process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY;
-
-        if (apiKey) {
-            data.append("api_key", apiKey)
-        }
-        data.append("folder", folder);
-
-        data.forEach((value, key) => {
-            console.log(`${key}: ${value}`);
-        });
 
         try {
             const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
             const resourceType = type === 'image' ? 'image' : 'video';
-            const api = `https://api.cloudinary.com/v1_1/${cloudName}/${resourceType}/upload`;
-            console.log('api: ', api);
-            const res = await handleUploadCloudService(api, data);
-            const { secure_url } = res.data;
-            console.log("secure_url: ", res);
 
-            return secure_url;
+            const uploadPromises = files.map(async (file, index) => {
+                const data = new FormData();
+                data.append("file", file);
+                data.append("timestamp", timestamp.toString());
+                data.append("signature", signature);
+                data.append("api_key", process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY || '');
+                data.append("folder", folder);
+
+                const api = `https://api.cloudinary.com/v1_1/${cloudName}/${resourceType}/upload`;
+                const res = await handleUploadCloudService(api, data);
+                const { secure_url } = res.data;
+
+                return secure_url;
+            });
+
+            const uploadedUrls = await Promise.all(uploadPromises);
+
+            return uploadedUrls;
         } catch (error) {
-            console.error(error)
+            console.error(error);
+            throw new Error("Failed to upload files");
         }
     }
 
@@ -139,8 +129,19 @@ const ReviewPage = () => {
         }
     }
 
+    const fetchNewestData = async (arg: string) => {
+        try {
+          const response = await handleFetchData(arg);
+    
+          return response.data.file;
+        } catch (error) {
+          console.error(error);
+        }
+      }
+
     const handleAddImages = async (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
+
         try {
             setLoading(true);
 
@@ -151,20 +152,32 @@ const ReviewPage = () => {
             const { timestamp: videoTimestamp, signature: videoSignature } = await getSignatureForUpload('videos');
 
             //Upload image file
-            const imageUrl = await uploadFile('image', imageTimestamp, imageSignature);
+            const imageUrl = await uploadFile('image', imageTimestamp, imageSignature, images);
+            console.log('imageUrl: ', imageUrl);
 
             //Upload video file
-            const videoUrl = await uploadFile('video', videoTimestamp, videoSignature);
+            const videoUrl = await uploadFile('video', videoTimestamp, videoSignature, videos);
+            console.log('videoUrl: ', videoUrl);
 
-            //Send backend api request
-            const response = await handleUploadBackendService(imageUrl, videoUrl);
-            console.log(response);
+            const username = user?.username;
+
+            if (!!username) {
+                //Send backend api request
+                const response = await handleUploadBackendService(username, imageUrl, videoUrl, titles, descriptions);
+                console.log(response);
+            }
 
             //Reset states
             setImages([]);
             setVideos([]);
+            setTitles('');
+            setDescriptions([]);
 
             console.log("File Upload success!");
+
+            const newFile = await fetchNewestData('newest')
+            dispatch(updateFileList(newFile))
+
             setLoading(false);
             router.push("/")
         } catch (error) {
@@ -180,8 +193,8 @@ const ReviewPage = () => {
                     <Input
                         type='text'
                         placeholder='Enter title'
-                        value={titles[reviewFiles.length - 1]}
-                        onChange={(e) => handleTitleChange(reviewFiles.length - 1, e.target.value)}
+                        value={titles}
+                        onChange={(e) => handleTitleChange(e.target.value)}
                     />
                 </div>
 

@@ -350,3 +350,15 @@ input {
   box-sizing: border-box; 
   border-radius: 0 0 10px 10px;
 }
+
+.edit-icon,
+.delete-icon {
+  color: #fff; 
+  margin-right: 10px;
+  cursor: pointer;
+  transition: color 0.3s ease-in-out;
+
+  &:hover {
+    color: #ffcc00;
+  }
+}
