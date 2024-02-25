@@ -1,6 +1,6 @@
 import express, { Application } from 'express'
 import { handleLogin, handleRegister } from '../controllers/userController'
-import { handleUpload } from '../controllers/fileController'
+import { deleteData, handleFetchData, handleUpload, updateData } from '../controllers/fileController'
 import { handlegenerateSignature } from '../controllers/signUploadController'
 
 const router = express.Router()
@@ -10,6 +10,9 @@ export const webRoutes = (app: Application) => {
     router.post('/api/register', handleRegister)
     router.post('/api/upload', handleUpload)
     router.post('/api/sign-upload', handlegenerateSignature)
+    router.get('/api/get-file', handleFetchData)
+    router.put('/api/update', updateData)
+    router.delete('/api/delete', deleteData)
     router.get('/', (req, res) => {
         res.send("hello Nganh")
     })
