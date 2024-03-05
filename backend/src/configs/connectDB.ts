@@ -3,10 +3,11 @@ import User from "../models/userModels";
 
 export default async function connectDB() {
     try {
-        const dbUrl = process.env.DATABASE_URL|| '';
+        const dbUrl = process.env.DATABASE_URL || '';
+        console.log('Connection string:', dbUrl);
         await mongoose.connect(dbUrl)
         console.log('Connect to MongoDB successfully')
-    } catch (err) {
+    } catch (err: any) {
         console.log(err)
     }
 }

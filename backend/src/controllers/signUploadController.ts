@@ -17,6 +17,7 @@ export interface SignUploadData {
 
 export const handlegenerateSignature = async (req: Request, res: Response): Promise<void> => {
     const folder = req.body.folder;
+    console.log('check3');
 
     if (!folder) {
         const errorResponse: SignUploadData = {

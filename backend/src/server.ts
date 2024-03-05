@@ -4,17 +4,16 @@ import * as dotenv from "dotenv"
 import { webRoutes } from "./routes/web"
 import connectDB from "./configs/connectDB";
 import { errorHandler } from "./middlewares/error";
+import cors from 'cors';
+
 
 dotenv.config();
 
 let app = express()
 
-const urlReact = process.env.URL_REACT || '';
-console.log('urlReact: ', urlReact);
+app.use(cors())
 
 app.use((req, res, next) => {
-    res.setHeader('Access-Control-Allow-Origin', urlReact);
-
     /**Request methods you wish to allow*/
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
 
