@@ -91,8 +91,10 @@ export const handleUpdateDataService = async (id: string, title: string, descrip
         } else {
             // Tìm và cập nhật thông tin của ảnh trong mảng images
             const updatedImage = existingData.images.id(id);
+            console.log({ updatedImage });
+            console.log({ existingData });
             if (updatedImage) {
-                updatedImage.title = title;
+                existingData.title = title;
                 updatedImage.description = description;
 
                 // Tạo một đối tượng chỉ chứa những trường mong muốn
@@ -102,11 +104,16 @@ export const handleUpdateDataService = async (id: string, title: string, descrip
                 };
 
                 fileData.file = [updatedImageData];
+
+                console.log(fileData.file);
             } else {
                 fileData.errCode = 0;
                 fileData.errMessage = 'Image not found!';
             }
 
+
+            console.log({ existingData });
+            console.log(existingData.images);
             // Lưu dữ liệu đã cập nhật vào MongoDB
             await existingData.save();
 
