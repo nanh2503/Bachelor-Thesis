@@ -33,5 +33,6 @@ export const updateData = (id: string, title: string, description: string) => {
 }
 
 export const deleteData = (id: string) => {
+    console.log("id delete: ", id);
     return axios.delete('/api/delete', { params: { id } });
 }

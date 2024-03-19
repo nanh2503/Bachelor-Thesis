@@ -88,7 +88,7 @@ const Dashboard = () => {
   const handleDeleteImage = async () => {
     try {
 
-      // Gọi hàm xóa ảnh trong Redux (hoặc nơi khác tùy thuộc vào cách bạn đã triển khai)
+      console.log({deleteId});
       dispatch(deleteFile({deleteId}));
       await deleteData(deleteId)
 
