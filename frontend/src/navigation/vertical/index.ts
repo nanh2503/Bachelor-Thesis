@@ -1,6 +1,5 @@
 // ** Icon imports
-import HomeOutline from 'mdi-material-ui/HomeOutline'
-import AccountCogOutline from 'mdi-material-ui/AccountCogOutline'
+import { HomeOutline, AccountCogOutline } from 'mdi-material-ui'
 import PeopleIcon from '@mui/icons-material/People'
 import GroupsIcon from '@mui/icons-material/Groups'
 

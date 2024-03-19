@@ -1,7 +1,7 @@
-import axios, {AxiosInstance} from "axios"
+import axios, { AxiosInstance } from "axios"
 
 const instance: AxiosInstance = axios.create({
-    baseURL: 'http://localhost:8080',
+    baseURL: process.env.NEXT_PUBLIC_BACKEND_URL,
 })
 
 export default instance

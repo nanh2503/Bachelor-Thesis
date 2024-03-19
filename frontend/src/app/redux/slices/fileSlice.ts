@@ -4,14 +4,12 @@ export interface Image {
     _id: string,
     imageUrl: string,
     description: string,
-    title: string
 }
 
 export interface Video {
     _id: string,
     videoUrl: string,
     description: string,
-    title: string
 }
 
 export interface FileList {
@@ -42,49 +40,40 @@ const fileListState = createSlice({
                 file: [...state.file, ...action.payload]
             };
         },
-        updateFile: (state, action: PayloadAction<{ id: string; title: string; description: string }>) => {
+        updateFile: (state, action: PayloadAction<{ editId: string; editTitle: string; editDescription: string }>) => {
+            const updatedFiles = state.file.map(file => {
+                if (file.images.some(image => image._id === action.payload.editId)) {
+                    return {
+                        ...file,
+                        title: action.payload.editTitle,
+                        images: file.images.map(image => {
+                            if (image._id === action.payload.editId) {
+                                return {
+                                    ...image,
+                                    description: action.payload.editDescription,
+                                }
+                            }
+                            return image;
+                        })
+                    }
+                }
+
+                return file;
+            })
+
+            console.log({ updatedFiles });
             return {
                 ...state,
-                file: state.file.map(file => {
-                    // Lọc ra file chứa ảnh cần cập nhật
-                    if (file.images.some(image => image._id === action.payload.id)) {
-                        // Cập nhật thông tin cho ảnh trong mảng images
-                        return {
-                            ...file,
-                            images: file.images.map(image => {
-                                if (image._id === action.payload.id) {
-                                    console.log('image: ', JSON.stringify(image));
-                                    console.log('title chedck: ', action.payload.title);
-                                    console.log('description chedck: ', action.payload.description);
-
-                                    // Cập nhật thông tin cho ảnh
-                                    const updatedImage = {
-                                        ...image,
-                                        title: action.payload.title,
-                                        description: action.payload.description,
-                                    };
-
-                                    console.log('updatedImage: ', JSON.stringify(updatedImage));
-
-                                    return updatedImage;
-                                }
-
-                                return image;
-                            }),
-                        };
-                    }
-
-                    return file;
-                }),
+                file: updatedFiles
             };
         },
-        deleteFile: (state, action: PayloadAction<{ id: string }>) => {
-            const { id } = action.payload;
+        deleteFile: (state, action: PayloadAction<{ deleteId: string }>) => {
+            const { deleteId } = action.payload;
 
             // Sử dụng map để tạo mảng mới, áp dụng filter cho mỗi đối tượng file
             state.file = state.file.map(file => ({
                 ...file,
-                images: file.images ? file.images.filter(image => image._id !== id) : file.images,
+                images: file.images ? file.images.filter(image => image._id !== deleteId) : file.images,
             }));
         }
     }

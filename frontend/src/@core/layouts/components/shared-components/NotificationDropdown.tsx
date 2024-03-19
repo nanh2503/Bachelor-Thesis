@@ -2,16 +2,23 @@
 import { useState, SyntheticEvent, Fragment, ReactNode } from 'react'
 
 // ** MUI Imports
-import Box from '@mui/material/Box'
-import Chip from '@mui/material/Chip'
-import Button from '@mui/material/Button'
-import IconButton from '@mui/material/IconButton'
+import {
+  Box,
+  Chip,
+  Button,
+  IconButton,
+  useMediaQuery,
+  Menu as MuiMenu,
+  Avatar as MuiAvatar,
+  MenuItem as MuiMenuItem,
+  Typography,
+  MenuProps,
+  AvatarProps,
+  MenuItemProps,
+  TypographyProps
+} from '@mui/material';
+
 import { styled, Theme } from '@mui/material/styles'
-import useMediaQuery from '@mui/material/useMediaQuery'
-import MuiMenu, { MenuProps } from '@mui/material/Menu'
-import MuiAvatar, { AvatarProps } from '@mui/material/Avatar'
-import MuiMenuItem, { MenuItemProps } from '@mui/material/MenuItem'
-import Typography, { TypographyProps } from '@mui/material/Typography'
 
 // ** Icons Imports
 import BellOutline from 'mdi-material-ui/BellOutline'

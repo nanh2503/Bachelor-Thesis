@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Input } from '@mui/material';
 import { useRouter } from 'next/router';
 
-const UploadPage: React.FC = () => {
+const UploadForm: React.FC = () => {
   const router = useRouter();
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
 
@@ -15,7 +15,7 @@ const UploadPage: React.FC = () => {
       const videoUrls = videoFiles.map(file => ({ type: 'video', url: URL.createObjectURL(file) }));
 
       router.push({
-        pathname: '/pages/review',
+        pathname: '/review',
         query: {
           images: imageUrls.map(file => file.url),
           videos: videoUrls.map(file => file.url),
@@ -87,4 +87,4 @@ const UploadPage: React.FC = () => {
   );
 };
 
-export default UploadPage;
+export default UploadForm;

@@ -25,7 +25,7 @@ const Tree1Img = styled('img')(() => ({
 }))
 
 const Tree2Img = styled('img')(() => ({
-  right: 0,
+  left: '194px',
   bottom: 0,
   position: 'absolute'
 }))

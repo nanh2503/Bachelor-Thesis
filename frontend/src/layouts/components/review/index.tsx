@@ -6,7 +6,7 @@ import { ThreeDots } from 'react-loader-spinner';
 import { useDispatch, useSelector } from 'src/app/hooks';
 import { updateFileList } from 'src/app/redux/slices/fileSlice';
 
-const ReviewPage = () => {
+const ReviewForm = () => {
     const router = useRouter();
     const [images, setImages] = useState<File[]>([])
     const [videos, setVideos] = useState<File[]>([])
@@ -252,4 +252,4 @@ const ReviewPage = () => {
     );
 };
 
-export default ReviewPage;
+export default ReviewForm;

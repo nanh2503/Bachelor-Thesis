@@ -3,8 +3,8 @@ import { ReactNode } from 'react'
 
 // ** MUI Imports
 import { styled, useTheme } from '@mui/material/styles'
-import MuiAppBar, { AppBarProps } from '@mui/material/AppBar'
-import MuiToolbar, { ToolbarProps } from '@mui/material/Toolbar'
+
+import { AppBar as MuiAppBar, Toolbar as MuiToolbar, AppBarProps, ToolbarProps } from '@mui/material';
 
 // ** Type Import
 import { Settings } from 'src/@core/context/settingsContext'

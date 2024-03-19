@@ -51,7 +51,6 @@ const ThemeComponent = (props: Props) => {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <GlobalStyles styles={() => GlobalStyling(theme) as any} />
       {children}
     </ThemeProvider>
   )

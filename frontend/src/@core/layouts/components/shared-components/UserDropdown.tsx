@@ -5,25 +5,32 @@ import { useState, SyntheticEvent, Fragment } from 'react'
 import { useRouter } from 'next/router'
 
 // ** MUI Imports
-import Box from '@mui/material/Box'
-import Menu from '@mui/material/Menu'
-import Badge from '@mui/material/Badge'
-import Avatar from '@mui/material/Avatar'
-import Divider from '@mui/material/Divider'
-import MenuItem from '@mui/material/MenuItem'
+import {
+  Box,
+  Menu,
+  Badge,
+  Avatar,
+  Divider,
+  MenuItem,
+  Typography
+} from '@mui/material';
+
 import { styled } from '@mui/material/styles'
-import Typography from '@mui/material/Typography'
 
 // ** Icons Imports
-import CogOutline from 'mdi-material-ui/CogOutline'
-import CurrencyUsd from 'mdi-material-ui/CurrencyUsd'
-import EmailOutline from 'mdi-material-ui/EmailOutline'
-import LogoutVariant from 'mdi-material-ui/LogoutVariant'
-import AccountOutline from 'mdi-material-ui/AccountOutline'
-import MessageOutline from 'mdi-material-ui/MessageOutline'
-import HelpCircleOutline from 'mdi-material-ui/HelpCircleOutline'
+
+import {
+  CogOutline,
+  CurrencyUsd,
+  EmailOutline,
+  LogoutVariant,
+  AccountOutline,
+  MessageOutline,
+  HelpCircleOutline
+} from 'mdi-material-ui';
+
 import { logoutUser } from 'src/app/redux/slices/loginSlice'
-import { useDispatch } from 'src/app/hooks'
+import { useDispatch, useSelector } from 'src/app/hooks'
 import { setFileList } from 'src/app/redux/slices/fileSlice'
 
 // ** Styled Components
@@ -42,6 +49,8 @@ const UserDropdown = () => {
   // ** Hooks
   const router = useRouter()
   const dispatch = useDispatch()
+
+  const user = useSelector((state) => state.loginState.user)
 
   const handleDropdownOpen = (event: SyntheticEvent) => {
     setAnchorEl(event.currentTarget)
@@ -107,9 +116,9 @@ const UserDropdown = () => {
               <Avatar alt='John Doe' src='/images/avatars/1.png' sx={{ width: '2.5rem', height: '2.5rem' }} />
             </Badge>
             <Box sx={{ display: 'flex', marginLeft: 3, alignItems: 'flex-start', flexDirection: 'column' }}>
-              <Typography sx={{ fontWeight: 600 }}>John Doe</Typography>
+              <Typography sx={{ fontWeight: 600 }}>{user?.username}</Typography>
               <Typography variant='body2' sx={{ fontSize: '0.8rem', color: 'text.disabled' }}>
-                Admin
+                {user?.email}
               </Typography>
             </Box>
           </Box>

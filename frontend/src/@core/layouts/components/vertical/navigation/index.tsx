@@ -67,7 +67,9 @@ const Navigation = (props: Props) => {
   // ** States
   const [groupActive, setGroupActive] = useState<string[]>([])
   const [currentActiveGroup, setCurrentActiveGroup] = useState<string[]>([])
-  const {isLoggedIn} = useSelector((state) => state.loginState)
+  const isLoggedIn = useSelector((state) => state.loginState.isLoggedIn)
+
+  const user = useSelector((state) => state.loginState.user)
 
   // ** Ref
   const shadowRef = useRef(null)
@@ -110,25 +112,25 @@ const Navigation = (props: Props) => {
   return (
     <Drawer {...props}>
       <VerticalNavHeader {...props} />
-        { isLoggedIn && (
+      {isLoggedIn && (
         <Box sx={{ pt: 2, pb: 3, px: 4, ml: 3, mt: 2 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Badge
-            overlap='circular'
-            badgeContent={<BadgeContentSpan />}
-            anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-          >
-            <Avatar alt='John Doe' src='/images/avatars/1.png' sx={{ width: '2.5rem', height: '2.5rem' }} />
-          </Badge>
-          <Box sx={{ display: 'flex', marginLeft: 3, alignItems: 'flex-start', flexDirection: 'column' }}>
-            <Typography sx={{ fontWeight: 600 }}>John Doe</Typography>
-            <Typography variant='body2' sx={{ fontSize: '0.8rem', color: 'text.disabled' }}>
-              Admin
-            </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <Badge
+              overlap='circular'
+              badgeContent={<BadgeContentSpan />}
+              anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+            >
+              <Avatar alt='{user?.username}' src='/images/avatars/1.png' sx={{ width: '2.5rem', height: '2.5rem' }} />
+            </Badge>
+            <Box sx={{ display: 'flex', marginLeft: 3, alignItems: 'flex-start', flexDirection: 'column' }}>
+              <Typography sx={{ fontWeight: 600 }}>{user?.username}</Typography>
+              <Typography variant='body2' sx={{ fontSize: '0.8rem', color: 'text.disabled' }}>
+                {user?.email}
+              </Typography>
+            </Box>
           </Box>
         </Box>
-        </Box>
-        )}
+      )}
       <StyledBoxForShadow
         ref={shadowRef}
         sx={{
@@ -143,14 +145,14 @@ const Navigation = (props: Props) => {
         <ScrollWrapper
           {...(hidden
             ? {
-                onScroll: (container: any) => scrollMenu(container),
-                sx: { height: '100%', overflowY: 'auto', overflowX: 'hidden' }
-              }
+              onScroll: (container: any) => scrollMenu(container),
+              sx: { height: '100%', overflowY: 'auto', overflowX: 'hidden' }
+            }
             : {
-                options: { wheelPropagation: false },
-                onScrollY: (container: any) => scrollMenu(container),
-                containerRef: (ref: any) => handleInfiniteScroll(ref)
-              })}
+              options: { wheelPropagation: false },
+              onScrollY: (container: any) => scrollMenu(container),
+              containerRef: (ref: any) => handleInfiniteScroll(ref)
+            })}
         >
           {beforeVerticalNavMenuContent ? beforeVerticalNavMenuContent(props) : null}
           <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>

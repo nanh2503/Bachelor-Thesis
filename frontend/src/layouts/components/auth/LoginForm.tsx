@@ -1,32 +1,38 @@
 // ** React Imports
-import { ChangeEvent, MouseEvent, ReactNode, useState } from 'react'
+import { ChangeEvent, MouseEvent, PropsWithoutRef, ReactNode, useState } from 'react'
 
 // ** Next Imports
 import Link from 'next/link'
 
 // ** MUI Components
-import Box from '@mui/material/Box'
-import Button from '@mui/material/Button'
-import Divider from '@mui/material/Divider'
-import Checkbox from '@mui/material/Checkbox'
-import InputLabel from '@mui/material/InputLabel'
-import Typography from '@mui/material/Typography'
-import IconButton from '@mui/material/IconButton'
-import CardContent from '@mui/material/CardContent'
-import FormControl from '@mui/material/FormControl'
-import OutlinedInput from '@mui/material/OutlinedInput'
-import { styled } from '@mui/material/styles'
-import MuiCard, { CardProps } from '@mui/material/Card'
-import InputAdornment from '@mui/material/InputAdornment'
-import MuiFormControlLabel, { FormControlLabelProps } from '@mui/material/FormControlLabel'
+import {
+  Box,
+  Button,
+  Divider,
+  Checkbox,
+  InputLabel,
+  Typography,
+  IconButton,
+  CardContent,
+  FormControl,
+  OutlinedInput,
+  styled,
+  Card as MuiCard,
+  CardProps,
+  InputAdornment,
+  FormControlLabel as MuiFormControlLabel,
+  FormControlLabelProps
+} from '@mui/material';
 
 // ** Icons Imports
-import Google from 'mdi-material-ui/Google'
-import Github from 'mdi-material-ui/Github'
-import Twitter from 'mdi-material-ui/Twitter'
-import Facebook from 'mdi-material-ui/Facebook'
-import EyeOutline from 'mdi-material-ui/EyeOutline'
-import EyeOffOutline from 'mdi-material-ui/EyeOffOutline'
+import {
+  Google,
+  Github,
+  Twitter,
+  Facebook,
+  EyeOutline,
+  EyeOffOutline
+} from 'mdi-material-ui';
 
 // ** Configs
 import themeConfig from 'src/configs/themeConfig'
@@ -69,7 +75,11 @@ const FormControlLabel = styled(MuiFormControlLabel)<FormControlLabelProps>(({ t
   }
 }))
 
-const LoginPage = () => {
+const LoginForm = (props: PropsWithoutRef<{
+  onChangeViewRegister?: () => void;
+}>) => {
+  const { onChangeViewRegister = () => { } } = props;
+
   // ** State
   const [values, setValues] = useState<State>({
     email: '',
@@ -142,7 +152,7 @@ const LoginPage = () => {
   console.log('err: ', values.errMessage);
 
   return (
-    <Box className='content-center'>
+    <Box className='content-center' sx={{minWidth: '100%'}}>
       <Card sx={{ zIndex: 1 }}>
         <CardContent sx={{ padding: theme => `${theme.spacing(1, 9, 7)} !important` }}>
           <Box sx={{ mb: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -239,10 +249,8 @@ const LoginPage = () => {
               <Typography variant='body2' sx={{ marginRight: 2 }}>
                 New on our platform?
               </Typography>
-              <Typography variant='body2'>
-                <Link passHref href='/pages/register'>
-                  <LinkStyled>Create an account</LinkStyled>
-                </Link>
+              <Typography variant='body2' style={{ cursor: 'pointer', color: "#507DD4" }} onClick={onChangeViewRegister}>
+                Create an account
               </Typography>
             </Box>
             <Divider sx={{ my: 5 }}>or</Divider>
@@ -278,6 +286,6 @@ const LoginPage = () => {
   )
 }
 
-LoginPage.getLayout = (page: ReactNode) => <BlankLayout>{page}</BlankLayout>
+LoginForm.getLayout = (page: ReactNode) => <BlankLayout>{page}</BlankLayout>
 
-export default LoginPage
+export default LoginForm

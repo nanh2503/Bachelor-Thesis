@@ -2,7 +2,7 @@
 import { ReactNode } from 'react'
 
 // ** MUI Imports
-import Box from '@mui/material/Box'
+import {Box} from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 
 // ** Type Import

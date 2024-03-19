@@ -1,15 +1,17 @@
 // ** MUI Imports
-import Box from '@mui/material/Box'
-import { Theme } from '@mui/material/styles'
-import TextField from '@mui/material/TextField'
-import IconButton from '@mui/material/IconButton'
-import useMediaQuery from '@mui/material/useMediaQuery'
-import InputAdornment from '@mui/material/InputAdornment'
-import Button from '@mui/material/Button'
+import {
+  Box,
+  Theme,
+  TextField,
+  IconButton,
+  useMediaQuery,
+  InputAdornment,
+  Button,
+  Typography
+} from '@mui/material';
 
 // ** Icons Imports
-import Menu from 'mdi-material-ui/Menu'
-import Magnify from 'mdi-material-ui/Magnify'
+import { Menu, Magnify } from 'mdi-material-ui';
 
 // ** Type Import
 import { Settings } from 'src/@core/context/settingsContext'
@@ -32,8 +34,8 @@ const AppBarContent = (props: Props) => {
   const { hidden, settings, saveSettings, toggleNavVisibility } = props
 
   // ** Hook
-  const hiddenSm = useMediaQuery((theme: Theme) => theme.breakpoints.down('sm'))
-  const isLargeScreen = useMediaQuery((theme: Theme) => theme.breakpoints.up('lg'))
+  const hiddenSm = useMediaQuery((theme: Theme) => theme.breakpoints.down('md'))
+  const isLargeScreen = useMediaQuery((theme: Theme) => theme.breakpoints.up('xl'))
   const textFieldWidth = isLargeScreen ? '500px' : '300px'
   const { isLoggedIn } = useSelector((state) => state.loginState)
 
@@ -51,7 +53,7 @@ const AppBarContent = (props: Props) => {
         ) : null}
         <Button
           variant='contained'
-          href="/pages/upload"
+          href="/upload"
           sx={{
             backgroundColor: '#1bb76e',
             borderRadius: '3px',
@@ -62,7 +64,14 @@ const AppBarContent = (props: Props) => {
             <img src="https://s.imgur.com/desktop-assets/desktop-assets/icon-new-post.da483e9d9559c3b4e912.svg" />
           }
         >
-          {isLargeScreen ? "New post" : null}
+          <Typography
+            sx={{
+              color: 'white',
+              fontSize: isLargeScreen ? '16px' : !hiddenSm ? '14px' : '0px'
+            }}
+          >
+            New Post
+          </Typography>
         </Button>
 
         <TextField
@@ -85,17 +94,10 @@ const AppBarContent = (props: Props) => {
         <Box sx={{ ml: isLargeScreen ? 50 : 0 }}>
           <Button
             variant='contained'
-            href='/pages/login'
+            href='/login'
             sx={{ color: 'white', backgroundColor: 'green', border: 'none', ml: 10, mt: 3 }}
           >
-            Sign in
-          </Button>
-          <Button
-            variant='contained'
-            href='/pages/register'
-            sx={{ color: 'white', backgroundColor: 'orange', border: 'none', ml: 5, mt: 3 }}
-          >
-            Sign up
+            LOGIN
           </Button>
         </Box>
       )}
