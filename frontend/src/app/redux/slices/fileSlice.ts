@@ -53,6 +53,7 @@ const fileListState = createSlice({
                                     description: action.payload.editDescription,
                                 }
                             }
+
                             return image;
                         })
                     }
@@ -61,7 +62,6 @@ const fileListState = createSlice({
                 return file;
             })
 
-            console.log({ updatedFiles });
             return {
                 ...state,
                 file: updatedFiles

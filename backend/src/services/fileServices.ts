@@ -2,9 +2,6 @@ import { FileData } from "../controllers/fileController";
 import File from "../models/fileModels";
 
 export const handleUploadFile = (username: string, imageUrl: string[], videoUrl: string[], title: string, description: string[]): Promise<FileData> => {
-
-    console.log('imageUrl: ', imageUrl);
-    console.log('videoUrl: ', videoUrl);
     return new Promise(async (resolve, reject) => {
         try {
             let fileData: FileData = { errCode: -1, errMessage: '' };
@@ -50,8 +47,6 @@ export const handleFetchDataService = async (arg: string): Promise<FileData> => 
             fileData.errMessage = 'Get File successful!';
             fileData.file = fileList;
         } else if (arg === 'newest') {
-            console.log('checkkkk');
-
             const fileList = await File.find({}, { _id: 1, images: 1, videos: 1, title: 1 })
                 .sort({ createdAt: -1 })
                 .limit(1);
@@ -62,7 +57,6 @@ export const handleFetchDataService = async (arg: string): Promise<FileData> => 
         }
         else {
             const fileList = await File.find({ username: arg }, { _id: 1, images: 1, videos: 1, title: 1 });
-            console.log('fileList: ', fileList);
 
             fileData.errCode = 0;
             fileData.errMessage = 'Get File successful!';
@@ -91,8 +85,7 @@ export const handleUpdateDataService = async (id: string, title: string, descrip
         } else {
             // Tìm và cập nhật thông tin của ảnh trong mảng images
             const updatedImage = existingData.images.id(id);
-            console.log({ updatedImage });
-            console.log({ existingData });
+
             if (updatedImage) {
                 existingData.title = title;
                 updatedImage.description = description;
@@ -105,15 +98,11 @@ export const handleUpdateDataService = async (id: string, title: string, descrip
 
                 fileData.file = [updatedImageData];
 
-                console.log(fileData.file);
             } else {
                 fileData.errCode = 0;
                 fileData.errMessage = 'Image not found!';
             }
 
-
-            console.log({ existingData });
-            console.log(existingData.images);
             // Lưu dữ liệu đã cập nhật vào MongoDB
             await existingData.save();
 
@@ -135,9 +124,17 @@ export const handleDeleteDataService = async (id: string): Promise<FileData> => 
         // Tìm kiếm dữ liệu theo id
         const existingData = await File.findOne({ 'images._id': id });
 
+        console.log({ existingData });
+
         if (existingData) {
+            console.log('id: ', id);
+            existingData.images.map((image: any, index: any) => {
+                console.log('image id' + index, image._id.toString());
+            })
+
+            console.log(existingData.images.filter((image: any) => image._id.toString() === id));
             // Lọc ra ảnh cần xóa khỏi mảng images
-            existingData.images = existingData.images.filter((image: any) => image._id !== id);
+            existingData.images = existingData.images.filter((image: any) => image._id.toString() !== id);
 
             // Lưu dữ liệu đã cập nhật vào MongoDB
             await existingData.save();

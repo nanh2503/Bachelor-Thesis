@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-import User from "../models/userModels";
 
 export default async function connectDB() {
     try {
@@ -11,11 +10,3 @@ export default async function connectDB() {
         console.log(err)
     }
 }
-
-// const user = new User({
-//     username: 'Nganh',
-//     email: 'anh@gmail.com',
-//     password:'032002',
-// })
-
-// user.save()

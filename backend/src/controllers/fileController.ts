@@ -16,12 +16,6 @@ export const handleUpload = async (req: Request, res: Response): Promise<void> =
     let title = req.body.titles;
     let description = req.body.descriptions;
 
-    console.log('username: ', username);
-    console.log('imageUrl: ', imageUrl);
-    console.log('videoUrl: ', videoUrl);
-    console.log('title: ', title);
-    console.log('description: ', description);
-
     if (!username) {
         const errorResponse: FileData = {
             errCode: 1,
@@ -55,7 +49,6 @@ export const handleUpload = async (req: Request, res: Response): Promise<void> =
 
 export const handleFetchData = async (req: Request, res: Response): Promise<void | File[]> => {
     let arg = req.query.arg;
-    console.log('arg: ', arg);
 
     if (!arg) {
         const errorResponse: FileData = {
@@ -83,8 +76,6 @@ export const updateData = async (req: Request, res: Response): Promise<void | Fi
     let id = req.body.id;
     let title = req.body.title;
     let description = req.body.description;
-
-    console.log('id: ', id);
 
     if (!id) {
         const errorResponse: FileData = {

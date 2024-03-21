@@ -4,9 +4,6 @@ export interface UserInterface {
     username: string,
     email: string,
     password: string,
-    image: string,
-    avatar: string,
-    phonenum: string,
 }
 
 const schema = new mongoose.Schema<UserInterface>({
@@ -22,18 +19,6 @@ const schema = new mongoose.Schema<UserInterface>({
     password: {
         type: String,
         required: true
-    },
-    phonenum: {
-        type: String,
-        required: false
-    },
-    image: {
-        type: String,
-        required: false
-    },
-    avatar: {
-        type: String,
-        required: false
     },
 })
 

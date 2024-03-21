@@ -48,10 +48,10 @@ const ResetButtonStyled = styled(Button)<ButtonProps>(({ theme }) => ({
 
 const TabAccount = () => {
   // ** State
-  const [openAlert, setOpenAlert] = useState<boolean>(true)
   const [imgSrc, setImgSrc] = useState<string>('/images/avatars/1.png')
 
   const user = useSelector((state) => state.loginState.user)
+  const userInfo = useSelector((state)=>state.userInfoState.userInfo)
 
   const onChange = (file: ChangeEvent) => {
     const reader = new FileReader()
@@ -95,7 +95,7 @@ const TabAccount = () => {
             <TextField fullWidth label='Username' placeholder={user?.username} defaultValue={user?.username} />
           </Grid>
           <Grid item xs={12} sm={6}>
-            <TextField fullWidth label='Password' placeholder={user?.password} defaultValue={user?.password} />
+            <TextField fullWidth label='Date of birth' placeholder={userInfo?.dateOfBirth} defaultValue={userInfo?.dateOfBirth} />
           </Grid>
           <Grid item xs={12} sm={6}>
             <TextField
@@ -106,25 +106,6 @@ const TabAccount = () => {
               defaultValue={user?.email}
             />
           </Grid>
-          {openAlert ? (
-            <Grid item xs={12} sx={{ mb: 3 }}>
-              <Alert
-                severity='warning'
-                sx={{ '& a': { fontWeight: 400 } }}
-                action={
-                  <IconButton size='small' color='inherit' aria-label='close' onClick={() => setOpenAlert(false)}>
-                    <Close fontSize='inherit' />
-                  </IconButton>
-                }
-              >
-                <AlertTitle>Your email is not confirmed. Please check your inbox.</AlertTitle>
-                <Link href='/' onClick={(e: SyntheticEvent) => e.preventDefault()}>
-                  Resend Confirmation
-                </Link>
-              </Alert>
-            </Grid>
-          ) : null}
-
           <Grid item xs={12}>
             <Button variant='contained' sx={{ marginRight: 3.5 }}>
               Save Changes
