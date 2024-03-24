@@ -34,7 +34,7 @@ export const handleUserLogin = (email: string, password: string): Promise<UserDa
     })
 }
 
-let checkUserEmail = (email: string) => {
+export const checkUserEmail = (email: string) => {
     return new Promise(async (resolve, reject) => {
         try {
             let user = await User.findOne({ email: email })

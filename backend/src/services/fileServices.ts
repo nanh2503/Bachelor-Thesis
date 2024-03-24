@@ -76,7 +76,10 @@ export const handleUpdateDataService = async (id: string, title: string, descrip
 
         // Tìm file có mảng images chứa phần tử có _id tương ứng
         const existingData = await File.findOne({
-            'images._id': id
+            $or: [
+                { 'images._id': id },
+                { 'videos._id': id }
+            ]
         });
 
         if (!existingData) {
@@ -84,7 +87,7 @@ export const handleUpdateDataService = async (id: string, title: string, descrip
             fileData.errMessage = 'Data not found!';
         } else {
             // Tìm và cập nhật thông tin của ảnh trong mảng images
-            const updatedImage = existingData.images.id(id);
+            const updatedImage = existingData.images.id(id) ?? existingData.videos.id(id);
 
             if (updatedImage) {
                 existingData.title = title;
@@ -122,19 +125,19 @@ export const handleDeleteDataService = async (id: string): Promise<FileData> => 
         let fileData: FileData = { errCode: -1, errMessage: '', file: [] };
 
         // Tìm kiếm dữ liệu theo id
-        const existingData = await File.findOne({ 'images._id': id });
+        const existingData = await File.findOne({
+            $or: [
+                { 'images._id': id },
+                { 'videos._id': id },
+            ]
+        });
 
         console.log({ existingData });
 
         if (existingData) {
-            console.log('id: ', id);
-            existingData.images.map((image: any, index: any) => {
-                console.log('image id' + index, image._id.toString());
-            })
-
-            console.log(existingData.images.filter((image: any) => image._id.toString() === id));
             // Lọc ra ảnh cần xóa khỏi mảng images
             existingData.images = existingData.images.filter((image: any) => image._id.toString() !== id);
+            existingData.videos = existingData.videos.filter((video: any) => video._id.toString() !== id);
 
             // Lưu dữ liệu đã cập nhật vào MongoDB
             await existingData.save();

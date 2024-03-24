@@ -1,13 +1,24 @@
 import mongoose from "mongoose";
 
 export interface UserInfoInterface {
+    email: string,
+    username: string,
     avatar: string,
-    phonenum: string,
-    dateOfBirth: Date,
+    phoneNum: string,
+    birthDate: Date,
+    gender: string
 }
 
 const schema = new mongoose.Schema<UserInfoInterface>({
-    phonenum: {
+    email: {
+        type: String,
+        required: true
+    },
+    username: {
+        type: String,
+        required: true
+    },
+    phoneNum: {
         type: String,
         required: false
     },
@@ -15,10 +26,14 @@ const schema = new mongoose.Schema<UserInfoInterface>({
         type: String,
         required: false
     },
-    dateOfBirth: {
+    birthDate: {
         type: Date,
         required: false
-    }
+    },
+    gender: {
+        type: String,
+        required: false
+    },
 })
 
 const UserInfo = mongoose.models.userInfo || mongoose.model<UserInfoInterface>('userInfo', schema)
