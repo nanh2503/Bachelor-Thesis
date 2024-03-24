@@ -50,7 +50,7 @@ const UserDropdown = () => {
   const router = useRouter()
   const dispatch = useDispatch()
 
-  const user = useSelector((state) => state.loginState.user)
+  const userInfo = useSelector((state)=>state.userInfoState.userInfo)
 
   const handleDropdownOpen = (event: SyntheticEvent) => {
     setAnchorEl(event.currentTarget)
@@ -64,6 +64,7 @@ const UserDropdown = () => {
   }
 
   const handleLogOut = () => {
+    router.push("/")
     dispatch(logoutUser())
     dispatch(setFileList([]))
   }
@@ -92,10 +93,10 @@ const UserDropdown = () => {
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
       >
         <Avatar
-          alt='John Doe'
+          alt='Avatar'
           onClick={handleDropdownOpen}
           sx={{ width: 40, height: 40 }}
-          src='/images/avatars/1.png'
+          src={userInfo?.avatar}
         />
       </Badge>
       <Menu
@@ -113,12 +114,12 @@ const UserDropdown = () => {
               badgeContent={<BadgeContentSpan />}
               anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
             >
-              <Avatar alt='John Doe' src='/images/avatars/1.png' sx={{ width: '2.5rem', height: '2.5rem' }} />
+              <Avatar alt='Avatar' src={userInfo?.avatar} sx={{ width: '2.5rem', height: '2.5rem' }} />
             </Badge>
             <Box sx={{ display: 'flex', marginLeft: 3, alignItems: 'flex-start', flexDirection: 'column' }}>
-              <Typography sx={{ fontWeight: 600 }}>{user?.username}</Typography>
+              <Typography sx={{ fontWeight: 600 }}>{userInfo?.username}</Typography>
               <Typography variant='body2' sx={{ fontSize: '0.8rem', color: 'text.disabled' }}>
-                {user?.email}
+                {userInfo?.email}
               </Typography>
             </Box>
           </Box>

@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import { Input, Button } from '@mui/material';
-import { handleFetchData, handleGetSignatureForUpload, handleUploadBackendService, handleUploadCloudService } from 'src/services/userServices';
+import { Input, Button, Dialog } from '@mui/material';
+import { handleFetchData, handleGetSignatureForUpload, handleUploadBackendService, handleUploadCloudService } from 'src/services/fileServices';
 import { ThreeDots } from 'react-loader-spinner';
 import { useDispatch, useSelector } from 'src/app/hooks';
 import { updateFileList } from 'src/app/redux/slices/fileSlice';
+import UploadForm from '../upload';
 
 const ReviewForm = () => {
     const router = useRouter();
@@ -16,6 +17,7 @@ const ReviewForm = () => {
     const [loading, setLoading] = useState(false);
     const user = useSelector((state) => state.loginState.user)
     const dispatch = useDispatch()
+    const [isAddMoreDialogOpen, setAddMoreDialogOpen] = useState(false);
 
     useEffect(() => {
         const fetchFiles = async () => {
@@ -88,6 +90,10 @@ const ReviewForm = () => {
         setDescriptions(newDescriptions);
     };
 
+    const handleOpenAddMoreDialog=()=>{
+        setAddMoreDialogOpen(true);
+    }
+
     const uploadFile = async (type: string, timestamp: number, signature: string, files: File[]) => {
         const folder = type === 'image' ? 'images' : 'videos';
 
@@ -131,13 +137,13 @@ const ReviewForm = () => {
 
     const fetchNewestData = async (arg: string) => {
         try {
-          const response = await handleFetchData(arg);
-    
-          return response.data.file;
+            const response = await handleFetchData(arg);
+
+            return response.data.file;
         } catch (error) {
-          console.error(error);
+            console.error(error);
         }
-      }
+    }
 
     const handleAddImages = async (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
@@ -225,15 +231,33 @@ const ReviewForm = () => {
                 <Button
                     sx={{
                         backgroundColor: 'green',
+                        padding: '10px 30px',
                         color: 'white',
-                        marginLeft: '170px',
+                        marginLeft: '100px',
+                        borderRadius: '30px',
                         '&:hover': {
-                            backgroundColor: 'darkgreen',
+                            backgroundColor: 'limegreen',
                         },
                     }}
                     onClick={handleAddImages} className='add-images-button'>
-                    <span>+</span> Add Images
+                    <span><strong>+</strong></span> Add Files
                 </Button>
+
+                <Button
+                    sx={{
+                        backgroundColor: 'gray',
+                        padding: '10px 30px',
+                        color: 'white',
+                        marginLeft: '200px',
+                        borderRadius: '30px',
+                        '&:hover': {
+                            backgroundColor: 'gold',
+                        },
+                    }}
+                    onClick={handleOpenAddMoreDialog} className='add-images-button'>
+                    <span><strong>+</strong></span> Add More Files
+                </Button>
+
 
             </div>
 
@@ -248,6 +272,10 @@ const ReviewForm = () => {
                 visible={true}
             />
             }
+
+            <Dialog open={isAddMoreDialogOpen} onClose={()=>setAddMoreDialogOpen(false)}>
+                <UploadForm/>
+            </Dialog>
         </div>
     );
 };

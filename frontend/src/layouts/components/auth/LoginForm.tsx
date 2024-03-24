@@ -42,12 +42,13 @@ import BlankLayout from 'src/@core/layouts/BlankLayout'
 
 // ** Demo Imports
 import FooterIllustrationsV1 from 'src/views/pages/auth/FooterIllustration'
-import { handleFetchData, handleLoginService } from 'src/services/userServices'
+import { handleLoginService } from 'src/services/userServices'
 import { AxiosError, AxiosResponse } from 'axios'
 import { useDispatch } from 'src/app/hooks'
 import { setUser } from 'src/app/redux/slices/loginSlice'
 import { useRouter } from 'next/router'
 import { setFileList } from 'src/app/redux/slices/fileSlice'
+import { handleFetchData } from 'src/services/fileServices';
 
 interface State {
   email: string,

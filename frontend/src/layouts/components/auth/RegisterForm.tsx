@@ -47,7 +47,8 @@ import { AxiosError, AxiosResponse } from 'axios'
 import { useDispatch } from 'src/app/hooks';
 import { setUser } from 'src/app/redux/slices/loginSlice';
 import { useRouter } from 'next/router'
-import { handleRegisterService } from 'src/services/userServices';
+import { handleRegisterService, handleSetUserInfoService } from 'src/services/userServices';
+import { setUserInfo } from 'src/app/redux/slices/userInfoSlice';
 
 interface State {
     username: string,
@@ -124,8 +125,10 @@ const RegisterForm = (props: PropsWithoutRef<{
             }
             if (data && data.errCode === 0) {
                 dispatch(setUser(data.user))
-                router.push("/pages/login")
+                router.push("/")
                 console.log("Register succeed!")
+                await handleSetUserInfoService(values.email, values.username);
+                dispatch(setUserInfo(data.user))
             }
         } catch (e) {
             const errorResponse = ((e as AxiosError).response ?? {}) as AxiosResponse;

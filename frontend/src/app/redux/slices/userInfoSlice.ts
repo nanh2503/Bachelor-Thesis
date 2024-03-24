@@ -1,9 +1,12 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
 interface UserInfo {
-    dateOfBirth: Date,
+    email: string,
+    avatar: string,
+    username: string,
+    birthDate: Date,
     phoneNum: string,
-    avatar: string
+    gender: string
 }
 
 export interface UserInfoState {
@@ -14,7 +17,7 @@ const initialState: UserInfoState = {
     userInfo: null,
 }
 
-const userInfoSlice = createSlice({
+const userInfoState = createSlice({
     name: 'userInfo',
     initialState,
     reducers: {
@@ -25,6 +28,6 @@ const userInfoSlice = createSlice({
     }
 })
 
-export const { setUserInfo } = userInfoSlice.actions;
-export default userInfoSlice.reducer;
+export const { setUserInfo } = userInfoState.actions;
+export default userInfoState.reducer;
 

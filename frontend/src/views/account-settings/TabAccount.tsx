@@ -1,26 +1,41 @@
 // ** React Imports
-import { useState, ElementType, ChangeEvent, SyntheticEvent } from 'react'
+import { useState, ElementType, ChangeEvent, SyntheticEvent, forwardRef } from 'react'
 
-// ** MUI Imports
-import Box from '@mui/material/Box'
-import Grid from '@mui/material/Grid'
-import Link from '@mui/material/Link'
-import Alert from '@mui/material/Alert'
-import Select from '@mui/material/Select'
+import {
+  Box,
+  Grid,
+  Radio,
+  Select,
+  Button,
+  Typography,
+  MenuItem,
+  TextField,
+  FormLabel,
+  InputLabel,
+  RadioGroup,
+  CardContent,
+  FormControl,
+  OutlinedInput,
+  FormControlLabel
+} from '@mui/material';
+
 import { styled } from '@mui/material/styles'
-import MenuItem from '@mui/material/MenuItem'
-import TextField from '@mui/material/TextField'
-import Typography from '@mui/material/Typography'
-import InputLabel from '@mui/material/InputLabel'
-import AlertTitle from '@mui/material/AlertTitle'
-import IconButton from '@mui/material/IconButton'
-import CardContent from '@mui/material/CardContent'
-import FormControl from '@mui/material/FormControl'
-import Button, { ButtonProps } from '@mui/material/Button'
+import { ButtonProps } from '@mui/material/Button'
 
 // ** Icons Imports
 import Close from 'mdi-material-ui/Close'
-import { useSelector } from 'src/app/hooks'
+import { useDispatch, useSelector } from 'src/app/hooks'
+import DatePickerWrapper from 'src/@core/styles/libs/react-datepicker'
+import DatePicker from 'react-datepicker'
+import { handleSetUserInfoService } from 'src/services/userServices';
+import { AxiosError, AxiosResponse } from 'axios';
+import { setUserInfo } from 'src/app/redux/slices/userInfoSlice';
+
+interface userInfoState {
+  username: string,
+  phoneNum: string,
+  gender: string
+}
 
 const ImgStyled = styled('img')(({ theme }) => ({
   width: 120,
@@ -46,16 +61,29 @@ const ResetButtonStyled = styled(Button)<ButtonProps>(({ theme }) => ({
   }
 }))
 
+const CustomInput = forwardRef((props, ref) => {
+  return <TextField inputRef={ref} label='Birth Date' fullWidth {...props} />
+})
+
 const TabAccount = () => {
+  const dispatch = useDispatch()
+
+  const userInfo = useSelector((state) => state.userInfoState.userInfo)
+
   // ** State
-  const [imgSrc, setImgSrc] = useState<string>('/images/avatars/1.png')
+  const [imgSrc, setImgSrc] = useState<string>(userInfo?.avatar ?? '/images/avatars/1.png')
+  const [birthDate, setBirthDate] = useState<Date>(userInfo && new Date(userInfo.birthDate) instanceof Date ? new Date(userInfo.birthDate) : new Date());
 
-  const user = useSelector((state) => state.loginState.user)
-  const userInfo = useSelector((state)=>state.userInfoState.userInfo)
+  const [values, setValues] = useState<userInfoState>({
+    username: userInfo?.username ?? '',
+    phoneNum: userInfo?.phoneNum ?? '',
+    gender: userInfo?.gender ?? ''
+  })
 
-  const onChange = (file: ChangeEvent) => {
+  const onChangeAvatar = (file: ChangeEvent) => {
     const reader = new FileReader()
     const { files } = file.target as HTMLInputElement
+
     if (files && files.length !== 0) {
       reader.onload = () => setImgSrc(reader.result as string)
 
@@ -63,59 +91,131 @@ const TabAccount = () => {
     }
   }
 
+  const handleChange = (prop: keyof userInfoState) => (event: ChangeEvent<HTMLInputElement>) => {
+    setValues({ ...values, [prop]: event.target.value })
+  }
+
+  const handleSaveChanges = async () => {
+    try {
+      if (!!userInfo) {
+        const response = await handleSetUserInfoService(userInfo?.email, values.username, imgSrc, birthDate, values.phoneNum, values.gender)
+
+        const data = response.data;
+
+        if (data && data.errCode === 0) {
+          dispatch(setUserInfo(data.userInfo))
+        }
+      }
+
+
+    } catch (e) {
+      const errorResponse = ((e as AxiosError).response ?? {}) as AxiosResponse;
+      if (errorResponse.data) {
+        setValues(prevState => ({ ...prevState, errMessage: errorResponse.data.message }));
+      } else {
+        // Xử lý trường hợp 'data' không tồn tại trong 'errorResponse'
+        console.error('Data is undefined in errorResponse:', errorResponse);
+      }
+    }
+  }
+
   return (
     <CardContent>
-      <form>
-        <Grid container spacing={7}>
-          <Grid item xs={12} sx={{ marginTop: 4.8, marginBottom: 3 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <ImgStyled src={imgSrc} alt='Profile Pic' />
-              <Box>
-                <ButtonStyled component='label' variant='contained' htmlFor='account-settings-upload-image'>
-                  Upload New Photo
-                  <input
-                    hidden
-                    type='file'
-                    onChange={onChange}
-                    accept='image/png, image/jpeg'
-                    id='account-settings-upload-image'
-                  />
-                </ButtonStyled>
-                <ResetButtonStyled color='error' variant='outlined' onClick={() => setImgSrc('/images/avatars/1.png')}>
-                  Reset
-                </ResetButtonStyled>
-                <Typography variant='body2' sx={{ marginTop: 5 }}>
-                  Allowed PNG or JPEG. Max size of 800K.
-                </Typography>
+      {!!userInfo ? (
+        <form>
+          <Grid container spacing={7}>
+            <Grid item xs={12} sx={{ marginTop: 4.8, marginBottom: 3 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <ImgStyled src={imgSrc} alt='Profile Pic' />
+                <Box>
+                  <ButtonStyled component='label' variant='contained' htmlFor='account-settings-upload-image'>
+                    Upload New Photo
+                    <input
+                      hidden
+                      type='file'
+                      onChange={onChangeAvatar}
+                      accept='image/png, image/jpeg'
+                      id='account-settings-upload-image'
+                    />
+                  </ButtonStyled>
+                  <ResetButtonStyled color='error' variant='outlined' onClick={() => setImgSrc('/images/avatars/1.png')}>
+                    Reset
+                  </ResetButtonStyled>
+                  <Typography variant='body2' sx={{ marginTop: 5 }}>
+                    Allowed PNG or JPEG. Max size of 800K.
+                  </Typography>
+                </Box>
               </Box>
-            </Box>
-          </Grid>
+            </Grid>
 
-          <Grid item xs={12} sm={6}>
-            <TextField fullWidth label='Username' placeholder={user?.username} defaultValue={user?.username} />
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label='Username'
+                placeholder={userInfo?.username}
+                value={values.username}
+                onChange={handleChange('username')}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                type='email'
+                label='Email'
+                placeholder={userInfo?.email}
+                value={userInfo?.email}
+                disabled
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <DatePickerWrapper>
+                <DatePicker
+                  selected={birthDate}
+                  showYearDropdown
+                  showMonthDropdown
+                  id='account-settings-date'
+                  placeholderText='MM-DD-YYYY'
+                  customInput={<CustomInput />}
+                  onChange={(birthDate: Date) => setBirthDate(birthDate)}
+                />
+              </DatePickerWrapper>
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                fullWidth
+                label='Phone'
+                placeholder='(123) 456-7890'
+                value={values.phoneNum}
+                onChange={handleChange('phoneNum')}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <FormControl>
+                <FormLabel sx={{ fontSize: '0.875rem' }}>Gender</FormLabel>
+                <RadioGroup
+                  row
+                  aria-label='gender'
+                  name='account-settings-info-radio'
+                  onChange={handleChange('gender')}
+                  value={values.gender}
+                >
+                  <FormControlLabel value='male' label='Male' control={<Radio />} />
+                  <FormControlLabel value='female' label='Female' control={<Radio />} />
+                  <FormControlLabel value='other' label='Other' control={<Radio />} />
+                </RadioGroup>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12}>
+              <Button variant='contained' sx={{ marginRight: 3.5 }} onClick={handleSaveChanges}>
+                Save Changes
+              </Button>
+              <Button type='reset' variant='outlined' color='secondary'>
+                Reset
+              </Button>
+            </Grid>
           </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField fullWidth label='Date of birth' placeholder={userInfo?.dateOfBirth} defaultValue={userInfo?.dateOfBirth} />
-          </Grid>
-          <Grid item xs={12} sm={6}>
-            <TextField
-              fullWidth
-              type='email'
-              label='Email'
-              placeholder={user?.email}
-              defaultValue={user?.email}
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <Button variant='contained' sx={{ marginRight: 3.5 }}>
-              Save Changes
-            </Button>
-            <Button type='reset' variant='outlined' color='secondary'>
-              Reset
-            </Button>
-          </Grid>
-        </Grid>
-      </form>
+        </form>
+      ) : <></>}
     </CardContent>
   )
 }

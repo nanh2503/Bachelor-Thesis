@@ -7,7 +7,7 @@ import { styled } from '@mui/material/styles'
 import themeConfig from 'src/configs/themeConfig'
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'src/app/hooks'
-import { Image, Video, deleteFile, updateFile } from 'src/app/redux/slices/fileSlice'
+import { Image, Video, deleteImage, updateImage, updateVideo, deleteVideo } from 'src/app/redux/slices/fileSlice'
 
 // FontAwesome Import
 import { library } from '@fortawesome/fontawesome-svg-core';
@@ -15,7 +15,7 @@ import { faEdit, faTrash } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField } from '@mui/material';
-import { deleteData, updateData } from 'src/services/userServices'
+import { deleteData, updateData } from 'src/services/fileServices'
 
 // Styled component for the trophy image
 const TrophyImg = styled('img')({
@@ -38,19 +38,36 @@ const Dashboard = () => {
   const [isEditDialogOpen, setEditDialogOpen] = useState(false);
   const [confirmDeleteDialogOpen, setConfirmDeleteDialogOpen] = useState(false);
   const [deleteId, setDeleteId] = useState("");
+  const [fileEdit, setFileEdit] = useState("")
+  const [fileDelete, setFileDelete] = useState("")
 
-  const handleOpenEditDialog = (id: string) => {
+  const handleOpenEditDialog = (id: string, fileEdit: string) => {
+    setFileEdit(fileEdit)
     setEditId(id);
-    fileList.map(file => {
-      if (file.images.some(image => image._id === id)) {
-        setEditTitle(file.title)
-        file.images.map(image => {
-          if (image._id === id) {
-            setEditDescription(image.description)
-          }
-        })
-      }
-    })
+    if (fileEdit === 'image') {
+      fileList.map(file => {
+        if (file.images.some(image => image._id === id)) {
+          setEditTitle(file.title)
+          file.images.map(image => {
+            if (image._id === id) {
+              setEditDescription(image.description)
+            }
+          })
+        }
+      })
+    } else {
+      fileList.map(file => {
+        if (file.videos.some(video => video._id === id)) {
+          setEditTitle(file.title)
+          file.videos.map(video => {
+            if (video._id === id) {
+              setEditDescription(video.description)
+            }
+          })
+        }
+      })
+    }
+
     setEditDialogOpen(true);
   };
 
@@ -64,7 +81,11 @@ const Dashboard = () => {
 
   const handleSaveChanges = async () => {
     try {
-      dispatch(updateFile({ editId, editTitle, editDescription }))
+      if (fileEdit === 'image') {
+        dispatch(updateImage({ editId, editTitle, editDescription }))
+      } else {
+        dispatch(updateVideo({ editId, editTitle, editDescription }))
+      }
 
       await updateData(editId, editTitle, editDescription)
     } catch (error) {
@@ -75,7 +96,8 @@ const Dashboard = () => {
     setEditDialogOpen(false);
   };
 
-  const handleOpenDeleteDialog = (id: string) => {
+  const handleOpenDeleteDialog = (id: string, fileDelete: string) => {
+    setFileDelete(fileDelete)
     setDeleteId(id);
     setConfirmDeleteDialogOpen(true);
   };
@@ -88,8 +110,13 @@ const Dashboard = () => {
   const handleDeleteImage = async () => {
     try {
 
-      console.log({deleteId});
-      dispatch(deleteFile({deleteId}));
+      console.log({ deleteId });
+      if (fileDelete === 'image') {
+        dispatch(deleteImage({ deleteId }));
+      } else {
+        dispatch(deleteVideo({ deleteId }))
+      }
+      
       await deleteData(deleteId)
 
       // Đóng dialog
@@ -139,12 +166,12 @@ const Dashboard = () => {
                               <FontAwesomeIcon
                                 icon={faEdit}
                                 className="edit-icon"
-                                onClick={() => handleOpenEditDialog(image._id)}
+                                onClick={() => handleOpenEditDialog(image._id, "image")}
                               />
                               <FontAwesomeIcon
                                 icon={faTrash}
                                 className="delete-icon"
-                                onClick={() => handleOpenDeleteDialog(image._id)}
+                                onClick={() => handleOpenDeleteDialog(image._id, "image")}
                               />
                             </Box>
 
@@ -186,12 +213,12 @@ const Dashboard = () => {
                                 <FontAwesomeIcon
                                   icon={faEdit}
                                   className="edit-icon"
-                                  onClick={() => handleOpenEditDialog(video._id)}
+                                  onClick={() => handleOpenEditDialog(video._id, "video")}
                                 />
                                 <FontAwesomeIcon
                                   icon={faTrash}
                                   className="delete-icon"
-                                  onClick={() => handleOpenDeleteDialog(video._id)}
+                                  onClick={() => handleOpenDeleteDialog(video._id, "video")}
                                 />
                               </Box>
 
