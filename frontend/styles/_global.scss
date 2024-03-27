@@ -259,7 +259,7 @@ input {
   opacity: 1;
   background-size: cover;
   z-index: 4;
-  background-image: url(https://s.imgur.com/desktop-assets/desktop-assets/daylight.d405eefef22310f8ed63.svg)
+  background-image: url(https://s.imgur.com/desktop-assets/desktop-assets/daylight.d405eefef22310f8ed63.svg);
 }
 
 .PopUpDrop-DaylightSky {
@@ -314,10 +314,11 @@ input {
   margin-bottom: 20px;
 }
 
-.file-image {
-  max-width: 500px; 
+.file-image, .file-video {
+  width: 500px; 
   height: auto;
   display: block; 
+  border-radius: 10px 10px 0 0;
 }
 
 .container {
@@ -333,9 +334,8 @@ input {
 
 .image-container {
   margin-top: 20px;
-  border: 1px solid gray;
   width: 500px;
-  border-radius: 10px 10px 0 0;
+  border-radius: 10px;
 }
 
 .description-container {
@@ -349,6 +349,7 @@ input {
   border: 1px solid gray; 
   box-sizing: border-box; 
   border-radius: 0 0 10px 10px;
+  margin-bottom: 20px;
 }
 
 .edit-icon,

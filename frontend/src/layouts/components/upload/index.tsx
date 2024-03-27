@@ -1,28 +1,55 @@
-import React, { useEffect, useState } from 'react';
+import React, { PropsWithoutRef, useCallback, useEffect, useState } from 'react';
 import { Input } from '@mui/material';
 import { useRouter } from 'next/router';
+import { useDispatch } from 'src/app/hooks';
+import { setImagesReview, setVideosReview } from 'src/app/redux/slices/uploadFileSlice';
 
-const UploadForm: React.FC = () => {
+const convertFileToBase64 = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = error => reject(error);
+  });
+};
+
+const UploadForm = (props: PropsWithoutRef<{
+  onUploadComplete?: () => void;
+}>) => {
+  const { onUploadComplete = () => { } } = props;
+
   const router = useRouter();
+  const dispatch = useDispatch();
+
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
 
   useEffect(() => {
-    if (selectedFiles.length > 0) {
-      const imageFiles = selectedFiles.filter(file => file.type.startsWith('image/'));
-      const videoFiles = selectedFiles.filter(file => file.type.startsWith('video/'));
+    const processFiles = async () => {
+      if (selectedFiles.length > 0) {
+        onUploadComplete();
 
-      const imageUrls = imageFiles.map(file => ({ type: 'image', url: URL.createObjectURL(file) }));
-      const videoUrls = videoFiles.map(file => ({ type: 'video', url: URL.createObjectURL(file) }));
+        const imageFiles: string[] = [];
+        const videoFiles: string[] = [];
 
-      router.push({
-        pathname: '/review',
-        query: {
-          images: imageUrls.map(file => file.url),
-          videos: videoUrls.map(file => file.url),
-        },
-      });
-    }
-  }, [selectedFiles, router]);
+        for (const file of selectedFiles) {
+          if (file.type.startsWith('image/')) {
+            const base64Image = await convertFileToBase64(file);
+            imageFiles.push(base64Image);
+          } else if (file.type.startsWith('video/')) {
+            const base64Video = await convertFileToBase64(file);
+            videoFiles.push(base64Video);
+          }
+        }
+
+        dispatch(setImagesReview(imageFiles));
+        dispatch(setVideosReview(videoFiles));
+
+        router.push('/review');
+      }
+    };
+
+    processFiles();
+  }, [selectedFiles]);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
@@ -31,6 +58,18 @@ const UploadForm: React.FC = () => {
     }
   };
 
+  const handleDragOver = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+  }
+
+  const handleDrop = (event: React.DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    const files = event.dataTransfer.files;
+    if (files && files.length > 0) {
+      setSelectedFiles(Array.from(files));
+    }
+  }
+
   return (
     <div className="Dialog UploadDialog">
       <div className="Dialog-wrapper">
@@ -38,10 +77,14 @@ const UploadForm: React.FC = () => {
           <img src="https://s.imgur.com/desktop-assets/desktop-assets/upload_dialog_close.090c128bffd440597750.svg" alt="Close" />
         </button>
         <div className="PopUpContaner">
-          <div className="PopUpDrop">
+          <div className="PopUpDrop" draggable onDragOver={handleDragOver} onDrop={handleDrop}>
             <div className="PopUpDrop-content" style={{ opacity: 1 }}>
               <div className="PopUpDrop-indicator"></div>
-              <div className="PopUpDrop-label">Drop images here</div>
+              <div className="PopUpDrop-label">
+                <div id="drop-area">
+                  Drop images here
+                </div>
+              </div>
             </div>
             <div className="PopUpDrop-Bg"></div>
             <div className="PopUpDrop-Daylight" style={{ opacity: 1 }}></div>

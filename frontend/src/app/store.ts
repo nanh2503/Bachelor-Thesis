@@ -7,7 +7,7 @@ import { rootReducers, RootState } from "./redux/reducers";
 const persistConfig = {
   key: 'root',
   storage,
-  whitelist: ['loginState', 'fileListState', 'userInfoState'],
+  whitelist: ['loginState', 'fileListState', 'userInfoState', 'uploadFileState'],
 };
 
 const persistedReducer = persistReducer(persistConfig, rootReducers);

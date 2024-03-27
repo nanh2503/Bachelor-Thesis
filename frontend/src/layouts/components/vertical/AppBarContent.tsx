@@ -19,7 +19,8 @@ import { Settings } from 'src/@core/context/settingsContext'
 // ** Components
 import ModeToggler from 'src/@core/layouts/components/shared-components/ModeToggler'
 import UserDropdown from 'src/@core/layouts/components/shared-components/UserDropdown'
-import { useSelector } from 'src/app/hooks'
+import { useDispatch, useSelector } from 'src/app/hooks'
+import { clearFiles } from 'src/app/redux/slices/uploadFileSlice';
 
 interface Props {
   hidden: boolean
@@ -33,15 +34,18 @@ const AppBarContent = (props: Props) => {
   // ** Props
   const { hidden, settings, saveSettings, toggleNavVisibility } = props
 
+  const dispatch = useDispatch();
+
+  const { isLoggedIn } = useSelector((state) => state.loginState)
+
   // ** Hook
   const hiddenSm = useMediaQuery((theme: Theme) => theme.breakpoints.down('md'))
   const isLargeScreen = useMediaQuery((theme: Theme) => theme.breakpoints.up('xl'))
   const textFieldWidth = isLargeScreen ? '500px' : '300px'
-  const { isLoggedIn } = useSelector((state) => state.loginState)
 
   return (
-    <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-      <Box className='actions-left' sx={{ mr: 2, display: 'flex', alignItems: 'center' }}>
+    <Box sx={{ width: '95.5%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', zIndex: 10, position: 'fixed', backgroundColor: 'white', padding: '-50px', borderRadius: '5px' }}>
+      <Box className='actions-left' sx={{ mr: 2, display: 'flex', alignItems: 'center', padding: '20px' }}>
         {hidden ? (
           <IconButton
             color='inherit'
@@ -54,6 +58,7 @@ const AppBarContent = (props: Props) => {
         <Button
           variant='contained'
           href="/upload"
+          onClick={() => dispatch(clearFiles())}
           sx={{
             backgroundColor: '#1bb76e',
             borderRadius: '3px',
@@ -95,7 +100,7 @@ const AppBarContent = (props: Props) => {
           <Button
             variant='contained'
             href='/login'
-            sx={{ color: 'white', backgroundColor: 'green', border: 'none', ml: 10, mt: 3 }}
+            sx={{ color: 'white', backgroundColor: 'green', border: 'none', mt: 3 }}
           >
             LOGIN
           </Button>

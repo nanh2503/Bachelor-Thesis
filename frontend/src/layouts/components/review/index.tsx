@@ -1,97 +1,68 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
-import { Input, Button, Dialog } from '@mui/material';
+import { Input, Button, Dialog, CardMedia } from '@mui/material';
 import { handleFetchData, handleGetSignatureForUpload, handleUploadBackendService, handleUploadCloudService } from 'src/services/fileServices';
 import { ThreeDots } from 'react-loader-spinner';
 import { useDispatch, useSelector } from 'src/app/hooks';
 import { updateFileList } from 'src/app/redux/slices/fileSlice';
 import UploadForm from '../upload';
+import { setTitles, setDescriptions } from 'src/app/redux/slices/uploadFileSlice';
 
 const ReviewForm = () => {
-    const router = useRouter();
-    const [images, setImages] = useState<File[]>([])
-    const [videos, setVideos] = useState<File[]>([])
-    const [reviewFiles, setReviewFiles] = useState<{ type: string; url: string }[]>([]);
-    const [titles, setTitles] = useState<string>('');
-    const [descriptions, setDescriptions] = useState<string[]>([]);
-    const [loading, setLoading] = useState(false);
     const user = useSelector((state) => state.loginState.user)
+    const imagesReview = useSelector((state) => state.uploadFileState.imagesReview)
+    const videosReview = useSelector((state) => state.uploadFileState.videosReview)
+    const titles = useSelector((state) => state.uploadFileState.title)
+    const descriptions = useSelector((state) => state.uploadFileState.descriptions)
+
+    const router = useRouter();
     const dispatch = useDispatch()
+
+    const [loading, setLoading] = useState(false);
     const [isAddMoreDialogOpen, setAddMoreDialogOpen] = useState(false);
 
-    useEffect(() => {
-        const fetchFiles = async () => {
-            const { images, videos } = router.query;
+    const base64ToBufferImage = (base64String: string) => {
+        // Loại bỏ tiền tố 'data:image/jpeg;base64,' hoặc 'data:image/png;base64,'
+        const base64Data = base64String.replace(/^data:image\/\w+;base64,/, '');
+        // Chuyển đổi chuỗi base64 thành Buffer
+        return Buffer.from(base64Data, 'base64');
+    };
 
-            if (images || videos) {
-                const imageUrls = images && Array.isArray(images) ? images : [images];
-                const videoUrls = videos && Array.isArray(videos) ? videos : [videos];
+    const base64ToFileImage = (base64String: string) => {
+        const buffer = base64ToBufferImage(base64String);
+        // Tạo đối tượng File từ Buffer
+        return new File([buffer], `image_${Date.now()}.jpg`, { type: "image/jpeg" });
+    };
 
-                try {
-                    const imagePreview = imageUrls ? imageUrls.filter((url): url is string => url !== undefined).map((url: string) => ({ type: 'image', url })) : [];
-                    const videoPreview = videoUrls ? videoUrls.filter((url): url is string => url !== undefined).map((url: string) => ({ type: 'video', url })) : [];
+    const base64ToBufferVideo = (base64String: string) => {
+        // Loại bỏ tiền tố 'data:image/jpeg;base64,' hoặc 'data:image/png;base64,'
+        const base64Data = base64String.replace(/^data:video\/\w+;base64,/, '');
+        // Chuyển đổi chuỗi base64 thành Buffer
+        return Buffer.from(base64Data, 'base64');
+    };
 
-                    const allFiles = [...imagePreview, ...videoPreview];
-                    setReviewFiles(allFiles);
-
-                    const loadImageFiles = async () => {
-                        const imagePromises = imageUrls.map(async (url) => {
-                            if (url) { // Kiểm tra nếu url không phải là undefined
-                                const response = await fetch(url);
-                                const blob = await response.blob();
-
-                                return new File([blob], `image_${Date.now()}.jpg`, { type: "image/jpeg" });
-                            }
-
-                            return null;
-                        });
-                        const imageFiles = (await Promise.all(imagePromises)).filter(file => file !== null) as File[];
-
-                        return imageFiles;
-                    };
-
-                    const loadVideoFiles = async () => {
-                        const videoPromises = videoUrls.map(async (url) => {
-                            if (url) { // Kiểm tra nếu url không phải là undefined
-                                const response = await fetch(url);
-                                const blob = await response.blob();
-
-                                return new File([blob], `video_${Date.now()}.mp4`, { type: "video/mp4" });
-                            }
-
-                            return null;
-                        });
-                        const videoFiles = (await Promise.all(videoPromises)).filter(file => file !== null) as File[];
-
-                        return videoFiles;
-                    };
-
-                    const imageUpload = await loadImageFiles();
-                    const videoUpload = await loadVideoFiles();
-
-                    setImages(imageUpload);
-                    setVideos(videoUpload);
-                } catch (error) {
-                    console.error('Error fetching files:', error);
-                }
-            }
-        };
-
-        fetchFiles();
-    }, [router.query]);
+    const base64ToFileVideo = (base64String: string) => {
+        const buffer = base64ToBufferVideo(base64String);
+        // Tạo đối tượng File từ Buffer
+        return new File([buffer], `video_${Date.now()}.mp4`, { type: "video/mp4" });
+    };
 
     const handleTitleChange = (value: string) => {
-        setTitles(value);
+        dispatch(setTitles(value));
     };
 
     const handleDescriptionChange = (index: number, value: string) => {
         const newDescriptions = [...descriptions];
         newDescriptions[index] = value;
-        setDescriptions(newDescriptions);
+        dispatch(setDescriptions(newDescriptions))
     };
 
-    const handleOpenAddMoreDialog=()=>{
+    const handleOpenAddMoreDialog = () => {
         setAddMoreDialogOpen(true);
+    }
+
+    const handleCloseAddMoreDialog = () => {
+        setAddMoreDialogOpen(false);
     }
 
     const uploadFile = async (type: string, timestamp: number, signature: string, files: File[]) => {
@@ -148,6 +119,23 @@ const ReviewForm = () => {
     const handleAddImages = async (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
 
+        const imageFiles: File[] = [];
+        const videoFiles: File[] = [];
+
+        if (imagesReview.length > 0) {
+            imagesReview.map((image) => {
+                const imageFile = base64ToFileImage(image);
+                imageFiles.push(imageFile);
+            })
+        }
+
+        if (videosReview.length > 0) {
+            videosReview.map((video) => {
+                const videoFile = base64ToFileVideo(video);
+                videoFiles.push(videoFile);
+            })
+        }
+
         try {
             setLoading(true);
 
@@ -158,28 +146,18 @@ const ReviewForm = () => {
             const { timestamp: videoTimestamp, signature: videoSignature } = await getSignatureForUpload('videos');
 
             //Upload image file
-            const imageUrl = await uploadFile('image', imageTimestamp, imageSignature, images);
-            console.log('imageUrl: ', imageUrl);
+            const imageUrl = await uploadFile('image', imageTimestamp, imageSignature, imageFiles);
 
             //Upload video file
-            const videoUrl = await uploadFile('video', videoTimestamp, videoSignature, videos);
-            console.log('videoUrl: ', videoUrl);
+            const videoUrl = await uploadFile('video', videoTimestamp, videoSignature, videoFiles);
 
             const username = user?.username;
 
             if (!!username) {
                 //Send backend api request
-                const response = await handleUploadBackendService(username, imageUrl, videoUrl, titles, descriptions);
-                console.log(response);
+                await handleUploadBackendService(username, imageUrl, videoUrl, titles, descriptions);
             }
 
-            //Reset states
-            setImages([]);
-            setVideos([]);
-            setTitles('');
-            setDescriptions([]);
-
-            console.log("File Upload success!");
 
             const newFile = await fetchNewestData('newest')
             dispatch(updateFileList(newFile))
@@ -204,36 +182,52 @@ const ReviewForm = () => {
                     />
                 </div>
 
-                {reviewFiles.map((file, index) => (
-                    <div key={index} className='file-item'>
-
-                        <div className='image-container'>
-                            {file.type.includes('video') ? (
-                                <video controls>
-                                    <source src={file.url} type='video/mp4' />
-                                    Your browser does not support the video tag.
-                                </video>
-                            ) : (
-                                <img src={file.url} alt={`Uploaded File ${index + 1}`} className='file-image' />
-                            )}
-                        </div>
-                        <div className='description-container'>
-                            <input
-                                placeholder='Add description'
-                                value={descriptions[index]}
-                                onChange={(e) => handleDescriptionChange(index, e.target.value)}
-                                className='description-input'
-                            />
-                        </div>
+                <div className='file-item'>
+                    <div className='image-container'>
+                        {imagesReview.map((image, index) => {
+                            return (
+                                <div key={index}>
+                                    <img src={image} alt={`Uploaded Image File ${index + 1}`} className='file-image' />
+                                    <div className='description-container'>
+                                        <input
+                                            placeholder='Add description'
+                                            value={descriptions[index]}
+                                            onChange={(e) => handleDescriptionChange(index, e.target.value)}
+                                            className='description-input'
+                                        />
+                                    </div>
+                                </div>
+                            );
+                        })}
                     </div>
+                    <div className='video-container'>
+                        {videosReview.map((video, index) => {
+                            const indexVideo = index + imagesReview.length;
+                            return (
+                                <div key={indexVideo}>
+                                    <video controls>
+                                        <source src={video} type='video/mp4' className='file-video' />
+                                    </video>
+                                    <div className='description-container'>
+                                        <input
+                                            placeholder='Add description'
+                                            value={descriptions[indexVideo]}
+                                            onChange={(e) => handleDescriptionChange(indexVideo, e.target.value)}
+                                            className='description-input'
+                                        />
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
 
-                ))}
                 <Button
                     sx={{
                         backgroundColor: 'green',
                         padding: '10px 30px',
                         color: 'white',
-                        marginLeft: '100px',
+                        marginLeft: '50px',
                         borderRadius: '30px',
                         '&:hover': {
                             backgroundColor: 'limegreen',
@@ -248,7 +242,7 @@ const ReviewForm = () => {
                         backgroundColor: 'gray',
                         padding: '10px 30px',
                         color: 'white',
-                        marginLeft: '200px',
+                        marginLeft: '70px',
                         borderRadius: '30px',
                         '&:hover': {
                             backgroundColor: 'gold',
@@ -273,8 +267,17 @@ const ReviewForm = () => {
             />
             }
 
-            <Dialog open={isAddMoreDialogOpen} onClose={()=>setAddMoreDialogOpen(false)}>
-                <UploadForm/>
+            <Dialog
+                open={isAddMoreDialogOpen}
+                onClose={() => setAddMoreDialogOpen(false)}
+                sx={{
+                    '& .MuiDialog-paper': {
+                        overflowY: 'visible',
+                        background: 'none',
+                    }
+                }}
+            >
+                <UploadForm onUploadComplete={handleCloseAddMoreDialog} />
             </Dialog>
         </div>
     );
