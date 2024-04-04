@@ -16,6 +16,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField } from '@mui/material';
 import { deleteData, updateData } from 'src/services/fileServices'
+import { useRouter } from 'next/router'
 
 // Styled component for the trophy image
 const TrophyImg = styled('img')({
@@ -30,6 +31,7 @@ library.add(faEdit, faTrash);
 
 const Dashboard = () => {
   const dispatch = useDispatch();
+  const router = useRouter();
 
   const fileList = useSelector((state) => state.fileListState.file);
   const [editTitle, setEditTitle] = useState("");
@@ -110,13 +112,12 @@ const Dashboard = () => {
   const handleDeleteImage = async () => {
     try {
 
-      console.log({ deleteId });
       if (fileDelete === 'image') {
         dispatch(deleteImage({ deleteId }));
       } else {
         dispatch(deleteVideo({ deleteId }))
       }
-      
+
       await deleteData(deleteId)
 
       // Đóng dialog
@@ -126,6 +127,11 @@ const Dashboard = () => {
     }
   };
 
+  const handleViewImage = (id: string, fileView: string) => {
+    console.log('check id', id);
+    router.push(`/view/${fileView}/${id}`)
+  }
+
   return (
     <ApexChartWrapper>
       <Card sx={{ position: 'relative', height: '100%' }}>
@@ -133,115 +139,101 @@ const Dashboard = () => {
           <Typography variant='h2' mt={20} mb={20} textAlign={'center'}>
             Welcome to {themeConfig.templateName} 🥳
           </Typography>
-
-          {fileList.length ? (
-            <Grid container spacing={7} sx={{ mb: 10 }}>
-              {fileList.map((file, fileIndex) => (
-                <React.Fragment key={fileIndex}>
-                  {file.images.map((image, imageIndex) => (
-                    <Grid item key={`image-${imageIndex}`} xs={5} sm={5} md={4} lg={4} xl={4}>
-                      <Box
-                        sx={{
-                          position: 'relative',
-                          overflow: 'hidden',
-                          borderRadius: 3,
-                          border: '3px solid transparent',
-                          backgroundImage: `linear-gradient(45deg, #ff0000, #ff9900, #ff9900, #33cc33, #0099cc, #9933cc)`,
-                        }}
-                      >
-                        {image.imageUrl && (
-                          <>
+          <div className='container-box'>
+            {fileList.map((file, fileIndex) => (
+              <React.Fragment key={fileIndex}>
+                {file.images.map((image, imageIndex) => (
+                  <div key={`image-${imageIndex}`} >
+                    <div
+                      style={{
+                        marginBottom: '20px',
+                        breakInside: 'avoid',
+                        position: 'relative',
+                        overflow: 'hidden',
+                        borderRadius: '15px',
+                        border: '3px solid transparent',
+                        backgroundImage: 'linear-gradient(45deg, #ff0000, #ff9900, #ff9900, #33cc33, #0099cc, #9933cc)',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      {image.imageUrl && (
+                        <>
+                          <div onClick={() => handleViewImage(image._id, "image")}>
                             {/* Image */}
-                            <CardMedia
-                              component="img"
-                              image={image.imageUrl}
-                              alt={`Image ${imageIndex}`}
-                              style={{ width: '100%', height: 'auto' }}
-                            />
-
-                            {/* Edit and Delete Icons */}
-                            <Box sx={{
-                              position: 'absolute', top: 0, right: 0, padding: 2, zIndex: 1, background: 'rgba(0, 0, 0, 0.7)'
-                            }}>
-                              <FontAwesomeIcon
-                                icon={faEdit}
-                                className="edit-icon"
-                                onClick={() => handleOpenEditDialog(image._id, "image")}
-                              />
-                              <FontAwesomeIcon
-                                icon={faTrash}
-                                className="delete-icon"
-                                onClick={() => handleOpenDeleteDialog(image._id, "image")}
-                              />
-                            </Box>
-
+                            <img src={image.imageUrl} alt={`Image ${imageIndex}`} style={{ width: '100%', height: 'auto' }} />
                             {/* Image Overlay */}
-                            <Box sx={{ position: 'absolute', bottom: 0, left: 0, width: '100%', padding: 2, background: 'rgba(0, 0, 0, 0.7)' }}>
-                              <Typography variant="h6" color="white" gutterBottom>
-                                {file.title}
-                              </Typography>
-                              <Typography variant="body2" color="white">
-                                {image.description}
-                              </Typography>
-                            </Box>
-                          </>
-                        )}
-                      </Box>
-                    </Grid>
-                  ))}
-                  {file.videos.map((video, videoIndex) => (
-                    <Grid item key={`video-${videoIndex}`} xs={5} sm={5} md={4} lg={4} xl={4}>
-                      <Box
-                        sx={{
-                          position: 'relative',
-                          overflow: 'hidden',
-                          borderRadius: 3,
-                          border: '3px solid transparent',
-                          backgroundImage: `linear-gradient(45deg, #ff0000, #ff9900, #ff9900, #33cc33, #0099cc, #9933cc)`,
-                        }}
-                      >
-                        {video.videoUrl && (
-                          <Card>
-                            <CardContent>
-                              {/* Video */}
-                              <video controls style={{ width: '100%', height: 'auto' }}>
-                                <source src={video.videoUrl} type="video/mp4" />
-                              </video>
+                            <div style={{ position: 'absolute', bottom: 0, left: 0, width: '100%', padding: '10px', background: 'rgba(0, 0, 0, 0.7)' }}>
+                              <div style={{ color: 'white', fontWeight: 'bold', fontSize: '16px' }}>{file.title}</div>
+                              <div style={{ color: 'white', fontSize: '14px', margin: '5px 0' }}>{image.description}</div>
+                            </div>
+                          </div>
 
-                              {/* Edit and Delete Icons */}
-                              <Box sx={{ position: 'absolute', top: 0, right: 0, padding: 2, zIndex: 1, background: 'rgba(0, 0, 0, 0.7)' }}>
-                                <FontAwesomeIcon
-                                  icon={faEdit}
-                                  className="edit-icon"
-                                  onClick={() => handleOpenEditDialog(video._id, "video")}
-                                />
-                                <FontAwesomeIcon
-                                  icon={faTrash}
-                                  className="delete-icon"
-                                  onClick={() => handleOpenDeleteDialog(video._id, "video")}
-                                />
-                              </Box>
+                          {/* Edit and Delete Icons */}
+                          <div style={{ position: 'absolute', top: 0, right: 0, padding: '10px', zIndex: 1, background: 'rgba(0, 0, 0, 0.7)' }}>
+                            <FontAwesomeIcon
+                              icon={faEdit}
+                              className="edit-icon"
+                              onClick={() => handleOpenEditDialog(image._id, "image")}
+                            />
+                            <FontAwesomeIcon
+                              icon={faTrash}
+                              className="delete-icon"
+                              onClick={() => handleOpenDeleteDialog(image._id, "image")}
+                            />
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                ))}
+                {file.videos.map((video, videoIndex) => (
+                  <div key={`video-${videoIndex}`}>
+                    <div
+                      style={{
+                        marginBottom: '20px',
+                        breakInside: 'avoid',
+                        position: 'relative',
+                        overflow: 'hidden',
+                        borderRadius: '15px',
+                        border: '3px solid transparent',
+                        backgroundImage: 'linear-gradient(45deg, #ff0000, #ff9900, #ff9900, #33cc33, #0099cc, #9933cc)',
+                      }}
+                    >
+                      {video.videoUrl && (
+                        <div>
+                          {/* Video */}
+                          <video controls style={{ width: '100%', height: 'auto' }}>
+                            <source src={video.videoUrl} type="video/mp4" />
+                          </video>
 
-                              {/* Video Overlay */}
-                              <Box sx={{ position: 'absolute', bottom: 0, left: 0, width: '100%', padding: 2, background: 'rgba(0, 0, 0, 0.7)' }}>
-                                <Typography variant="h6" color="white" gutterBottom>
-                                  {file.title}
-                                </Typography>
-                                <Typography variant="body2" color="white">
-                                  {video.description}
-                                </Typography>
-                              </Box>
-                            </CardContent>
-                          </Card>
-                        )}
-                      </Box>
-                    </Grid>
-                  ))}
-                </React.Fragment>
-              ))}
-            </Grid>
-          ) : <></>}
-          <TrophyImg alt='trophy' src='/images/misc/trophy.png' />
+                          {/* Edit and Delete Icons */}
+                          <div style={{ position: 'absolute', top: 0, right: 0, padding: '10px', zIndex: 1, background: 'rgba(0, 0, 0, 0.7)' }}>
+                            <FontAwesomeIcon
+                              icon={faEdit}
+                              className="edit-icon"
+                              onClick={() => handleOpenEditDialog(video._id, "video")}
+                            />
+                            <FontAwesomeIcon
+                              icon={faTrash}
+                              className="delete-icon"
+                              onClick={() => handleOpenDeleteDialog(video._id, "video")}
+                            />
+                          </div>
+
+                          {/* Video Overlay */}
+                          <div style={{ position: 'absolute', bottom: 0, left: 0, width: '100%', padding: '10px', background: 'rgba(0, 0, 0, 0.7)' }}>
+                            <div style={{ color: 'white', fontWeight: 'bold', fontSize: '16px' }}>{file.title}</div>
+                            <div style={{ color: 'white', fontSize: '14px', margin: '5px 0' }}>{video.description}</div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </React.Fragment>
+            ))}
+          </div>
+          <TrophyImg alt='trophy' src='/images/pages/trophy.png' />
         </CardContent>
       </Card>
 

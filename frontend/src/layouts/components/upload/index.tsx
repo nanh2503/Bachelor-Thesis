@@ -22,24 +22,32 @@ const UploadForm = (props: PropsWithoutRef<{
   const dispatch = useDispatch();
 
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [pasteURLFiles, setPasteURLFiles] = useState<string>('')
 
   useEffect(() => {
     const processFiles = async () => {
-      if (selectedFiles.length > 0) {
+      if (selectedFiles.length > 0 || pasteURLFiles.length>0) {
         onUploadComplete();
 
         const imageFiles: string[] = [];
         const videoFiles: string[] = [];
 
-        for (const file of selectedFiles) {
-          if (file.type.startsWith('image/')) {
-            const base64Image = await convertFileToBase64(file);
-            imageFiles.push(base64Image);
-          } else if (file.type.startsWith('video/')) {
-            const base64Video = await convertFileToBase64(file);
-            videoFiles.push(base64Video);
+        if (selectedFiles.length > 0){
+          for (const file of selectedFiles) {
+            if (file.type.startsWith('image/')) {
+              const base64Image = await convertFileToBase64(file);
+              imageFiles.push(base64Image);
+            } else if (file.type.startsWith('video/')) {
+              const base64Video = await convertFileToBase64(file);
+              videoFiles.push(base64Video);
+            }
           }
         }
+        
+        if(pasteURLFiles.length>0){
+          imageFiles.push(pasteURLFiles);
+        }
+
 
         dispatch(setImagesReview(imageFiles));
         dispatch(setVideosReview(videoFiles));
@@ -49,7 +57,7 @@ const UploadForm = (props: PropsWithoutRef<{
     };
 
     processFiles();
-  }, [selectedFiles]);
+  }, [selectedFiles, pasteURLFiles]);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
@@ -70,11 +78,18 @@ const UploadForm = (props: PropsWithoutRef<{
     }
   }
 
+  const handlePasteURL = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const fileURL = event.target.value;
+    if (fileURL && fileURL.length > 0) {
+      setPasteURLFiles(fileURL);
+    }
+  }
+
   return (
     <div className="Dialog UploadDialog">
       <div className="Dialog-wrapper">
         <button type="button" aria-label="close" className="PopUpClose">
-          <img src="https://s.imgur.com/desktop-assets/desktop-assets/upload_dialog_close.090c128bffd440597750.svg" alt="Close" />
+          <img src="/images/pages/upload/close.svg" alt="Close" />
         </button>
         <div className="PopUpContaner">
           <div className="PopUpDrop" draggable onDragOver={handleDragOver} onDrop={handleDrop}>
@@ -102,7 +117,7 @@ const UploadForm = (props: PropsWithoutRef<{
               inputProps={{ multiple: true }}
             />
             <label htmlFor="file-input" className="PopUpActions-filePicker">
-              <img src="https://s.imgur.com/desktop-assets/desktop-assets/icon-photo.e5fd72ac37a762a402ea.svg" alt="Choose Photo/Video" />
+              <img src="/images/pages/upload/photo.svg" alt="Choose Photo/Video" />
               Choose Photo/Video
             </label>
             <div className="PopUpActions-divider">
@@ -111,17 +126,11 @@ const UploadForm = (props: PropsWithoutRef<{
               <span className="PopUpActions-divider--line"></span>
             </div>
             <div className="PopUpActions-textPicker">
-              <Input placeholder="Paste image or URL" tabIndex={12} />
-            </div>
-            <div className="PopUpActions-extra">
-              <button type="button" tabIndex={13}>
-                <img src="https://s.imgur.com/desktop-assets/desktop-assets/meme.1719bac60b7861cbd5e9.svg" alt="Meme Gen" />
-                Meme Gen
-              </button>
-              <button type="button" disabled tabIndex={14}>
-                <img src="https://s.imgur.com/desktop-assets/desktop-assets/browse.7a7c32874c696f6255a8.svg" alt="My Uploads" />
-                My Uploads
-              </button>
+              <Input
+                placeholder="Paste image or URL"
+                tabIndex={12}
+                onChange={handlePasteURL}
+              />
             </div>
           </div>
         </div>

@@ -21,15 +21,8 @@ input {
   margin: 0
 }
 
-@font-face {
-  font-family: 'Proxima Nova Bold';
-  src: url(https://s.imgur.com/desktop-assets/desktop-assets/fonts/proxima-nova-bold.woff2) format("woff2");
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap
-}
-
 .Dialog {
+  margin-top: 50px;
   min-width: 300px;
   min-height: 150px;
   background-color: #fff;
@@ -44,12 +37,13 @@ input {
 
 @keyframes dialogAppear {
   0% {
-      opacity: 0;
-      transform: scale3d(0, 0, 1)
+    opacity: 0;
+    transform: scale3d(0, 0, 1)
   }
+
   to {
-      opacity: 1;
-      transform: scale3d(1, 1, 1)
+    opacity: 1;
+    transform: scale3d(1, 1, 1)
   }
 }
 
@@ -77,11 +71,11 @@ input {
 
 @media (max-height:900px) {
   .PopUpActions {
-      float: right;
-      height: 320px;
-      display: flex;
-      align-items: center;
-      justify-content: center
+    float: right;
+    height: 320px;
+    display: flex;
+    align-items: center;
+    justify-content: center
   }
 }
 
@@ -109,7 +103,8 @@ input {
 
 .PopUpActions-filePicker {
   height: 40px;
-  cursor: pointer
+  cursor: pointer;
+  font-weight: 600;
 }
 
 .PopUpActions-filePicker img {
@@ -119,7 +114,8 @@ input {
 .PopUpActions-divider {
   height: 10px;
   margin-top: 10px;
-  margin-bottom: 20px
+  margin-bottom: 20px;
+  font-weight: 600;
 }
 
 .PopUpActions-divider--line {
@@ -142,6 +138,7 @@ input {
   height: 100%;
   border-radius: 3px;
   text-align: center;
+  color: #fff;
   background-color: #272a33;
   border: unset;
   outline: unset;
@@ -150,31 +147,9 @@ input {
 }
 
 .PopUpActions-textPicker input::placeholder {
-  color: #fff
-}
-
-.PopUpActions-extra {
-  height: 60px;
-  width: 320px;
-  justify-content: space-evenly
-}
-
-.PopUpActions-extra button {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  font-size: 12px;
-  font-family: "Proxima Nova Bold", "Helvetica Neue", Helvetica, Arial, sans-serif
-}
-
-.PopUpActions-extra button:disabled {
-  opacity: .24;
-  cursor: not-allowed
-}
-
-.PopUpActions-extra img {
-  width: 32px
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
 }
 
 .PopUpClose {
@@ -202,7 +177,7 @@ input {
 
 @media (max-height:900px) {
   .PopUpDrop {
-      float: left
+    float: left
   }
 }
 
@@ -241,7 +216,7 @@ input {
 }
 
 .PopUpDrop-Observatory {
-  background-image: url(https://s.imgur.com/desktop-assets/desktop-assets/observatory.2e9954800f1d8f41ebec.svg);
+  background-image: url('/images/pages/upload/observatory.svg');
   position: absolute;
   left: 0;
   bottom: 0;
@@ -259,7 +234,7 @@ input {
   opacity: 1;
   background-size: cover;
   z-index: 4;
-  background-image: url(https://s.imgur.com/desktop-assets/desktop-assets/daylight.d405eefef22310f8ed63.svg);
+  background-image: url('/images/pages/upload/bg-upload.svg');
 }
 
 .PopUpDrop-DaylightSky {
@@ -289,7 +264,7 @@ input {
 
 @media (max-height:900px) {
   .UploadDialog {
-      width: 960px
+    width: 960px
   }
 }
 
@@ -306,24 +281,37 @@ input {
 
 @media (max-height:900px) {
   .PopUpContaner>* {
-      width: 50%
+    width: 50%
   }
 }
 
-.file-item{
+.file-item {
   margin-bottom: 20px;
 }
 
-.file-image, .file-video {
-  width: 500px; 
+.file-image,
+.file-video {
+  width: 500px;
   height: auto;
-  display: block; 
+  display: block;
   border-radius: 10px 10px 0 0;
 }
 
-.container {
-  width: 80%;
-  margin: auto;
+.container-box {
+  margin: 20px auto;
+  column-count: 4;
+
+  @media screen and (max-width: 1200px) {
+    column-count: 3;
+  }
+
+  @media screen and (max-width: 768px) {
+    column-count: 2;
+  }
+
+  @media screen and (max-width: 480px) {
+    column-count: 1;
+  }
 }
 
 .file-container {
@@ -343,18 +331,18 @@ input {
 }
 
 .description-input {
-  width: 500px; 
+  width: 500px;
   height: 50px;
   padding: 8px;
-  border: 1px solid gray; 
-  box-sizing: border-box; 
+  border: 1px solid gray;
+  box-sizing: border-box;
   border-radius: 0 0 10px 10px;
   margin-bottom: 20px;
 }
 
 .edit-icon,
 .delete-icon {
-  color: #fff; 
+  color: #fff;
   margin-right: 10px;
   cursor: pointer;
   transition: color 0.3s ease-in-out;

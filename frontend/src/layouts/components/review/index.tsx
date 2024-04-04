@@ -47,6 +47,43 @@ const ReviewForm = () => {
         return new File([buffer], `video_${Date.now()}.mp4`, { type: "video/mp4" });
     };
 
+    const convertURLToFile = async (url: string) => {
+        try {
+            const corsImageModified = new Image();
+            corsImageModified.crossOrigin = "Anonymous";
+            corsImageModified.src = url + "?not-from-cache-please";
+            await new Promise((resolve, reject) => {
+                corsImageModified.onload = resolve;
+                corsImageModified.onerror = reject;
+            });
+
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            console.log('context: ', context)
+            canvas.width = corsImageModified.width;
+            canvas.height = corsImageModified.height;
+            if (!!context) {
+                console.log('check 1')
+                context.drawImage(corsImageModified, 0, 0);
+            }
+            return new Promise((resolve, reject) => {
+                canvas.toBlob((blob) => {
+                    console.log(blob);
+                    if (!!blob) {
+                        console.log('check 2')
+                        const file = new File([blob], `image_${Date.now()}.jpg`, { type: blob.type });
+                        console.log(file);
+                        resolve(file);
+                    } else {
+                        reject(new Error('Blob is null'));
+                    }
+                });
+            });
+        } catch (e) {
+            console.error('Error converting URL to file:', e);
+        }
+    }
+
     const handleTitleChange = (value: string) => {
         dispatch(setTitles(value));
     };
@@ -123,11 +160,19 @@ const ReviewForm = () => {
         const videoFiles: File[] = [];
 
         if (imagesReview.length > 0) {
-            imagesReview.map((image) => {
-                const imageFile = base64ToFileImage(image);
-                imageFiles.push(imageFile);
-            })
+            for (const image of imagesReview) {
+                if (image.startsWith('http')) {
+                    console.log('check url');
+                    const imageUrl = await convertURLToFile(image);
+                    console.log('check imageUrl: ', imageUrl);
+                    imageFiles.push(imageUrl);
+                } else {
+                    const imageFile = base64ToFileImage(image);
+                    imageFiles.push(imageFile);
+                }
+            }
         }
+
 
         if (videosReview.length > 0) {
             videosReview.map((video) => {
@@ -283,4 +328,4 @@ const ReviewForm = () => {
     );
 };
 
-export default ReviewForm;
+export default ReviewForm

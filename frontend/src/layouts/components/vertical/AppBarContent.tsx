@@ -41,11 +41,15 @@ const AppBarContent = (props: Props) => {
   // ** Hook
   const hiddenSm = useMediaQuery((theme: Theme) => theme.breakpoints.down('md'))
   const isLargeScreen = useMediaQuery((theme: Theme) => theme.breakpoints.up('xl'))
+  const isLargestScreen = useMediaQuery('(min-width: 1600px)')
+  const isMediumScreen = useMediaQuery('(max-width: 1199px)')
   const textFieldWidth = isLargeScreen ? '500px' : '300px'
+  const tleft = isLargestScreen ? 382 : isMediumScreen ? 24 : 285
+  const tright = isLargestScreen ? 120.8 : 25
 
   return (
-    <Box sx={{ width: '95.5%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', zIndex: 10, position: 'fixed', backgroundColor: 'white', padding: '-50px', borderRadius: '5px' }}>
-      <Box className='actions-left' sx={{ mr: 2, display: 'flex', alignItems: 'center', padding: '20px' }}>
+    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', zIndex: 10, position: 'fixed', backgroundColor: 'white', borderRadius: '6px', padding: '20px', left: tleft, right: tright, boxShadow: '0px 2px 10px 0px rgba(58, 53, 65, 0.1)' }}>
+      <Box className='actions-left' sx={{ mr: 2, display: 'flex', alignItems: 'center' }}>
         {hidden ? (
           <IconButton
             color='inherit'
@@ -95,18 +99,18 @@ const AppBarContent = (props: Props) => {
           placeholder='Images, #tags, @users oh my!'
         />
       </Box>
-      {!isLoggedIn && (
-        <Box sx={{ ml: isLargeScreen ? 50 : 0 }}>
-          <Button
-            variant='contained'
-            href='/login'
-            sx={{ color: 'white', backgroundColor: 'green', border: 'none', mt: 3 }}
-          >
-            LOGIN
-          </Button>
-        </Box>
-      )}
       <Box className='actions-right' sx={{ display: 'flex', alignItems: 'center' }}>
+        {!isLoggedIn && (
+          <Box>
+            <Button
+              variant='contained'
+              href='/login'
+              sx={{ color: 'white', backgroundColor: 'green', border: 'none', mt: 3 }}
+            >
+              LOGIN
+            </Button>
+          </Box>
+        )}
         <ModeToggler settings={settings} saveSettings={saveSettings} />
         {isLoggedIn && <UserDropdown />}
       </Box>
