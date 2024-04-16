@@ -2,39 +2,39 @@ import { useMemo, useState } from "react"
 import LoginForm from "./LoginForm";
 import RegisterForm from "./RegisterForm";
 
-enum RenderViews{
+enum RenderViews {
     NONE,
-  LOGIN,
-  REGISTER
+    LOGIN,
+    REGISTER
 }
 
-const AuthView=()=>{
-    const [view, setView]=useState(RenderViews.NONE);
+const AuthView = () => {
+    const [view, setView] = useState(RenderViews.NONE);
 
-    const slideTransform=useMemo(()=>{
-        if(view===RenderViews.LOGIN){
+    const slideTransform = useMemo(() => {
+        if (view === RenderViews.LOGIN) {
             return 'translateX(0)'
-        }else if(view===RenderViews.REGISTER){
+        } else if (view === RenderViews.REGISTER) {
             return 'translateX(-100%)'
         }
-    },[view])
+    }, [view])
 
     return (
-        <div id="auth-view" style={{display:'flex', justifyContent:'center'}}>
-            <div style={{maxWidth:'448px', overflow:'hidden'}}>
+        <div id="auth-view" style={{ display: 'flex', justifyContent: 'center' }}>
+            <div style={{ maxWidth: '448px', overflow: 'hidden' }}>
                 <div style={{
-                    display:'flex',
-                    transform:slideTransform,
-                    willChange:'transform',
-                    transition:'0.35s'
+                    display: 'flex',
+                    transform: slideTransform,
+                    willChange: 'transform',
+                    transition: '0.35s'
                 }}>
                     <LoginForm
-                        onChangeViewRegister={()=>{
+                        onChangeViewRegister={() => {
                             setView(RenderViews.REGISTER)
                         }}
                     />
                     <RegisterForm
-                        onChangeViewLogin={()=>{
+                        onChangeViewLogin={() => {
                             setView(RenderViews.LOGIN)
                         }}
                     />

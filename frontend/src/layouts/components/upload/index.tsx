@@ -1,4 +1,4 @@
-import React, { PropsWithoutRef, useCallback, useEffect, useState } from 'react';
+import React, { PropsWithoutRef, useEffect, useState } from 'react';
 import { Input } from '@mui/material';
 import { useRouter } from 'next/router';
 import { useDispatch } from 'src/app/hooks';
@@ -16,6 +16,7 @@ const convertFileToBase64 = (file: File): Promise<string> => {
 const UploadForm = (props: PropsWithoutRef<{
   onUploadComplete?: () => void;
 }>) => {
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
   const { onUploadComplete = () => { } } = props;
 
   const router = useRouter();
@@ -26,13 +27,13 @@ const UploadForm = (props: PropsWithoutRef<{
 
   useEffect(() => {
     const processFiles = async () => {
-      if (selectedFiles.length > 0 || pasteURLFiles.length>0) {
+      if (selectedFiles.length > 0 || pasteURLFiles.length > 0) {
         onUploadComplete();
 
         const imageFiles: string[] = [];
         const videoFiles: string[] = [];
 
-        if (selectedFiles.length > 0){
+        if (selectedFiles.length > 0) {
           for (const file of selectedFiles) {
             if (file.type.startsWith('image/')) {
               const base64Image = await convertFileToBase64(file);
@@ -43,8 +44,8 @@ const UploadForm = (props: PropsWithoutRef<{
             }
           }
         }
-        
-        if(pasteURLFiles.length>0){
+
+        if (pasteURLFiles.length > 0) {
           imageFiles.push(pasteURLFiles);
         }
 

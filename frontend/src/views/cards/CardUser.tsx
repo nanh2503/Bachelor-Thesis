@@ -14,7 +14,7 @@ const CardUser = () => {
       <CardMedia sx={{ height: '12.625rem' }} image='/images/cards/background-user.png' />
       <Avatar
         alt='Robert Meyer'
-        src='/images/avatars/1.png'
+        src='/images/avatars/male.png'
         sx={{
           width: 75,
           height: 75,

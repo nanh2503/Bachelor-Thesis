@@ -9,7 +9,7 @@ import { styled } from '@mui/material/styles'
 
 
 // ** Icons Imports
-import { AccountOutline, LockOpenOutline, InformationOutline } from 'mdi-material-ui';
+import { AccountOutline, LockOpenOutline } from 'mdi-material-ui';
 
 // ** Demo Tabs Imports
 import { TabAccount, TabSecurity } from 'src/views/account-settings';

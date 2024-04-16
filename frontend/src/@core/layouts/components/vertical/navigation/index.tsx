@@ -69,7 +69,7 @@ const Navigation = (props: Props) => {
   const [currentActiveGroup, setCurrentActiveGroup] = useState<string[]>([])
   const isLoggedIn = useSelector((state) => state.loginState.isLoggedIn)
 
-  const userInfo=useSelector((state)=>state.userInfoState.userInfo)
+  const userInfo = useSelector((state) => state.userInfoState.userInfo)
 
   // ** Ref
   const shadowRef = useRef(null)
@@ -120,7 +120,7 @@ const Navigation = (props: Props) => {
               badgeContent={<BadgeContentSpan />}
               anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
             >
-              <Avatar alt='{userInfo?.username}' src={userInfo?.avatar} sx={{ width: '2.5rem', height: '2.5rem' }} />
+              <Avatar alt='{userInfo?.username}' src={userInfo?.avatar ?? '/images/avatars/male.png'} sx={{ width: '2.5rem', height: '2.5rem' }} />
             </Badge>
             <Box sx={{ display: 'flex', marginLeft: 3, alignItems: 'flex-start', flexDirection: 'column' }}>
               <Typography sx={{ fontWeight: 600 }}>{userInfo?.username}</Typography>

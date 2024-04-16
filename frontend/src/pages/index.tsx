@@ -2,12 +2,12 @@
 import ApexChartWrapper from 'src/@core/styles/libs/react-apexcharts'
 
 // ** Demo Components Imports
-import { Box, Card, CardContent, CardMedia, Grid, Typography } from '@mui/material'
+import { Card, CardContent, Typography } from '@mui/material'
 import { styled } from '@mui/material/styles'
 import themeConfig from 'src/configs/themeConfig'
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import { useDispatch, useSelector } from 'src/app/hooks'
-import { Image, Video, deleteImage, updateImage, updateVideo, deleteVideo } from 'src/app/redux/slices/fileSlice'
+import { deleteImage, updateImage, updateVideo, deleteVideo } from 'src/app/redux/slices/fileSlice'
 
 // FontAwesome Import
 import { library } from '@fortawesome/fontawesome-svg-core';
@@ -128,7 +128,6 @@ const Dashboard = () => {
   };
 
   const handleViewImage = (id: string, fileView: string) => {
-    console.log('check id', id);
     router.push(`/view/${fileView}/${id}`)
   }
 

@@ -297,6 +297,11 @@ input {
   border-radius: 10px 10px 0 0;
 }
 
+.container{
+  justify-content: center;
+  display: flex;
+}
+
 .container-box {
   margin: 20px auto;
   column-count: 4;

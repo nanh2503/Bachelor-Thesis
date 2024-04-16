@@ -47,7 +47,7 @@ import { AxiosError, AxiosResponse } from 'axios'
 import { useDispatch } from 'src/app/hooks';
 import { setUser } from 'src/app/redux/slices/loginSlice';
 import { useRouter } from 'next/router'
-import { handleRegisterService, handleSetUserInfoService } from 'src/services/userServices';
+import { handleRegisterService, handleUpdateUserInfoService } from 'src/services/userServices';
 import { setUserInfo } from 'src/app/redux/slices/userInfoSlice';
 
 interface State {
@@ -83,6 +83,7 @@ const FormControlLabel = styled(MuiFormControlLabel)<FormControlLabelProps>(({ t
 const RegisterForm = (props: PropsWithoutRef<{
     onChangeViewLogin?: () => void;
 }>) => {
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
     const { onChangeViewLogin = () => { } } = props;
 
     // ** States
@@ -111,23 +112,19 @@ const RegisterForm = (props: PropsWithoutRef<{
     }
 
     const handleRegister = async () => {
-        console.log('values: ', values.username);
         try {
             const response = await handleRegisterService(values.username, values.email, values.password, values.cfPassword)
 
             // @ts-ignore
             const data = response.data;
-            console.log('data: ', data);
             if (data && data.errCode !== 0) {
                 setValues(prevState => ({ ...prevState, errMessage: data.errMessage }));
-                console.log('error: ', values.errMessage);
-                console.log('Register error');
             }
             if (data && data.errCode === 0) {
                 dispatch(setUser(data.user))
                 router.push("/")
                 console.log("Register succeed!")
-                await handleSetUserInfoService(values.email, values.username);
+                await handleUpdateUserInfoService(values.email, values.username);
                 dispatch(setUserInfo(data.user))
             }
         } catch (e) {
@@ -141,10 +138,8 @@ const RegisterForm = (props: PropsWithoutRef<{
         }
     }
 
-    console.log('err: ', values.errMessage);
-
     return (
-        <Box className='content-center' sx={{minWidth: '100%'}}>
+        <Box className='content-center' sx={{ minWidth: '100%' }}>
             <Card sx={{ zIndex: 1 }}>
                 <CardContent sx={{ padding: theme => `${theme.spacing(1, 9, 7)} !important` }}>
                     <Box sx={{ mb: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>

@@ -1,21 +1,17 @@
 // ** React Imports
-import { useState, ElementType, ChangeEvent, SyntheticEvent, forwardRef } from 'react'
+import { useState, ElementType, ChangeEvent, forwardRef } from 'react'
 
 import {
   Box,
   Grid,
   Radio,
-  Select,
   Button,
   Typography,
-  MenuItem,
   TextField,
   FormLabel,
-  InputLabel,
   RadioGroup,
   CardContent,
   FormControl,
-  OutlinedInput,
   FormControlLabel
 } from '@mui/material';
 
@@ -23,11 +19,10 @@ import { styled } from '@mui/material/styles'
 import { ButtonProps } from '@mui/material/Button'
 
 // ** Icons Imports
-import Close from 'mdi-material-ui/Close'
 import { useDispatch, useSelector } from 'src/app/hooks'
 import DatePickerWrapper from 'src/@core/styles/libs/react-datepicker'
 import DatePicker from 'react-datepicker'
-import { handleSetUserInfoService } from 'src/services/userServices';
+import { handleUpdateUserInfoService } from 'src/services/userServices';
 import { AxiosError, AxiosResponse } from 'axios';
 import { setUserInfo } from 'src/app/redux/slices/userInfoSlice';
 
@@ -71,8 +66,8 @@ const TabAccount = () => {
   const userInfo = useSelector((state) => state.userInfoState.userInfo)
 
   // ** State
-  const [imgSrc, setImgSrc] = useState<string>(userInfo?.avatar ?? '/images/avatars/1.png')
-  const [birthDate, setBirthDate] = useState<Date>(userInfo && new Date(userInfo.birthDate) instanceof Date ? new Date(userInfo.birthDate) : new Date());
+  const [imgSrc, setImgSrc] = useState<string>(userInfo?.avatar ?? '/images/avatars/male.png')
+  const [birthDate, setBirthDate] = useState<Date>(userInfo?.birthDate && new Date(userInfo?.birthDate) instanceof Date ? new Date(userInfo?.birthDate) : new Date());
 
   const [values, setValues] = useState<userInfoState>({
     username: userInfo?.username ?? '',
@@ -98,7 +93,7 @@ const TabAccount = () => {
   const handleSaveChanges = async () => {
     try {
       if (!!userInfo) {
-        const response = await handleSetUserInfoService(userInfo?.email, values.username, imgSrc, birthDate, values.phoneNum, values.gender)
+        const response = await handleUpdateUserInfoService(userInfo?.email, values.username, imgSrc, birthDate, values.phoneNum, values.gender)
 
         const data = response.data;
 
@@ -138,7 +133,7 @@ const TabAccount = () => {
                       id='account-settings-upload-image'
                     />
                   </ButtonStyled>
-                  <ResetButtonStyled color='error' variant='outlined' onClick={() => setImgSrc('/images/avatars/1.png')}>
+                  <ResetButtonStyled color='error' variant='outlined' onClick={() => setImgSrc('/images/avatars/male.png')}>
                     Reset
                   </ResetButtonStyled>
                   <Typography variant='body2' sx={{ marginTop: 5 }}>

@@ -9,7 +9,6 @@ import {
   Box,
   Menu,
   Badge,
-  Avatar,
   Divider,
   MenuItem,
   Typography
@@ -50,7 +49,7 @@ const UserDropdown = () => {
   const router = useRouter()
   const dispatch = useDispatch()
 
-  const userInfo = useSelector((state)=>state.userInfoState.userInfo)
+  const userInfo = useSelector((state) => state.userInfoState.userInfo)
 
   const handleDropdownOpen = (event: SyntheticEvent) => {
     setAnchorEl(event.currentTarget)
@@ -83,6 +82,8 @@ const UserDropdown = () => {
     }
   }
 
+  const avt = userInfo?.avatar ? userInfo.avatar : '/images/avatars/male.png';
+
   return (
     <Fragment>
       <Badge
@@ -92,11 +93,11 @@ const UserDropdown = () => {
         badgeContent={<BadgeContentSpan />}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
       >
-        <Avatar
+        <img
           alt='Avatar'
           onClick={handleDropdownOpen}
-          sx={{ width: 40, height: 40 }}
-          src={userInfo?.avatar}
+          style={{ width: 40, height: 40, borderRadius: 50 }}
+          src={avt}
         />
       </Badge>
       <Menu
@@ -114,7 +115,7 @@ const UserDropdown = () => {
               badgeContent={<BadgeContentSpan />}
               anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
             >
-              <Avatar alt='Avatar' src={userInfo?.avatar} sx={{ width: '2.5rem', height: '2.5rem' }} />
+              <img alt='Avatar' src={avt} style={{ width: 40, height: 40, borderRadius: 50 }} />
             </Badge>
             <Box sx={{ display: 'flex', marginLeft: 3, alignItems: 'flex-start', flexDirection: 'column' }}>
               <Typography sx={{ fontWeight: 600 }}>{userInfo?.username}</Typography>

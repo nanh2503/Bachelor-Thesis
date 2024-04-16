@@ -42,13 +42,14 @@ import BlankLayout from 'src/@core/layouts/BlankLayout'
 
 // ** Demo Imports
 import FooterIllustrationsV1 from 'src/views/pages/auth/FooterIllustration'
-import { handleLoginService } from 'src/services/userServices'
+import { handleLoginService, handleSetUserInfoService } from 'src/services/userServices'
 import { AxiosError, AxiosResponse } from 'axios'
 import { useDispatch } from 'src/app/hooks'
 import { setUser } from 'src/app/redux/slices/loginSlice'
 import { useRouter } from 'next/router'
 import { setFileList } from 'src/app/redux/slices/fileSlice'
 import { handleFetchData } from 'src/services/fileServices';
+import { setUserInfo } from 'src/app/redux/slices/userInfoSlice';
 
 interface State {
   email: string,
@@ -79,6 +80,7 @@ const FormControlLabel = styled(MuiFormControlLabel)<FormControlLabelProps>(({ t
 const LoginForm = (props: PropsWithoutRef<{
   onChangeViewRegister?: () => void;
 }>) => {
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
   const { onChangeViewRegister = () => { } } = props;
 
   // ** State
@@ -110,7 +112,6 @@ const LoginForm = (props: PropsWithoutRef<{
   }
 
   const fetchData = async (user: string) => {
-    console.log('user: ', user);
     try {
       const response = await handleFetchData(user);
 
@@ -121,7 +122,6 @@ const LoginForm = (props: PropsWithoutRef<{
   }
 
   const handleLogin = async () => {
-    console.log('values: ', values.email);
     try {
       const response = await handleLoginService(values.email, values.password)
 
@@ -129,11 +129,13 @@ const LoginForm = (props: PropsWithoutRef<{
       const data = response.data;
       if (data && data.errCode !== 0) {
         setValues(prevState => ({ ...prevState, errMessage: data.errMessage }));
-        console.log('error: ', values.errMessage);
-        console.log('Login error');
       }
       if (data && data.errCode === 0) {
         dispatch(setUser(data.user))
+        const userInfo = await handleSetUserInfoService(data.user.email);
+        if (!!userInfo) {
+          dispatch(setUserInfo(userInfo.data.userInfo))
+        }
         const fileList = await fetchData(data.user.username)
         dispatch(setFileList(fileList))
         router.push("/")
@@ -150,10 +152,8 @@ const LoginForm = (props: PropsWithoutRef<{
     }
   }
 
-  console.log('err: ', values.errMessage);
-
   return (
-    <Box className='content-center' sx={{minWidth: '100%'}}>
+    <Box className='content-center' sx={{ minWidth: '100%' }}>
       <Card sx={{ zIndex: 1 }}>
         <CardContent sx={{ padding: theme => `${theme.spacing(1, 9, 7)} !important` }}>
           <Box sx={{ mb: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>

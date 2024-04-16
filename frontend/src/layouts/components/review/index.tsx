@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/router';
-import { Input, Button, Dialog, CardMedia } from '@mui/material';
+import { Input, Button, Dialog } from '@mui/material';
 import { handleFetchData, handleGetSignatureForUpload, handleUploadBackendService, handleUploadCloudService } from 'src/services/fileServices';
 import { ThreeDots } from 'react-loader-spinner';
 import { useDispatch, useSelector } from 'src/app/hooks';
@@ -24,12 +24,14 @@ const ReviewForm = () => {
     const base64ToBufferImage = (base64String: string) => {
         // Loại bỏ tiền tố 'data:image/jpeg;base64,' hoặc 'data:image/png;base64,'
         const base64Data = base64String.replace(/^data:image\/\w+;base64,/, '');
+
         // Chuyển đổi chuỗi base64 thành Buffer
         return Buffer.from(base64Data, 'base64');
     };
 
     const base64ToFileImage = (base64String: string) => {
         const buffer = base64ToBufferImage(base64String);
+
         // Tạo đối tượng File từ Buffer
         return new File([buffer], `image_${Date.now()}.jpg`, { type: "image/jpeg" });
     };
@@ -37,12 +39,14 @@ const ReviewForm = () => {
     const base64ToBufferVideo = (base64String: string) => {
         // Loại bỏ tiền tố 'data:image/jpeg;base64,' hoặc 'data:image/png;base64,'
         const base64Data = base64String.replace(/^data:video\/\w+;base64,/, '');
+
         // Chuyển đổi chuỗi base64 thành Buffer
         return Buffer.from(base64Data, 'base64');
     };
 
     const base64ToFileVideo = (base64String: string) => {
         const buffer = base64ToBufferVideo(base64String);
+
         // Tạo đối tượng File từ Buffer
         return new File([buffer], `video_${Date.now()}.mp4`, { type: "video/mp4" });
     };
@@ -59,20 +63,16 @@ const ReviewForm = () => {
 
             const canvas = document.createElement('canvas');
             const context = canvas.getContext('2d');
-            console.log('context: ', context)
             canvas.width = corsImageModified.width;
             canvas.height = corsImageModified.height;
             if (!!context) {
-                console.log('check 1')
                 context.drawImage(corsImageModified, 0, 0);
             }
+
             return new Promise((resolve, reject) => {
                 canvas.toBlob((blob) => {
-                    console.log(blob);
                     if (!!blob) {
-                        console.log('check 2')
                         const file = new File([blob], `image_${Date.now()}.jpg`, { type: blob.type });
-                        console.log(file);
                         resolve(file);
                     } else {
                         reject(new Error('Blob is null'));
@@ -109,7 +109,7 @@ const ReviewForm = () => {
             const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
             const resourceType = type === 'image' ? 'image' : 'video';
 
-            const uploadPromises = files.map(async (file, index) => {
+            const uploadPromises = files.map(async (file) => {
                 const data = new FormData();
                 data.append("file", file);
                 data.append("timestamp", timestamp.toString());
@@ -162,9 +162,7 @@ const ReviewForm = () => {
         if (imagesReview.length > 0) {
             for (const image of imagesReview) {
                 if (image.startsWith('http')) {
-                    console.log('check url');
                     const imageUrl = await convertURLToFile(image);
-                    console.log('check imageUrl: ', imageUrl);
                     imageFiles.push(imageUrl);
                 } else {
                     const imageFile = base64ToFileImage(image);
@@ -248,6 +246,7 @@ const ReviewForm = () => {
                     <div className='video-container'>
                         {videosReview.map((video, index) => {
                             const indexVideo = index + imagesReview.length;
+
                             return (
                                 <div key={indexVideo}>
                                     <video controls>
