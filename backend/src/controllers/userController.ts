@@ -15,7 +15,6 @@ export interface UserData {
 }
 
 export const handleLogin = async (req: Request, res: Response): Promise<void> => {
-    console.log('backend');
     let email = req.body.email;
     let password = req.body.password;
 
@@ -46,10 +45,7 @@ export const handleRegister = async (req: Request, res: Response): Promise<void>
     let password = req.body.password;
     let cfPassword = req.body.cfPassword;
 
-    console.log('username: ', username);
-
     if (!username || !email || !password || !cfPassword) {
-        console.log('echk');
         const response: UserData = {
             errCode: 1,
             errMessage: 'Missing inputs parameter!',

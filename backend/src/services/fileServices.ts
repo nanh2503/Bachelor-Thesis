@@ -132,8 +132,6 @@ export const handleDeleteDataService = async (id: string): Promise<FileData> => 
             ]
         });
 
-        console.log({ existingData });
-
         if (existingData) {
             // Lọc ra ảnh cần xóa khỏi mảng images
             existingData.images = existingData.images.filter((image: any) => image._id.toString() !== id);

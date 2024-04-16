@@ -101,8 +101,6 @@ export const updateData = async (req: Request, res: Response): Promise<void | Fi
 export const deleteData = async (req: Request, res: Response): Promise<void | File> => {
     let id = req.query.id;
 
-    console.log('id: ', id);
-
     if (!id) {
         const errorResponse: FileData = {
             errCode: 1,
