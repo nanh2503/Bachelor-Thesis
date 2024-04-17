@@ -10,11 +10,13 @@ export interface FileData {
 }
 
 export const handleUpload = async (req: Request, res: Response): Promise<void> => {
-    let username = req.body.username;
-    let imageUrl = req.body.imageUrl;
-    let videoUrl = req.body.videoUrl;
-    let title = req.body.titles;
-    let description = req.body.descriptions;
+    let { username, imageUrl, videoUrl, titles, descriptions, tagList } = req.body;
+
+    console.log('username: ', username);
+    console.log('imageUrl: ', imageUrl);
+    console.log('titles: ', titles);
+    console.log('descriptions: ', descriptions);
+    console.log('tagList: ', tagList);
 
     if (!username) {
         const errorResponse: FileData = {
@@ -36,7 +38,7 @@ export const handleUpload = async (req: Request, res: Response): Promise<void> =
         return;
     }
 
-    let fileData = await handleUploadFile(username, imageUrl, videoUrl, title, description);
+    let fileData = await handleUploadFile(username, imageUrl, videoUrl, titles, descriptions, tagList);
 
     const response: FileData = {
         errCode: fileData.errCode,

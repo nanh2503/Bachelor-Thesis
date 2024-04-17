@@ -15,6 +15,7 @@ export interface FileInterface extends Document {
     images: FileImage[];
     videos: FileVideo[];
     title: string;
+    tagList: string[];
 }
 
 const imageSchema = new mongoose.Schema<FileImage>({
@@ -51,6 +52,10 @@ const schema = new mongoose.Schema<FileInterface>(
             type: String,
             required: false,
         },
+        tagList: {
+            type: [String],
+            required: false
+        }
     },
     {
         timestamps: true,

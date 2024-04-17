@@ -1,7 +1,7 @@
 import { FileData } from "../controllers/fileController";
 import File from "../models/fileModels";
 
-export const handleUploadFile = (username: string, imageUrl: string[], videoUrl: string[], title: string, description: string[]): Promise<FileData> => {
+export const handleUploadFile = (username: string, imageUrl: string[], videoUrl: string[], title: string, description: string[], tagList: string[]): Promise<FileData> => {
     return new Promise(async (resolve, reject) => {
         try {
             let fileData: FileData = { errCode: -1, errMessage: '' };
@@ -21,6 +21,7 @@ export const handleUploadFile = (username: string, imageUrl: string[], videoUrl:
                 images: images,
                 videos: videos,
                 title,
+                tagList,
             });
 
             await newFile.save();
