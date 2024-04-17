@@ -20,6 +20,8 @@ const ReviewForm = () => {
 
     const [loading, setLoading] = useState(false);
     const [isAddMoreDialogOpen, setAddMoreDialogOpen] = useState(false);
+    const [tagNull, setTagNull] = useState(false);
+    const [tagList, setTagList] = useState<string[]>([]);
 
     const base64ToBufferImage = (base64String: string) => {
         // Loại bỏ tiền tố 'data:image/jpeg;base64,' hoặc 'data:image/png;base64,'
@@ -156,6 +158,8 @@ const ReviewForm = () => {
     const handleAddImages = async (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
 
+        console.log('tagList: ', tagList);
+
         const imageFiles: File[] = [];
         const videoFiles: File[] = [];
 
@@ -198,7 +202,7 @@ const ReviewForm = () => {
 
             if (!!username) {
                 //Send backend api request
-                await handleUploadBackendService(username, imageUrl, videoUrl, titles, descriptions);
+                await handleUploadBackendService(username, imageUrl, videoUrl, titles, descriptions, tagList);
             }
 
 
@@ -212,91 +216,195 @@ const ReviewForm = () => {
         }
     }
 
+    const handleSaveTags: React.KeyboardEventHandler<HTMLSpanElement> = (event) => {
+        if (event.key === 'Enter') {
+            const inputElement = event.target as HTMLElement;
+            if (!!inputElement && !!inputElement.parentNode) {
+                const newTag = inputElement.innerText.trim();
+
+                if (newTag !== '') {
+                    let existTag = false;
+                    tagList.map(tag => {
+                        if (tag === newTag) {
+                            existTag = true;
+
+                            return;
+                        }
+                    })
+
+                    if (!existTag) {
+                        setTagList([...tagList, newTag]);
+                        const tagElement = document.createElement('span');
+                        tagElement.textContent = newTag;
+                        tagElement.classList.add('tags-input');
+
+                        //Tạo nút x để xóa tag
+                        const closeButton = document.createElement('button');
+                        closeButton.textContent = 'x';
+                        closeButton.classList.add('close-button');
+
+                        //Xử lý sự kiện click vào nút x để xóa tag
+                        closeButton.addEventListener('click', () => {
+                            tagElement.parentNode?.removeChild(tagElement);
+                            const updatedTagList = tagList.filter(tag => tag !== newTag);
+                            setTagList(updatedTagList);
+                        })
+
+                        tagElement.addEventListener('click', () => {
+                            tagElement.parentNode?.removeChild(tagElement);
+                            const updatedTagList = tagList.filter(tag => tag !== newTag);
+                            setTagList(updatedTagList);
+                        })
+
+                        //Hiển thị nút x khi hover vào thẻ tag
+                        tagElement.addEventListener('mouseenter', () => {
+                            tagElement.appendChild(closeButton);
+                        })
+
+                        //Loại bỏ nút x khi rời thẻ tag
+                        tagElement.addEventListener('mouseleave', () => {
+                            tagElement.removeChild(closeButton);
+                        })
+
+                        inputElement.parentNode.insertBefore(tagElement, inputElement);
+                    }
+                    inputElement.innerText = '✚ Tag';
+
+                    event.preventDefault();
+
+                    inputElement.blur();
+                }
+            }
+        }
+    }
+
     return (
         <div>
+            <h1>Review Uploaded Files</h1>
             <div className='container'>
-                <h1>Review Uploaded Files</h1>
-                <div className='title-container'>
-                    <Input
-                        type='text'
-                        placeholder='Enter title'
-                        value={titles}
-                        onChange={(e) => handleTitleChange(e.target.value)}
-                    />
+                <div className='container-left'>
+                    <div className='title-container'>
+                        <Input
+                            type='text'
+                            placeholder='Enter title'
+                            style={{ fontWeight: 800, fontSize: '30px' }}
+                            value={titles}
+                            onChange={(e) => handleTitleChange(e.target.value)}
+                        />
+                    </div>
+
+                    <div className='file-item'>
+                        <div className='image-container'>
+                            {imagesReview.map((image, index) => {
+                                return (
+                                    <div key={index}>
+                                        <img src={image} alt={`Uploaded Image File ${index + 1}`} className='file-image' />
+                                        <div className='description-container'>
+                                            <input
+                                                placeholder='Add description'
+                                                value={descriptions[index]}
+                                                onChange={(e) => handleDescriptionChange(index, e.target.value)}
+                                                className='description-input'
+                                            />
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                        <div className='video-container'>
+                            {videosReview.map((video, index) => {
+                                const indexVideo = index + imagesReview.length;
+
+                                return (
+                                    <div key={indexVideo}>
+                                        <video controls>
+                                            <source src={video} type='video/mp4' className='file-video' />
+                                        </video>
+                                        <div className='description-container'>
+                                            <input
+                                                placeholder='Add description'
+                                                value={descriptions[indexVideo]}
+                                                onChange={(e) => handleDescriptionChange(indexVideo, e.target.value)}
+                                                className='description-input'
+                                            />
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    <Button
+                        sx={{
+                            backgroundColor: '#FF6699',
+                            padding: '10px 40px',
+                            color: 'white',
+                            transformX: '-30%',
+                            left: '30%',
+                            borderRadius: '30px',
+                            fontWeight: 700,
+                            fontSize: '16px',
+                            '&:hover': {
+                                backgroundColor: '#FF6666',
+                            },
+                        }}
+                        onClick={handleOpenAddMoreDialog} className='add-images-button'>
+                        ✚ Add Files
+                    </Button>
+
                 </div>
 
-                <div className='file-item'>
-                    <div className='image-container'>
-                        {imagesReview.map((image, index) => {
-                            return (
-                                <div key={index}>
-                                    <img src={image} alt={`Uploaded Image File ${index + 1}`} className='file-image' />
-                                    <div className='description-container'>
-                                        <input
-                                            placeholder='Add description'
-                                            value={descriptions[index]}
-                                            onChange={(e) => handleDescriptionChange(index, e.target.value)}
-                                            className='description-input'
-                                        />
-                                    </div>
-                                </div>
-                            );
-                        })}
-                    </div>
-                    <div className='video-container'>
-                        {videosReview.map((video, index) => {
-                            const indexVideo = index + imagesReview.length;
+                <div className='container-right'>
+                    <div className='post-button'>
+                        <div style={{ fontWeight: 1000, fontSize: 22 }}>POST</div>
+                        <div style={{ marginTop: 20, display: 'flex', gap: 20 }}>
+                            <Button
+                                sx={{
+                                    backgroundColor: 'green',
+                                    padding: '20px 50px',
+                                    color: 'white',
+                                    borderRadius: '10px',
+                                    fontSize: '16px',
+                                    fontWeight: 600,
+                                    '&:hover': {
+                                        backgroundColor: 'limegreen',
+                                    },
+                                }}
+                                onClick={handleAddImages}
+                            >To Community</Button>
 
-                            return (
-                                <div key={indexVideo}>
-                                    <video controls>
-                                        <source src={video} type='video/mp4' className='file-video' />
-                                    </video>
-                                    <div className='description-container'>
-                                        <input
-                                            placeholder='Add description'
-                                            value={descriptions[indexVideo]}
-                                            onChange={(e) => handleDescriptionChange(indexVideo, e.target.value)}
-                                            className='description-input'
-                                        />
-                                    </div>
-                                </div>
-                            );
-                        })}
+                            <Button
+                                sx={{
+                                    backgroundColor: 'gray',
+                                    padding: '20px 50px',
+                                    color: 'white',
+                                    borderRadius: '10px',
+                                    fontSize: '16px',
+                                    fontWeight: 600,
+                                    '&:hover': {
+                                        backgroundColor: '#CC9900',
+                                    },
+                                }}
+
+                            >Share Post</Button>
+                        </div>
+                    </div>
+
+                    <div className='add-tag-button'>
+                        <div style={{ fontWeight: 1000, fontSize: 22, marginTop: 100 }}>ADD TAGS</div>
+                        <div className='tags'>
+                            <span
+                                className='tags-input'
+                                contentEditable="true"
+                                onClick={() => setTagNull(true)}
+                                onBlur={() => setTagNull(false)}
+                                onKeyPress={handleSaveTags}
+                            >
+                                {!tagNull ? '✚ Tag' : ''}
+                            </span>
+                        </div>
                     </div>
                 </div>
-
-                <Button
-                    sx={{
-                        backgroundColor: 'green',
-                        padding: '10px 30px',
-                        color: 'white',
-                        marginLeft: '50px',
-                        borderRadius: '30px',
-                        '&:hover': {
-                            backgroundColor: 'limegreen',
-                        },
-                    }}
-                    onClick={handleAddImages} className='add-images-button'>
-                    <span><strong>+</strong></span> Add Files
-                </Button>
-
-                <Button
-                    sx={{
-                        backgroundColor: 'gray',
-                        padding: '10px 30px',
-                        color: 'white',
-                        marginLeft: '70px',
-                        borderRadius: '30px',
-                        '&:hover': {
-                            backgroundColor: 'gold',
-                        },
-                    }}
-                    onClick={handleOpenAddMoreDialog} className='add-images-button'>
-                    <span><strong>+</strong></span> Add More Files
-                </Button>
-
-
             </div>
 
             {loading && <ThreeDots
