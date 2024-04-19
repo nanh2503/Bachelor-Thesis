@@ -42,13 +42,13 @@ export const handleFetchDataService = async (arg: string): Promise<FileData> => 
         let fileData: FileData = { errCode: -1, errMessage: '', file: [] };
 
         if (arg === 'All') {
-            const fileList = await File.find({}, { _id: 1, images: 1, videos: 1, title: 1 });
+            const fileList = await File.find({}, { _id: 1, images: 1, videos: 1, title: 1, tagList: 1 });
 
             fileData.errCode = 0;
             fileData.errMessage = 'Get File successful!';
             fileData.file = fileList;
         } else if (arg === 'newest') {
-            const fileList = await File.find({}, { _id: 1, images: 1, videos: 1, title: 1 })
+            const fileList = await File.find({}, { _id: 1, images: 1, videos: 1, title: 1, tagList: 1 })
                 .sort({ createdAt: -1 })
                 .limit(1);
 
@@ -57,7 +57,7 @@ export const handleFetchDataService = async (arg: string): Promise<FileData> => 
             fileData.file = fileList;
         }
         else {
-            const fileList = await File.find({ username: arg }, { _id: 1, images: 1, videos: 1, title: 1 });
+            const fileList = await File.find({ username: arg }, { _id: 1, images: 1, videos: 1, title: 1, tagList: 1 });
 
             fileData.errCode = 0;
             fileData.errMessage = 'Get File successful!';
