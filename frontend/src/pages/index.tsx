@@ -34,9 +34,12 @@ const Dashboard = () => {
   const router = useRouter();
 
   const fileList = useSelector((state) => state.fileListState.file);
+  console.log('check fileList: ', fileList);
+
   const [editTitle, setEditTitle] = useState("");
   const [editDescription, setEditDescription] = useState("");
   const [editId, setEditId] = useState("");
+  const [tagList, setTagList] = useState<string[]>([]);
   const [isEditDialogOpen, setEditDialogOpen] = useState(false);
   const [confirmDeleteDialogOpen, setConfirmDeleteDialogOpen] = useState(false);
   const [deleteId, setDeleteId] = useState("");
@@ -50,6 +53,7 @@ const Dashboard = () => {
       fileList.map(file => {
         if (file.images.some(image => image._id === id)) {
           setEditTitle(file.title)
+          setTagList(file.tagList)
           file.images.map(image => {
             if (image._id === id) {
               setEditDescription(image.description)
@@ -61,6 +65,7 @@ const Dashboard = () => {
       fileList.map(file => {
         if (file.videos.some(video => video._id === id)) {
           setEditTitle(file.title)
+          setTagList(file.tagList)
           file.videos.map(video => {
             if (video._id === id) {
               setEditDescription(video.description)
@@ -84,9 +89,9 @@ const Dashboard = () => {
   const handleSaveChanges = async () => {
     try {
       if (fileEdit === 'image') {
-        dispatch(updateImage({ editId, editTitle, editDescription }))
+        dispatch(updateImage({ editId, editTitle, editDescription, editTagList: tagList }))
       } else {
-        dispatch(updateVideo({ editId, editTitle, editDescription }))
+        dispatch(updateVideo({ editId, editTitle, editDescription, editTagList: tagList }))
       }
 
       await updateData(editId, editTitle, editDescription)
@@ -162,8 +167,19 @@ const Dashboard = () => {
                             <img src={image.imageUrl} alt={`Image ${imageIndex}`} style={{ width: '100%', height: 'auto' }} />
                             {/* Image Overlay */}
                             <div style={{ position: 'absolute', bottom: 0, left: 0, width: '100%', padding: '10px', background: 'rgba(0, 0, 0, 0.7)' }}>
-                              <div style={{ color: 'white', fontWeight: 'bold', fontSize: '16px' }}>{file.title}</div>
-                              <div style={{ color: 'white', fontSize: '14px', margin: '5px 0' }}>{image.description}</div>
+                              <div style={{ display: 'flex', position: 'relative' }}>
+                                <div>
+                                  <div style={{ color: 'white', fontWeight: 'bold', fontSize: '16px' }}>{file.title}</div>
+                                  <div style={{ color: 'white', fontSize: '14px', margin: '5px 0' }}>{image.description}</div>
+                                </div>
+                                <div style={{ display: 'flex', marginLeft: '20px' }}>
+                                  {file.tagList.map((tag, index) => (
+                                    <div key={index} style={{ color: 'silver', fontSize: '14px', marginLeft: '5px', marginTop: '30px', fontStyle: 'italic' }}>
+                                      #{tag}
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
                             </div>
                           </div>
 

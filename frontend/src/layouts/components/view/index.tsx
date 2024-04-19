@@ -12,11 +12,13 @@ const ViewForm = (props: { data: string | string[] }) => {
     const { data } = props
 
     const fileList = useSelector((state) => state.fileListState.file)
+    console.log('fileList: ', fileList);
 
     const [image, setImage] = useState<Image | null>(null)
     const [video, setVideo] = useState<Video | null>(null)
     const [title, setTitle] = useState("")
     const [des, setDes] = useState("")
+    const [tagList, setTagList] = useState<string[]>([])
 
     useEffect(() => {
         const getFile = () => {
@@ -28,6 +30,7 @@ const ViewForm = (props: { data: string | string[] }) => {
                             setDes(image.description);
                         }
                         setTitle(file.title);
+                        setTagList(file.tagList);
                     })
                 } else if (data[0] === 'video' && file.videos.some(video => video._id === data[1])) {
                     file.videos.map(video => {
@@ -36,6 +39,7 @@ const ViewForm = (props: { data: string | string[] }) => {
                             setDes(video.description);
                         }
                         setTitle(file.title);
+                        setTagList(file.tagList);
                     })
                 }
             })
@@ -43,7 +47,7 @@ const ViewForm = (props: { data: string | string[] }) => {
         getFile();
     }, [data])
 
-    console.log({ image });
+    console.log({ tagList });
 
     const handleTitleChange = (value: string) => {
         setTitle(value);
@@ -53,14 +57,29 @@ const ViewForm = (props: { data: string | string[] }) => {
         setDes(value);
     };
 
+    const handleEditTags = (event: React.KeyboardEvent<HTMLSpanElement>, index: number) => {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+
+            const inputElement = event.target as HTMLSpanElement;
+            if (!!inputElement) {
+                const editTag = inputElement.innerHTML.trim();
+                const tagEditedList = [...tagList];
+                tagEditedList[index] = editTag;
+                setTagList(tagEditedList);
+            }
+        }
+    }
+
     const handleSaveChanges = async (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
+        console.log('check tagList: ', tagList);
 
         try {
             if (data[0] === 'image') {
-                dispatch(updateImage({ editId: data[1], editTitle: title, editDescription: des }))
+                dispatch(updateImage({ editId: data[1], editTitle: title, editDescription: des, editTagList: tagList }))
             } else {
-                dispatch(updateVideo({ editId: data[1], editTitle: title, editDescription: des }))
+                dispatch(updateVideo({ editId: data[1], editTitle: title, editDescription: des, editTagList: tagList }))
             }
 
             await updateData(data[1], title, des);
@@ -115,6 +134,20 @@ const ViewForm = (props: { data: string | string[] }) => {
                         </div>
                     )}
                 </div>
+
+                <div className="tags" >
+                    {tagList.map((tag, index) => (
+                        <span
+                            key={index}
+                            className="tags-input"
+                            contentEditable="true"
+                            onKeyPress={(event) => handleEditTags(event, index)}
+                        >
+                            {tag}
+                        </span>
+                    ))}
+                </div>
+
                 <Button
                     sx={{
                         backgroundColor: '#CC6600',
@@ -122,6 +155,8 @@ const ViewForm = (props: { data: string | string[] }) => {
                         color: 'white',
                         marginLeft: '150px',
                         borderRadius: '30px',
+                        marginTop: '30px',
+
                         '&:hover': {
                             backgroundColor: '#FF7F50',
                         },

@@ -16,7 +16,8 @@ export interface FileList {
     _id: string,
     images: Image[],
     videos: Video[],
-    title: string
+    title: string,
+    tagList: string[]
 }
 
 export interface FileListState {
@@ -40,12 +41,13 @@ const fileListState = createSlice({
                 file: [...state.file, ...action.payload]
             };
         },
-        updateImage: (state, action: PayloadAction<{ editId: string; editTitle: string; editDescription: string }>) => {
+        updateImage: (state, action: PayloadAction<{ editId: string; editTitle: string; editDescription: string; editTagList: string[] }>) => {
             const updatedFiles = state.file.map(file => {
                 if (file.images.some(image => image._id === action.payload.editId)) {
                     return {
                         ...file,
                         title: action.payload.editTitle,
+                        tagList: action.payload.editTagList,
                         images: file.images.map(image => {
                             if (image._id === action.payload.editId) {
                                 return {
@@ -76,12 +78,13 @@ const fileListState = createSlice({
                 images: file.images ? file.images.filter(image => image._id !== deleteId) : file.images,
             }));
         },
-        updateVideo: (state, action: PayloadAction<{ editId: string; editTitle: string; editDescription: string }>) => {
+        updateVideo: (state, action: PayloadAction<{ editId: string; editTitle: string; editDescription: string; editTagList: string[] }>) => {
             const updatedFiles = state.file.map(file => {
                 if (file.videos.some(video => video._id === action.payload.editId)) {
                     return {
                         ...file,
                         title: action.payload.editTitle,
+                        tagList: action.payload.editTagList,
                         videos: file.videos.map(video => {
                             if (video._id === action.payload.editId) {
                                 return {

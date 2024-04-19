@@ -114,6 +114,7 @@ const LoginForm = (props: PropsWithoutRef<{
   const fetchData = async (user: string) => {
     try {
       const response = await handleFetchData(user);
+      console.log('response: ', response);
 
       return response.data.file;
     } catch (error) {
@@ -137,6 +138,8 @@ const LoginForm = (props: PropsWithoutRef<{
           dispatch(setUserInfo(userInfo.data.userInfo))
         }
         const fileList = await fetchData(data.user.username)
+        console.log('check fileList: ', fileList);
+
         dispatch(setFileList(fileList))
         router.push("/")
         console.log("Login succeed!")
