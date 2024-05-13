@@ -158,8 +158,6 @@ const ReviewForm = () => {
     const handleAddImages = async (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
 
-        console.log('tagList: ', tagList);
-
         const imageFiles: File[] = [];
         const videoFiles: File[] = [];
 
@@ -174,7 +172,6 @@ const ReviewForm = () => {
                 }
             }
         }
-
 
         if (videosReview.length > 0) {
             videosReview.map((video) => {
@@ -200,9 +197,11 @@ const ReviewForm = () => {
 
             const username = user?.username;
 
+            const base64Code = [...imagesReview]
+
             if (!!username) {
                 //Send backend api request
-                await handleUploadBackendService(username, imageUrl, videoUrl, titles, descriptions, tagList);
+                await handleUploadBackendService(username, imageUrl, videoUrl, titles, descriptions, base64Code, tagList);
             }
 
 

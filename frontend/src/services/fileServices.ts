@@ -8,8 +8,8 @@ export const handleGetSignatureForUpload = (folder: string) => {
     return axios.post('/api/sign-upload', { folder });
 }
 
-export const handleUploadBackendService = (username: string, imageUrl: string[], videoUrl: string[], titles: string, descriptions: string[], tagList: string[]) => {
-    return axios.post('/api/upload', { username, imageUrl, videoUrl, titles, descriptions, tagList })
+export const handleUploadBackendService = (username: string, imageUrl: string[], videoUrl: string[], titles: string, descriptions: string[], base64Code: string[], tagList: string[]) => {
+    return axios.post('/api/upload', { username, imageUrl, videoUrl, titles, descriptions, base64Code, tagList })
 }
 
 export const handleFetchData = (arg: string) => {

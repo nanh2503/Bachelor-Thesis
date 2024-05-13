@@ -112,6 +112,15 @@ const AppBarContent = (props: Props) => {
           </Box>
         )}
         <ModeToggler settings={settings} saveSettings={saveSettings} />
+        {!isLoggedIn && (
+          <Box>
+            <img
+              alt='Avatar'
+              style={{ width: 40, height: 40, borderRadius: 50 }}
+              src={"/images/avatars/male.png"}
+            />
+          </Box>
+        )}
         {isLoggedIn && <UserDropdown />}
       </Box>
     </Box>

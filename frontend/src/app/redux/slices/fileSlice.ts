@@ -4,12 +4,14 @@ export interface Image {
     _id: string,
     imageUrl: string,
     description: string,
+    base64Code: string,
 }
 
 export interface Video {
     _id: string,
     videoUrl: string,
     description: string,
+    base64Code: string,
 }
 
 export interface FileList {

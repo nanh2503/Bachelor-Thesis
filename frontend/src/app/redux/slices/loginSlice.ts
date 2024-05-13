@@ -27,7 +27,6 @@ const loginSlice = createSlice({
         logoutUser: (state) => {
             state.isLoggedIn = false;
             state.user = null;
-            console.log('logout success');
         },
     }
 })

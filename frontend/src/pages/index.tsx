@@ -2,16 +2,15 @@
 import ApexChartWrapper from 'src/@core/styles/libs/react-apexcharts'
 
 // ** Demo Components Imports
-import { Card, CardContent, Typography } from '@mui/material'
+import { Box, Card, CardContent, Divider, Menu, MenuItem, Typography } from '@mui/material'
 import { styled } from '@mui/material/styles'
 import themeConfig from 'src/configs/themeConfig'
-import React, { useState } from 'react'
+import React, { SyntheticEvent, useState } from 'react'
 import { useDispatch, useSelector } from 'src/app/hooks'
 import { deleteImage, updateImage, updateVideo, deleteVideo } from 'src/app/redux/slices/fileSlice'
 
 // FontAwesome Import
-import { library } from '@fortawesome/fontawesome-svg-core';
-import { faEdit, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { faEdit, faTrash, faLink, faEllipsisVertical, faUpDownLeftRight, faChevronRight, faShareNodes, faDownload, faPencil, faCrop } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField } from '@mui/material';
@@ -26,15 +25,12 @@ const TrophyImg = styled('img')({
   position: 'absolute'
 })
 
-// Thêm biểu tượng vào thư viện FontAwesome
-library.add(faEdit, faTrash);
 
 const Dashboard = () => {
   const dispatch = useDispatch();
   const router = useRouter();
 
   const fileList = useSelector((state) => state.fileListState.file);
-  console.log('check fileList: ', fileList);
 
   const [editTitle, setEditTitle] = useState("");
   const [editDescription, setEditDescription] = useState("");
@@ -43,14 +39,19 @@ const Dashboard = () => {
   const [isEditDialogOpen, setEditDialogOpen] = useState(false);
   const [confirmDeleteDialogOpen, setConfirmDeleteDialogOpen] = useState(false);
   const [deleteId, setDeleteId] = useState("");
-  const [fileEdit, setFileEdit] = useState("")
-  const [fileDelete, setFileDelete] = useState("")
+  const [fileEdit, setFileEdit] = useState("");
+  const [fileDelete, setFileDelete] = useState("");
+  const [copyMes, setCopyMes] = useState(false);
+  const [anchorEl, setAnchorEl] = useState<(EventTarget & Element) | null>(null);
+  const [subAnchorEl, setSubAnchorEl] = useState<null | HTMLElement>(null);
+  const [menuId, setMenuId] = useState("");
+  const [menuType, setMenuType] = useState("");
 
   const handleOpenEditDialog = (id: string, fileEdit: string) => {
     setFileEdit(fileEdit)
     setEditId(id);
     if (fileEdit === 'image') {
-      fileList.map(file => {
+      fileList?.map(file => {
         if (file.images.some(image => image._id === id)) {
           setEditTitle(file.title)
           setTagList(file.tagList)
@@ -62,7 +63,7 @@ const Dashboard = () => {
         }
       })
     } else {
-      fileList.map(file => {
+      fileList?.map(file => {
         if (file.videos.some(video => video._id === id)) {
           setEditTitle(file.title)
           setTagList(file.tagList)
@@ -136,6 +137,50 @@ const Dashboard = () => {
     router.push(`/view/${fileView}/${id}`)
   }
 
+  const handleViewImageOnMenu = () => {
+    router.push(`/view/${menuType}/${menuId}`);
+  }
+
+  const handleClickToCopy = (text: string) => {
+    const input = document.createElement('input'); //tạo thẻ input giả
+    document.body.appendChild(input); //gán thẻ đó vào bất kì đâu
+    input.value = text; //gán giá trị vào input
+    input.select(); //focus vào input
+    document.execCommand('copy'); //copy text từ input
+    input.remove();
+
+    setCopyMes(true);
+  }
+
+  const handleCopyLink = (id: string, fileView: string) => {
+    const port = process.env.NEXT_PUBLIC_PORT;
+
+    const link = `http://localhost:${port}/view-file/${fileView}/${id}/`;
+    handleClickToCopy(link);
+  }
+
+  const handleMenuOpen = (event: SyntheticEvent, id: string, fileView: string) => {
+    setMenuId(id);
+    setMenuType(fileView);
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleMenuClose = () => {
+    setAnchorEl(null);
+  };
+
+  const handleSubMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setSubAnchorEl(event.currentTarget);
+  }
+
+  const handleSubMenuClose = () => {
+    setSubAnchorEl(null);
+  };
+
+  const handleCropImage = () => {
+    router.push(`/crop/${menuType}/${menuId}`)
+  }
+
   return (
     <ApexChartWrapper>
       <Card sx={{ position: 'relative', height: '100%' }}>
@@ -144,7 +189,7 @@ const Dashboard = () => {
             Welcome to {themeConfig.templateName} 🥳
           </Typography>
           <div className='container-box'>
-            {fileList.map((file, fileIndex) => (
+            {fileList?.map((file, fileIndex) => (
               <React.Fragment key={fileIndex}>
                 {file.images.map((image, imageIndex) => (
                   <div key={`image-${imageIndex}`} >
@@ -183,18 +228,95 @@ const Dashboard = () => {
                             </div>
                           </div>
 
-                          {/* Edit and Delete Icons */}
-                          <div style={{ position: 'absolute', top: 0, right: 0, padding: '10px', zIndex: 1, background: 'rgba(0, 0, 0, 0.7)' }}>
-                            <FontAwesomeIcon
-                              icon={faEdit}
-                              className="edit-icon"
-                              onClick={() => handleOpenEditDialog(image._id, "image")}
-                            />
-                            <FontAwesomeIcon
-                              icon={faTrash}
-                              className="delete-icon"
-                              onClick={() => handleOpenDeleteDialog(image._id, "image")}
-                            />
+                          <div style={{ position: 'absolute', top: 0, right: 0, paddingTop: '10px', zIndex: 1 }}>
+                            <div className='icon-container'>
+                              <FontAwesomeIcon
+                                icon={faLink}
+                                className="copy-link-icon"
+                                onClick={() => handleClickToCopy(image.base64Code)}
+                                onMouseLeave={() => setCopyMes(false)}
+                              />
+                              <div className='mes'>
+                                {!copyMes ? " Copy Link" : "Copied!"}
+                              </div>
+                            </div>
+                            <div className='icon-container'>
+                              <FontAwesomeIcon
+                                icon={faEllipsisVertical}
+                                aria-haspopup="true"
+                                className="menu-icon"
+                                onClick={(e) => handleMenuOpen(e, image._id, "image")}
+                              />
+                              <Menu
+                                anchorEl={anchorEl}
+                                open={Boolean(anchorEl)}
+                                onClose={handleMenuClose}
+                                sx={{ '& .MuiMenu-paper': { width: 200, marginTop: 2 } }}
+                                anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+                                transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+                              >
+                                <MenuItem sx={{ p: 0 }} onClick={handleViewImageOnMenu}>
+                                  <FontAwesomeIcon
+                                    icon={faUpDownLeftRight}
+                                    className='icon'
+                                  />
+                                  Open
+                                </MenuItem>
+                                <MenuItem
+                                  sx={{ p: 0 }}
+                                  onClick={handleSubMenuOpen}
+                                >
+                                  <FontAwesomeIcon
+                                    icon={faEdit}
+                                    className='icon'
+                                  />
+                                  Edit
+                                  <FontAwesomeIcon
+                                    icon={faChevronRight}
+                                    className={`icon-right ${Boolean(subAnchorEl) ? 'active' : ''}`}
+                                  />
+                                </MenuItem>
+                                <Menu
+                                  anchorEl={subAnchorEl}
+                                  open={Boolean(subAnchorEl)}
+                                  onClose={handleSubMenuClose}
+                                  sx={{ '& .MuiMenu-paper': { width: 200, marginTop: -10, marginLeft: 1 } }}
+                                  anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                                  transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+                                >
+                                  <MenuItem sx={{ p: 0 }} onClick={handleCropImage}>
+                                    <FontAwesomeIcon
+                                      icon={faCrop}
+                                      className='icon'
+                                    />
+                                    Crop
+                                  </MenuItem>
+                                </Menu>
+                                <Divider />
+                                <MenuItem sx={{ p: 0 }} onClick={handleMenuClose}>
+                                  <FontAwesomeIcon
+                                    icon={faDownload}
+                                    className='icon'
+                                  />
+                                  Download
+                                </MenuItem>
+                                <MenuItem sx={{ p: 0 }} onClick={handleMenuClose}>
+                                  <FontAwesomeIcon
+                                    icon={faShareNodes}
+                                    className='icon'
+                                  />
+                                  Share
+                                </MenuItem>
+                                <Divider />
+                                <MenuItem sx={{ p: 0 }} onClick={() => handleOpenDeleteDialog(image._id, "image")}>
+                                  <FontAwesomeIcon
+                                    icon={faTrash}
+                                    className='icon'
+                                  />
+                                  Delete
+                                </MenuItem>
+                              </Menu>
+                            </div>
                           </div>
                         </>
                       )}
@@ -224,13 +346,13 @@ const Dashboard = () => {
                           {/* Edit and Delete Icons */}
                           <div style={{ position: 'absolute', top: 0, right: 0, padding: '10px', zIndex: 1, background: 'rgba(0, 0, 0, 0.7)' }}>
                             <FontAwesomeIcon
-                              icon={faEdit}
-                              className="edit-icon"
+                              icon={faLink}
+                              className="copy-link-icon"
                               onClick={() => handleOpenEditDialog(video._id, "video")}
                             />
                             <FontAwesomeIcon
-                              icon={faTrash}
-                              className="delete-icon"
+                              icon={faEllipsisVertical}
+                              className="menu-icon"
                               onClick={() => handleOpenDeleteDialog(video._id, "video")}
                             />
                           </div>

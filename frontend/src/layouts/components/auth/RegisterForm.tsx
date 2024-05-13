@@ -123,7 +123,6 @@ const RegisterForm = (props: PropsWithoutRef<{
             if (data && data.errCode === 0) {
                 dispatch(setUser(data.user))
                 router.push("/")
-                console.log("Register succeed!")
                 await handleUpdateUserInfoService(values.email, values.username);
                 dispatch(setUserInfo(data.user))
             }

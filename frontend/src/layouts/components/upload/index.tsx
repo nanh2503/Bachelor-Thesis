@@ -86,10 +86,14 @@ const UploadForm = (props: PropsWithoutRef<{
     }
   }
 
+  const handleClose = () => {
+    router.push("/");
+  }
+
   return (
     <div className="Dialog UploadDialog">
       <div className="Dialog-wrapper">
-        <button type="button" aria-label="close" className="PopUpClose">
+        <button type="button" aria-label="close" className="PopUpClose" onClick={handleClose}>
           <img src="/images/pages/upload/close.svg" alt="Close" />
         </button>
         <div className="PopUpContaner">

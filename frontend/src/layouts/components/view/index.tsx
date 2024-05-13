@@ -12,7 +12,6 @@ const ViewForm = (props: { data: string | string[] }) => {
     const { data } = props
 
     const fileList = useSelector((state) => state.fileListState.file)
-    console.log('fileList: ', fileList);
 
     const [image, setImage] = useState<Image | null>(null)
     const [video, setVideo] = useState<Video | null>(null)
@@ -47,8 +46,6 @@ const ViewForm = (props: { data: string | string[] }) => {
         getFile();
     }, [data])
 
-    console.log({ tagList });
-
     const handleTitleChange = (value: string) => {
         setTitle(value);
     };
@@ -73,7 +70,6 @@ const ViewForm = (props: { data: string | string[] }) => {
 
     const handleSaveChanges = async (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
-        console.log('check tagList: ', tagList);
 
         try {
             if (data[0] === 'image') {
@@ -98,6 +94,7 @@ const ViewForm = (props: { data: string | string[] }) => {
                     <Input
                         type='text'
                         placeholder='Enter title'
+                        style={{ fontWeight: 800, fontSize: '30px' }}
                         value={title}
                         onChange={(e) => handleTitleChange(e.target.value)}
                     />
@@ -106,7 +103,7 @@ const ViewForm = (props: { data: string | string[] }) => {
                 <div className='file-item'>
                     {!!image && (
                         <div className='image-container'>
-                            <img src={image.imageUrl} alt={`Uploaded Image File ${data[1]}`} className='file-image' />
+                            <img src={image.imageUrl} alt={`View Image File ${data[1]}`} className='file-image' />
                             <div className='description-container'>
                                 <input
                                     placeholder='Add description'
@@ -120,7 +117,7 @@ const ViewForm = (props: { data: string | string[] }) => {
 
                     {!!video && (
                         <div className="video-container">
-                            <video controls className="file-video">
+                            <video controls className="file-video" >
                                 <source src={video.videoUrl} type="video/mp4" />
                             </video>
                             <div className="description-container">
