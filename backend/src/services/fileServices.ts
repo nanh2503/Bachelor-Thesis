@@ -1,19 +1,19 @@
 import { FileData } from "../controllers/fileController";
 import File from "../models/fileModels";
 
-export const handleUploadFile = (username: string, imageUrl: string[], videoUrl: string[], title: string, description: string[], tagList: string[]): Promise<FileData> => {
+export const handleUploadFile = (username: string, imageUrl: string[], videoUrl: string[], title: string, description: string[], base64Code: string[], tagList: string[]): Promise<FileData> => {
     return new Promise(async (resolve, reject) => {
         try {
             let fileData: FileData = { errCode: -1, errMessage: '' };
 
-            const images: { imageUrl: string; description: string }[] = [];
+            const images: { imageUrl: string; description: string, base64Code: string }[] = [];
             imageUrl.forEach((imageUrl, index) => {
-                images.push({ imageUrl, description: description[index] || '' });
+                images.push({ imageUrl, description: description[index] || '', base64Code: base64Code[index] });
             });
 
-            const videos: { videoUrl: string; description: string }[] = [];
+            const videos: { videoUrl: string; description: string, base64Code: string }[] = [];
             videoUrl.forEach((videoUrl, index) => {
-                videos.push({ videoUrl, description: description[index + imageUrl.length] || '' });
+                videos.push({ videoUrl, description: description[index + imageUrl.length] || '', base64Code: base64Code[index + imageUrl.length] });
             });
 
             const newFile = new File({
@@ -42,13 +42,13 @@ export const handleFetchDataService = async (arg: string): Promise<FileData> => 
         let fileData: FileData = { errCode: -1, errMessage: '', file: [] };
 
         if (arg === 'All') {
-            const fileList = await File.find({}, { _id: 1, images: 1, videos: 1, title: 1, tagList: 1 });
+            const fileList = await File.find({}, { _id: 1, images: 1, videos: 1, title: 1, tagList: 1, base64Code: 1 });
 
             fileData.errCode = 0;
             fileData.errMessage = 'Get File successful!';
             fileData.file = fileList;
         } else if (arg === 'newest') {
-            const fileList = await File.find({}, { _id: 1, images: 1, videos: 1, title: 1, tagList: 1 })
+            const fileList = await File.find({}, { _id: 1, images: 1, videos: 1, title: 1, tagList: 1, base64Code: 1 })
                 .sort({ createdAt: -1 })
                 .limit(1);
 
@@ -57,7 +57,7 @@ export const handleFetchDataService = async (arg: string): Promise<FileData> => 
             fileData.file = fileList;
         }
         else {
-            const fileList = await File.find({ username: arg }, { _id: 1, images: 1, videos: 1, title: 1, tagList: 1 });
+            const fileList = await File.find({ username: arg }, { _id: 1, images: 1, videos: 1, title: 1, tagList: 1, base64Code: 1 });
 
             fileData.errCode = 0;
             fileData.errMessage = 'Get File successful!';
