@@ -1,20 +1,14 @@
-import { combineReducers } from "redux";
-import loginReducer, { LoginState } from "../slices/loginSlice";
-import fileListReducer, { FileListState } from "../slices/fileSlice";
-import userInfoReducer, { UserInfoState } from "../slices/userInfoSlice";
-import uploadFileReducer, { UploadFileState } from "../slices/uploadFileSlice";
+import { combineReducers } from 'redux';
+import loginReducer from '../slices/loginSlice';
+import fileListReducer from '../slices/fileSlice';
+import userInfoReducer from '../slices/userInfoSlice';
+import uploadFileReducer from '../slices/uploadFileSlice';
 
-export type RootState = {
-    loginState: LoginState;
-    fileListState: FileListState;
-    userInfoState: UserInfoState;
-    uploadFileState: UploadFileState;
-}
-
-export const rootReducers = combineReducers<RootState>({
+export const rootReducers = combineReducers({
     loginState: loginReducer,
     fileListState: fileListReducer,
     userInfoState: userInfoReducer,
-    uploadFileState: uploadFileReducer
-
+    uploadFileState: uploadFileReducer,
 });
+
+export type RootState = ReturnType<typeof rootReducers>;

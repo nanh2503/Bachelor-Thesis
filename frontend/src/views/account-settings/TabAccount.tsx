@@ -63,7 +63,7 @@ const CustomInput = forwardRef((props, ref) => {
 const TabAccount = () => {
   const dispatch = useDispatch()
 
-  const userInfo = useSelector((state) => state.userInfoState.userInfo)
+  const userInfo = useSelector((state) => state.localStorage.userInfoState.userInfo)
 
   // ** State
   const [imgSrc, setImgSrc] = useState<string>(userInfo?.avatar ?? '/images/avatars/male.png')

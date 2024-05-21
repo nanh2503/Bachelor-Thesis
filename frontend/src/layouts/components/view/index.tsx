@@ -11,13 +11,14 @@ const ViewForm = (props: { data: string | string[] }) => {
 
     const { data } = props
 
-    const fileList = useSelector((state) => state.fileListState.file)
+    const fileList = useSelector((state) => state.indexedDB.fileListState.file)
 
     const [image, setImage] = useState<Image | null>(null)
     const [video, setVideo] = useState<Video | null>(null)
     const [title, setTitle] = useState("")
     const [des, setDes] = useState("")
     const [tagList, setTagList] = useState<string[]>([])
+    const [tagNull, setTagNull] = useState(false);
 
     useEffect(() => {
         const getFile = () => {
@@ -46,6 +47,29 @@ const ViewForm = (props: { data: string | string[] }) => {
         getFile();
     }, [data])
 
+    useEffect(() => {
+        const setTagListView = () => {
+            const tagElements = document.querySelectorAll('.tags-view');
+
+            tagElements.forEach(tag => {
+                const closeButton = document.createElement('button');
+                closeButton.textContent = 'x';
+                closeButton.classList.add('close-button');
+
+                tag.addEventListener('mouseenter', () => {
+                    tag.appendChild(closeButton)
+                })
+
+                tag.addEventListener('mouseleave', () => {
+                    if (tag.contains(closeButton)) {
+                        tag.removeChild(closeButton)
+                    }
+                })
+            })
+        }
+        setTagListView();
+    }, [tagList])
+
     const handleTitleChange = (value: string) => {
         setTitle(value);
     };
@@ -53,20 +77,6 @@ const ViewForm = (props: { data: string | string[] }) => {
     const handleDescriptionChange = (value: string) => {
         setDes(value);
     };
-
-    const handleEditTags = (event: React.KeyboardEvent<HTMLSpanElement>, index: number) => {
-        if (event.key === 'Enter') {
-            event.preventDefault();
-
-            const inputElement = event.target as HTMLSpanElement;
-            if (!!inputElement) {
-                const editTag = inputElement.innerHTML.trim();
-                const tagEditedList = [...tagList];
-                tagEditedList[index] = editTag;
-                setTagList(tagEditedList);
-            }
-        }
-    }
 
     const handleSaveChanges = async (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
@@ -84,6 +94,40 @@ const ViewForm = (props: { data: string | string[] }) => {
         }
 
         router.push("/");
+    }
+
+    const handleSaveTags: React.KeyboardEventHandler<HTMLSpanElement> = (event) => {
+        if (event.key === 'Enter') {
+            const inputElement = event.target as HTMLSpanElement;
+            if (!!inputElement && !!inputElement.parentNode) {
+                const newTag = inputElement.innerText.trim();
+
+                if (newTag !== '') {
+                    let existTag = false;
+                    tagList.map(tag => {
+                        if (tag === newTag) {
+                            existTag = true;
+
+                            return;
+                        }
+                    })
+
+                    if (!existTag) {
+                        setTagList([...tagList, newTag]);
+                    }
+                }
+                inputElement.innerText = '✚ Tag';
+
+                event.preventDefault();
+
+                inputElement.blur();
+            }
+        }
+    }
+
+    const handleRemoveTag = (tag: string) => {
+        const updateTagList = tagList.filter(newTag => newTag !== tag)
+        setTagList(updateTagList);
     }
 
     return (
@@ -136,13 +180,22 @@ const ViewForm = (props: { data: string | string[] }) => {
                     {tagList.map((tag, index) => (
                         <span
                             key={index}
-                            className="tags-input"
+                            className="tags-view"
                             contentEditable="true"
-                            onKeyPress={(event) => handleEditTags(event, index)}
+                            onClick={() => handleRemoveTag(tag)}
                         >
                             {tag}
                         </span>
                     ))}
+                    <span
+                        className='tags-input'
+                        contentEditable="true"
+                        onClick={() => setTagNull(true)}
+                        onBlur={() => setTagNull(false)}
+                        onKeyPress={handleSaveTags}
+                    >
+                        {!tagNull ? '✚ Tag' : ''}
+                    </span>
                 </div>
 
                 <Button

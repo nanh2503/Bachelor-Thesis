@@ -3,15 +3,7 @@ import { Input } from '@mui/material';
 import { useRouter } from 'next/router';
 import { useDispatch } from 'src/app/hooks';
 import { setImagesReview, setVideosReview } from 'src/app/redux/slices/uploadFileSlice';
-
-const convertFileToBase64 = (file: File): Promise<string> => {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = error => reject(error);
-  });
-};
+import convertFileToBase64 from 'src/utils/convertToBase64';
 
 const UploadForm = (props: PropsWithoutRef<{
   onUploadComplete?: () => void;

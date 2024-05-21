@@ -9,11 +9,11 @@ import UploadForm from '../upload';
 import { setTitles, setDescriptions } from 'src/app/redux/slices/uploadFileSlice';
 
 const ReviewForm = () => {
-    const user = useSelector((state) => state.loginState.user)
-    const imagesReview = useSelector((state) => state.uploadFileState.imagesReview)
-    const videosReview = useSelector((state) => state.uploadFileState.videosReview)
-    const titles = useSelector((state) => state.uploadFileState.title)
-    const descriptions = useSelector((state) => state.uploadFileState.descriptions)
+    const user = useSelector((state) => state.localStorage.loginState.user)
+    const imagesReview = useSelector((state) => state.indexedDB.uploadFileState.imagesReview)
+    const videosReview = useSelector((state) => state.indexedDB.uploadFileState.videosReview)
+    const titles = useSelector((state) => state.indexedDB.uploadFileState.title)
+    const descriptions = useSelector((state) => state.indexedDB.uploadFileState.descriptions)
 
     const router = useRouter();
     const dispatch = useDispatch()
@@ -197,13 +197,13 @@ const ReviewForm = () => {
 
             const username = user?.username;
 
-            const base64Code = [...imagesReview]
+            const base64CodeImage = [...imagesReview]
+            const base64CodeVideo = [...videosReview]
 
             if (!!username) {
                 //Send backend api request
-                await handleUploadBackendService(username, imageUrl, videoUrl, titles, descriptions, base64Code, tagList);
+                await handleUploadBackendService(username, imageUrl, videoUrl, titles, descriptions, base64CodeImage, base64CodeVideo, tagList);
             }
-
 
             const newFile = await fetchNewestData('newest')
             dispatch(updateFileList(newFile))

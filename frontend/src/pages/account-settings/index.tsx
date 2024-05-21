@@ -37,7 +37,7 @@ const TabName = styled('span')(({ theme }) => ({
 }))
 
 const AccountSettings = () => {
-  const isLoggedIn = useSelector((state) => state.loginState.isLoggedIn)
+  const isLoggedIn = useSelector((state) => state.localStorage.loginState.isLoggedIn)
 
   // ** State
   const [value, setValue] = useState<string>('account')

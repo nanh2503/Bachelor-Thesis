@@ -49,7 +49,7 @@ const UserDropdown = () => {
   const router = useRouter()
   const dispatch = useDispatch()
 
-  const userInfo = useSelector((state) => state.userInfoState.userInfo)
+  const userInfo = useSelector((state) => state.localStorage.userInfoState.userInfo)
 
   const handleDropdownOpen = (event: SyntheticEvent) => {
     setAnchorEl(event.currentTarget)
@@ -63,7 +63,7 @@ const UserDropdown = () => {
   }
 
   const handleLogOut = () => {
-    router.push("/")
+    router.push("/login")
     dispatch(logoutUser())
     dispatch(setFileList([]))
   }

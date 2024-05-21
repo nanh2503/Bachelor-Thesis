@@ -309,7 +309,7 @@ input {
   gap: 15px;
 }
 
-.tags-input{
+.tags-view,.tags-input{
   border: none;
   outline: none;
   background-color: #585d6a;
@@ -350,7 +350,7 @@ input {
 .crop-container{
   display: grid;
   padding-left: 50px;
-  grid-template-columns: 10% 80%;
+  grid-template-columns: 10% 70% 10%;
 
   @media screen and (max-width: 1000px) {
     padding-left: unset;
@@ -547,4 +547,12 @@ input{
     border-color: rgb(52, 72, 197);
     box-shadow: rgba(52, 72, 197, 0.5) 0px 0px 0px 3px;
   }
+}
+
+.button-container{
+  right:10%;
+  position: absolute;
+  gap: 20px;
+  display: flex;
+  top: 120px
 }

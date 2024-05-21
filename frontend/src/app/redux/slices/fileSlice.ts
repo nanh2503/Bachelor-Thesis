@@ -4,14 +4,14 @@ export interface Image {
     _id: string,
     imageUrl: string,
     description: string,
-    base64Code: string,
+    base64CodeImage: string,
 }
 
 export interface Video {
     _id: string,
     videoUrl: string,
     description: string,
-    base64Code: string,
+    base64CodeVideo: string,
 }
 
 export interface FileList {
@@ -44,17 +44,18 @@ const fileListState = createSlice({
             };
         },
         updateImage: (state, action: PayloadAction<{ editId: string; editTitle: string; editDescription: string; editTagList: string[] }>) => {
+            const { editId, editTitle, editDescription, editTagList } = action.payload;
             const updatedFiles = state.file.map(file => {
-                if (file.images.some(image => image._id === action.payload.editId)) {
+                if (file.images.some(image => image._id === editId)) {
                     return {
                         ...file,
-                        title: action.payload.editTitle,
-                        tagList: action.payload.editTagList,
+                        title: editTitle,
+                        tagList: editTagList,
                         images: file.images.map(image => {
-                            if (image._id === action.payload.editId) {
+                            if (image._id === editId) {
                                 return {
                                     ...image,
-                                    description: action.payload.editDescription,
+                                    description: editDescription,
                                 }
                             }
 
@@ -79,19 +80,22 @@ const fileListState = createSlice({
                 ...file,
                 images: file.images ? file.images.filter(image => image._id !== deleteId) : file.images,
             }));
+
+            state.file = state.file.filter(file => file.images.length > 0 || file.videos.length > 0);
         },
         updateVideo: (state, action: PayloadAction<{ editId: string; editTitle: string; editDescription: string; editTagList: string[] }>) => {
+            const { editId, editTitle, editDescription, editTagList } = action.payload;
             const updatedFiles = state.file.map(file => {
-                if (file.videos.some(video => video._id === action.payload.editId)) {
+                if (file.videos.some(video => video._id === editId)) {
                     return {
                         ...file,
-                        title: action.payload.editTitle,
-                        tagList: action.payload.editTagList,
+                        title: editTitle,
+                        tagList: editTagList,
                         videos: file.videos.map(video => {
-                            if (video._id === action.payload.editId) {
+                            if (video._id === editId) {
                                 return {
                                     ...video,
-                                    description: action.payload.editDescription,
+                                    description: editDescription,
                                 }
                             }
 
@@ -116,9 +120,12 @@ const fileListState = createSlice({
                 ...file,
                 videos: file.videos ? file.videos.filter(video => video._id !== deleteId) : file.videos,
             }));
+
+            state.file = state.file.filter(file => file.images.length > 0 || file.videos.length > 0);
         },
     }
 })
 
 export const { setFileList, updateFileList, updateImage, deleteImage, updateVideo, deleteVideo } = fileListState.actions;
-export default fileListState.reducer; 
+export default fileListState.reducer;
+

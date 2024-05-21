@@ -67,9 +67,9 @@ const Navigation = (props: Props) => {
   // ** States
   const [groupActive, setGroupActive] = useState<string[]>([])
   const [currentActiveGroup, setCurrentActiveGroup] = useState<string[]>([])
-  const isLoggedIn = useSelector((state) => state.loginState.isLoggedIn)
+  const isLoggedIn = useSelector((state) => state.localStorage.loginState.isLoggedIn)
 
-  const userInfo = useSelector((state) => state.userInfoState.userInfo)
+  const userInfo = useSelector((state) => state.localStorage.userInfoState.userInfo)
 
   // ** Ref
   const shadowRef = useRef(null)

@@ -1,23 +1,31 @@
 import React, { useEffect, useRef, useState } from "react";
 import ReactCrop, { Crop, PixelCrop, centerCrop, makeAspectCrop } from "react-image-crop";
-import { useSelector } from "src/app/hooks";
+import { useDispatch, useSelector } from "src/app/hooks";
 import 'react-image-crop/dist/ReactCrop.css';
-import { faCrop, faMagnifyingGlassPlus, faMagnifyingGlassMinus, faRotateRight, faRotateLeft, faPencil } from "@fortawesome/free-solid-svg-icons";
+import { faCrop, faMagnifyingGlassPlus, faMagnifyingGlassMinus, faRotateRight, faRotateLeft, faPencil, faAngleDown } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { Button } from "@mui/material";
+import { Button, Menu, MenuItem } from "@mui/material";
 import { fabric } from 'fabric';
+import { deleteData, handleFetchData, handleUploadBackendService } from "src/services/fileServices";
+import { useRouter } from "next/router";
+import { FileList, deleteImage, deleteVideo, updateFileList } from "src/app/redux/slices/fileSlice";
 
 const CropImageForm = (props: { data: string | string[] }) => {
 
     const { data } = props;
 
-    const fileList = useSelector((state) => state.fileListState.file)
+    const dispatch = useDispatch();
+    const router = useRouter();
+
+    const fileList = useSelector((state) => state.indexedDB.fileListState.file)
+    const user = useSelector((state) => state.localStorage.loginState.user)
 
     const previewCanvasRef = useRef<HTMLCanvasElement>(null)
     const imageRef = useRef<HTMLImageElement>(null)
     const hiddenAnchorRef = useRef<HTMLAnchorElement>(null)
     const blobUrlRef = useRef('')
     const canvasRef = useRef<HTMLCanvasElement>(null);
+    const canvasRefInternal = useRef<fabric.Canvas | null>(null);
 
     const [imageSrc, setImageSrc] = useState<string>("")
     const [scale, setScale] = useState(1)
@@ -38,13 +46,15 @@ const CropImageForm = (props: { data: string | string[] }) => {
     const [startDraw, setStartDraw] = useState(false);
     const [canvas, setCanvas] = useState<fabric.Canvas | null>(null);
 
+    const [anchorEl, setAnchorEl] = useState<(EventTarget & Element) | null>(null);
+
     useEffect(() => {
         const getFile = () => {
-            fileList.map((file) => {
+            fileList.map((file: FileList) => {
                 if (data[0] === 'image' && file.images.some((image) => image._id === data[1])) {
                     file.images.map((image) => {
                         if (image._id === data[1]) {
-                            setImageSrc(image.base64Code);
+                            setImageSrc(image.base64CodeImage);
                         }
                     })
                 }
@@ -55,6 +65,19 @@ const CropImageForm = (props: { data: string | string[] }) => {
     }, [data])
 
     useEffect(() => {
+        const updateCanvasSize = () => {
+            if (!canvasRefInternal.current) return;
+
+            const scaleFactor = window.innerWidth * 0.4 / image.width;
+            const width = window.innerWidth * 0.4;
+            const height = image.height * scaleFactor;
+            canvasRefInternal.current.setDimensions({ width: width, height: height });
+            canvasRefInternal.current.setBackgroundImage(imageSrc, canvasRefInternal.current.renderAll.bind(canvasRefInternal.current), {
+                scaleX: scaleFactor,
+                scaleY: scaleFactor
+            });
+        };
+
         const canvasElement = canvasRef.current;
         if (!canvasElement) return;
 
@@ -62,25 +85,21 @@ const CropImageForm = (props: { data: string | string[] }) => {
         const image = new Image();
         image.src = imageSrc;
         image.onload = () => {
-            const scaleFactor = 500 / image.width;
-            const width = 500;
-            const height = image.height * scaleFactor;
-            canvasFabric.setDimensions({ width: width, height: height });
-            canvasFabric.setBackgroundImage(imageSrc, canvasFabric.renderAll.bind(canvasFabric), {
-                scaleX: scaleFactor,
-                scaleY: scaleFactor
-            });
+            updateCanvasSize();
         };
 
-        canvasFabric.isDrawingMode = true;
-
+        canvasFabric.isDrawingMode = false;
         canvasFabric.freeDrawingBrush.color = 'red';
         canvasFabric.freeDrawingBrush.width = 10;
 
         setCanvas(canvasFabric);
+        canvasRefInternal.current = canvasFabric;
+
+        window.addEventListener('resize', updateCanvasSize);
 
         return () => {
             canvasFabric.dispose();
+            window.removeEventListener('resize', updateCanvasSize);
         };
     }, [imageSrc]);
 
@@ -92,9 +111,9 @@ const CropImageForm = (props: { data: string | string[] }) => {
                 fabric.Image.fromURL(imageUrl, (img) => {
                     if (img.width && img.height) {
                         // Calculate aspect ratio
-                        const aspectRatio = img.height / img.width;
-                        const canvasWidth = 500;
-                        const canvasHeight = canvasWidth * aspectRatio;
+                        const aspectRatio = window.innerWidth * 0.4 / img.width;
+                        const canvasWidth = window.innerWidth * 0.4;
+                        const canvasHeight = img.height * aspectRatio;
 
                         // Resize canvas to desired dimensions
                         canvas?.setWidth(canvasWidth);
@@ -125,7 +144,9 @@ const CropImageForm = (props: { data: string | string[] }) => {
 
             // Vẽ ảnh gốc lên canvas mới
             const image = new Image();
+            image.crossOrigin = "anonymous";
             image.src = canvasElement.toDataURL();
+
             image.onload = () => {
                 ctx?.drawImage(image, 0, 0, drawingCanvas.width, drawingCanvas.height);
 
@@ -200,8 +221,9 @@ const CropImageForm = (props: { data: string | string[] }) => {
                 const croppedHeight = height * scaleY;
 
                 // Define the target width and calculate the target height to maintain aspect ratio
-                const targetWidth = 500;
-                const targetHeight = (croppedHeight / croppedWidth) * targetWidth;
+                const aspectRatio = window.innerWidth * 0.4 / croppedWidth;
+                const targetWidth = window.innerWidth * 0.4;
+                const targetHeight = croppedHeight * aspectRatio;
 
                 const croppedCanvas = document.createElement('canvas');
                 croppedCanvas.width = targetWidth;
@@ -352,115 +374,243 @@ const CropImageForm = (props: { data: string | string[] }) => {
         setOffset({ x: 0, y: 0 });
     }
 
+    const handleMenuClose = () => {
+        setAnchorEl(null);
+    }
+
+    const fetchNewestData = async (arg: string) => {
+        try {
+            const res = await handleFetchData(arg);
+
+            return res.data.file;
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
+    const handleSaveAsCopy = async () => {
+        try {
+            const username = user?.username;
+            const imageFiles = [croppedImageUrl];
+
+            if (!!username) {
+                await handleUploadBackendService(username, [], [], '', [], imageFiles, [], []);
+            }
+            const file = await fetchNewestData('newest');
+            dispatch(updateFileList(file));
+
+            router.push("/")
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
+    const handleSaveImage = async () => {
+        try {
+            const username = user?.username;
+            const imageFiles = [croppedImageUrl];
+
+            if (!!username) {
+                await handleUploadBackendService(username, [], [], '', [], imageFiles, [], []);
+            }
+
+            if (data[0] === 'image') {
+                dispatch(deleteImage({ deleteId: data[1] }));
+            } else {
+                dispatch(deleteVideo({ deleteId: data[1] }));
+            }
+
+            await deleteData(data[1]);
+
+            const file = await fetchNewestData('newest');
+            dispatch(updateFileList(file));
+
+            router.push("/")
+
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
     return (
         <>
             <h1 style={{ justifyContent: 'left' }}>Resize & Crop</h1>
-            <div className="crop-container">
-                <div className="icon-control">
-                    {!cropStart && (
-                        <div className="icon-list">
+            <div>
+                {!cropStart && (
+                    <div className="button-container">
+                        <Button
+                            sx={{
+                                backgroundColor: 'green',
+                                color: '#fff',
+                                padding: '10px 25px',
+                                fontSize: 16,
+
+                                '&:hover': {
+                                    backgroundColor: 'limegreen'
+                                }
+                            }}
+                            onClick={(e) => setAnchorEl(e.currentTarget)}
+                        >Save Options
                             <FontAwesomeIcon
-                                icon={faMagnifyingGlassPlus}
-                                className="icon"
-                                onClick={() => setScale(scale + 0.1)}
+                                icon={faAngleDown}
+                                style={{ marginLeft: 15, height: 20 }}
                             />
-                            <FontAwesomeIcon
-                                icon={faMagnifyingGlassMinus}
-                                className="icon"
-                                style={{ color: scale == 1 ? 'silver' : '' }}
-                                onClick={handleZoomOut}
-                            />
-                            <img
-                                src="/images/actualSize.svg"
-                                className="icon-image"
-                                alt="actual-size-icon"
-                                onClick={handleSetActualSize}
-                            />
-                            <FontAwesomeIcon
-                                icon={faPencil}
-                                className='icon'
-                                style={{ backgroundColor: startDraw ? 'rgb(116, 193, 116)' : '' }}
-                                onClick={handleDrawImage}
-                            />
-                            <FontAwesomeIcon
-                                icon={faCrop}
-                                className="icon"
-                                onClick={handleCropImage}
-                            />
-                            <FontAwesomeIcon
-                                icon={faRotateRight}
-                                className="icon"
-                                onClick={() => setRotate(rotate + 90)}
-                            />
-                            <FontAwesomeIcon
-                                icon={faRotateLeft}
-                                className="icon"
-                                onClick={() => setRotate(rotate - 90)}
-                            />
-                            <img
-                                src="/images/flipHorizontalIcon.svg"
-                                className="icon-image"
-                                alt="flip-horizontal-icon"
-                                onClick={() => setFlipX(!flipX)}
-                                style={{ height: 50 }}
-                            />
-                            <img
-                                src="/images/flipVerticalIcon.svg"
-                                className="icon-image"
-                                alt="flip-verticalIcon-icon"
-                                onClick={() => setFlipY(!flipY)}
-                            />
-                        </div>
-                    )}
-                </div >
-                <div className="file-control">
-                    <div>
-                        {!!cropStart && (
-                            <div className="crop-button">
-                                <Button
-                                    style={{ backgroundColor: 'green' }}
-                                    onClick={handleSaveCrop}
-                                >
-                                    Save Crop
-                                </Button>
-                                <Button
-                                    style={{ backgroundColor: 'red' }}
-                                    onClick={handleCancelCrop}
-                                >Cancel</Button>
+                        </Button>
+                        <Menu
+                            anchorEl={anchorEl}
+                            open={Boolean(anchorEl)}
+                            onClose={handleMenuClose}
+                            sx={{ '& .MuiMenu-paper': { width: 200, marginTop: 2 } }}
+                            anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+                            transformOrigin={{ vertical: 'top', horizontal: 'center' }}
+                        >
+                            <MenuItem
+                                style={{
+                                    fontSize: 18,
+                                    color: '#000'
+                                }}
+                                onClick={handleSaveAsCopy}
+                            >
+                                Save as Copy
+                            </MenuItem>
+                            <MenuItem
+                                style={{
+                                    fontSize: 18,
+                                    color: '#000'
+                                }}
+                                onClick={handleSaveImage}
+                            >
+                                Save
+                            </MenuItem>
+                            <MenuItem
+                                style={{
+                                    fontSize: 18,
+                                    color: '#000'
+                                }}
+                            >
+                                Copy to clipboard
+                            </MenuItem>
+                        </Menu>
+                        <Button
+                            sx={{
+                                backgroundColor: 'gray',
+                                color: '#fff',
+                                padding: '10px 25px',
+                                fontSize: 16,
+
+                                '&:hover': {
+                                    backgroundColor: '#444444'
+                                }
+                            }}
+                        >
+                            Cancel
+                        </Button>
+                    </div>
+                )}
+                <div className="crop-container">
+                    <div className="icon-control">
+                        {!cropStart && (
+                            <div className="icon-list">
+                                <FontAwesomeIcon
+                                    icon={faMagnifyingGlassPlus}
+                                    className="icon"
+                                    onClick={() => setScale(scale + 0.1)}
+                                />
+                                <FontAwesomeIcon
+                                    icon={faMagnifyingGlassMinus}
+                                    className="icon"
+                                    style={{ color: scale == 1 ? 'silver' : '' }}
+                                    onClick={handleZoomOut}
+                                />
+                                <img
+                                    src="/images/actualSize.svg"
+                                    className="icon-image"
+                                    alt="actual-size-icon"
+                                    onClick={handleSetActualSize}
+                                />
+                                <FontAwesomeIcon
+                                    icon={faPencil}
+                                    className='icon'
+                                    style={{ backgroundColor: startDraw ? 'rgb(116, 193, 116)' : '' }}
+                                    onClick={handleDrawImage}
+                                />
+                                <FontAwesomeIcon
+                                    icon={faCrop}
+                                    className="icon"
+                                    onClick={handleCropImage}
+                                />
+                                <FontAwesomeIcon
+                                    icon={faRotateRight}
+                                    className="icon"
+                                    onClick={() => setRotate(rotate + 90)}
+                                />
+                                <FontAwesomeIcon
+                                    icon={faRotateLeft}
+                                    className="icon"
+                                    onClick={() => setRotate(rotate - 90)}
+                                />
+                                <img
+                                    src="/images/flipHorizontalIcon.svg"
+                                    className="icon-image"
+                                    alt="flip-horizontal-icon"
+                                    onClick={() => setFlipX(!flipX)}
+                                    style={{ height: 50 }}
+                                />
+                                <img
+                                    src="/images/flipVerticalIcon.svg"
+                                    className="icon-image"
+                                    alt="flip-verticalIcon-icon"
+                                    onClick={() => setFlipY(!flipY)}
+                                />
                             </div>
                         )}
+                    </div >
+                    <div className="file-control">
+                        <div>
+                            {!!cropStart && (
+                                <div className="crop-button">
+                                    <Button
+                                        style={{ backgroundColor: 'green' }}
+                                        onClick={handleSaveCrop}
+                                    >
+                                        Save Crop
+                                    </Button>
+                                    <Button
+                                        style={{ backgroundColor: 'red' }}
+                                        onClick={handleCancelCrop}
+                                    >Cancel</Button>
+                                </div>
+                            )}
 
-                        <div className="file-item">
-                            <ReactCrop
-                                crop={crop}
-                                onChange={(percentCrop) => setCrop(percentCrop)}
-                                onComplete={(e) => setCompletedCrop(e)}
-                                aspect={aspect}
-                                className="image-container"
+                            <div
+                                className="file-item"
                                 style={{
-                                    transform: `rotate(${rotate}deg)`,
+                                    transform: `scale(${scale}) scaleX(${flipX ? -1 : 1}) scaleY(${flipY ? -1 : 1}) translate(${offset.x}px, ${offset.y}px)`,
+                                    marginTop: 70
                                 }}
-                                disabled={!cropStart}
                             >
-                                <canvas
-                                    ref={canvasRef}
-                                    id="canvas"
-                                    className="file-crop"
+                                <ReactCrop
+                                    crop={crop}
+                                    onChange={(percentCrop) => setCrop(percentCrop)}
+                                    onComplete={(e) => setCompletedCrop(e)}
+                                    aspect={aspect}
+                                    className="image-container"
                                     style={{
-                                        transform: `scale(${scale}) scaleX(${flipX ? -1 : 1}) scaleY(${flipY ? -1 : 1}) translate(${offset.x}px, ${offset.y}px)`,
-                                        cursor: drag ? 'grab' : 'pointer',
+                                        transform: `rotate(${rotate}deg)`,
                                     }}
-                                    onMouseDown={handleMouseDownZoom}
-                                    onMouseMove={handleMouseMoveZoom}
-                                    onMouseUp={handleMouseUpZoom}
-                                    onMouseLeave={handleMouseUpZoom}
-                                    draggable='false'
-                                />
-                            </ReactCrop>
+                                    disabled={!cropStart}
+                                >
+                                    <canvas
+                                        ref={canvasRef}
+                                        id="canvas"
+                                        className="file-crop"
+                                    />
+                                </ReactCrop>
+                            </div>
                         </div>
                     </div>
-                </div>
-            </div >
+                </div >
+            </div>
         </>
     )
 }
