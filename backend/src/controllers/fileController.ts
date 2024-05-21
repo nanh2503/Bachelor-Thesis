@@ -10,7 +10,7 @@ export interface FileData {
 }
 
 export const handleUpload = async (req: Request, res: Response): Promise<void> => {
-    let { username, imageUrl, videoUrl, titles, descriptions, base64Code, tagList } = req.body;
+    let { username, imageUrl, videoUrl, titles, descriptions, base64CodeImage, base64CodeVideo, tagList } = req.body;
 
     if (!username) {
         const errorResponse: FileData = {
@@ -32,7 +32,7 @@ export const handleUpload = async (req: Request, res: Response): Promise<void> =
         return;
     }
 
-    let fileData = await handleUploadFile(username, imageUrl, videoUrl, titles, descriptions, base64Code, tagList);
+    let fileData = await handleUploadFile(username, imageUrl, videoUrl, titles, descriptions, base64CodeImage, base64CodeVideo, tagList);
 
     const response: FileData = {
         errCode: fileData.errCode,
@@ -95,19 +95,19 @@ export const updateData = async (req: Request, res: Response): Promise<void | Fi
 }
 
 export const deleteData = async (req: Request, res: Response): Promise<void | File> => {
-    let id = req.query.id;
+    let { fileType, id } = req.query;
 
-    if (!id) {
+    if (!id || !fileType) {
         const errorResponse: FileData = {
             errCode: 1,
-            errMessage: 'The id is required',
+            errMessage: 'The id and fileType is required',
             file: []
         }
         res.status(400).json(errorResponse);
         return;
     }
 
-    let fileData = await handleDeleteDataService(id.toString());
+    let fileData = await handleDeleteDataService(fileType.toString(), id.toString());
 
     const response: FileData = {
         errCode: fileData.errCode,

@@ -1,19 +1,19 @@
 import { FileData } from "../controllers/fileController";
 import File from "../models/fileModels";
 
-export const handleUploadFile = (username: string, imageUrl: string[], videoUrl: string[], title: string, description: string[], base64Code: string[], tagList: string[]): Promise<FileData> => {
+export const handleUploadFile = (username: string, imageUrl: string[], videoUrl: string[], title: string, description: string[], base64CodeImage: string[], base64CodeVideo: string[], tagList: string[]): Promise<FileData> => {
     return new Promise(async (resolve, reject) => {
         try {
             let fileData: FileData = { errCode: -1, errMessage: '' };
 
-            const images: { imageUrl: string; description: string, base64Code: string }[] = [];
-            imageUrl.forEach((imageUrl, index) => {
-                images.push({ imageUrl, description: description[index] || '', base64Code: base64Code[index] });
+            const images: { imageUrl: string; description: string, base64CodeImage: string }[] = [];
+            base64CodeImage.forEach((base64CodeImage, index) => {
+                images.push({ imageUrl: imageUrl[index] || '', description: description[index] || '', base64CodeImage });
             });
 
-            const videos: { videoUrl: string; description: string, base64Code: string }[] = [];
-            videoUrl.forEach((videoUrl, index) => {
-                videos.push({ videoUrl, description: description[index + imageUrl.length] || '', base64Code: base64Code[index + imageUrl.length] });
+            const videos: { videoUrl: string; description: string, base64CodeVideo: string }[] = [];
+            base64CodeVideo.forEach((base64CodeVideo, index) => {
+                videos.push({ videoUrl: videoUrl[index] || '', description: description[index + base64CodeImage.length] || '', base64CodeVideo });
             });
 
             const newFile = new File({
@@ -42,13 +42,13 @@ export const handleFetchDataService = async (arg: string): Promise<FileData> => 
         let fileData: FileData = { errCode: -1, errMessage: '', file: [] };
 
         if (arg === 'All') {
-            const fileList = await File.find({}, { _id: 1, images: 1, videos: 1, title: 1, tagList: 1, base64Code: 1 });
+            const fileList = await File.find({}, { _id: 1, images: 1, videos: 1, title: 1, tagList: 1 });
 
             fileData.errCode = 0;
             fileData.errMessage = 'Get File successful!';
             fileData.file = fileList;
         } else if (arg === 'newest') {
-            const fileList = await File.find({}, { _id: 1, images: 1, videos: 1, title: 1, tagList: 1, base64Code: 1 })
+            const fileList = await File.find({}, { _id: 1, images: 1, videos: 1, title: 1, tagList: 1 })
                 .sort({ createdAt: -1 })
                 .limit(1);
 
@@ -57,7 +57,7 @@ export const handleFetchDataService = async (arg: string): Promise<FileData> => 
             fileData.file = fileList;
         }
         else {
-            const fileList = await File.find({ username: arg }, { _id: 1, images: 1, videos: 1, title: 1, tagList: 1, base64Code: 1 });
+            const fileList = await File.find({ username: arg }, { _id: 1, images: 1, videos: 1, title: 1, tagList: 1 });
 
             fileData.errCode = 0;
             fileData.errMessage = 'Get File successful!';
@@ -121,31 +121,40 @@ export const handleUpdateDataService = async (id: string, title: string, descrip
     }
 }
 
-export const handleDeleteDataService = async (id: string): Promise<FileData> => {
+export const handleDeleteDataService = async (fileType: string, id: string): Promise<FileData> => {
     try {
         let fileData: FileData = { errCode: -1, errMessage: '', file: [] };
 
         // Tìm kiếm dữ liệu theo id
-        const existingData = await File.findOne({
-            $or: [
-                { 'images._id': id },
-                { 'videos._id': id },
-            ]
-        });
+        let existingData;
+
+        if (fileType === 'image') {
+            existingData = await File.findOne({ 'images._id': id })
+        } else {
+            existingData = await File.findOne({ 'videos._id': id })
+        }
 
         if (existingData) {
-            // Lọc ra ảnh cần xóa khỏi mảng images
-            existingData.images = existingData.images.filter((image: any) => image._id.toString() !== id);
-            existingData.videos = existingData.videos.filter((video: any) => video._id.toString() !== id);
+            // Lọc ra ảnh cần xóa khỏi mảng
+            if (fileType === 'image') {
+                existingData.images = existingData.images.filter((image: any) => image._id.toString() !== id);
+            } else {
+                existingData.videos = existingData.videos.filter((video: any) => video._id.toString() !== id);
+            }
 
-            // Lưu dữ liệu đã cập nhật vào MongoDB
-            await existingData.save();
-
-            fileData.errCode = 0;
-            fileData.errMessage = 'Image deleted successfully!';
+            if (existingData.images.length === 0 && existingData.videos.length === 0) {
+                await File.deleteOne({ _id: existingData._id });
+                fileData.errCode = 0;
+                fileData.errMessage = 'Clear File successfully!';
+            } else {
+                // Lưu dữ liệu đã cập nhật vào MongoDB
+                await existingData.save();
+                fileData.errCode = 0;
+                fileData.errMessage = 'File updated successfully!';
+            }
         } else {
             fileData.errCode = 0;
-            fileData.errMessage = 'Image not found!';
+            fileData.errMessage = 'File not found!';
         }
 
         return fileData;

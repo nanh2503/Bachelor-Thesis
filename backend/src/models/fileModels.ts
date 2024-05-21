@@ -3,13 +3,13 @@ import mongoose, { Document } from "mongoose";
 export interface FileImage {
     imageUrl: string;
     description: string;
-    base64Code: string;
+    base64CodeImage: string;
 }
 
 export interface FileVideo {
     videoUrl: string;
     description: string;
-    base64Code: string;
+    base64CodeVideo: string;
 }
 
 export interface FileInterface extends Document {
@@ -29,7 +29,7 @@ const imageSchema = new mongoose.Schema<FileImage>({
         type: String,
         required: false,
     },
-    base64Code: {
+    base64CodeImage: {
         type: String,
         required: false,
     }
@@ -44,7 +44,7 @@ const videoSchema = new mongoose.Schema<FileVideo>({
         type: String,
         required: false,
     },
-    base64Code: {
+    base64CodeVideo: {
         type: String,
         required: false,
     }
