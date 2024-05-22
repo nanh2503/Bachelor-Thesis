@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { SyntheticEvent, useEffect, useRef, useState } from "react";
 import ReactCrop, { Crop, PixelCrop, centerCrop, makeAspectCrop } from "react-image-crop";
 import { useDispatch, useSelector } from "src/app/hooks";
 import 'react-image-crop/dist/ReactCrop.css';
@@ -9,6 +9,7 @@ import { fabric } from 'fabric';
 import { deleteData, handleFetchData, handleUploadBackendService } from "src/services/fileServices";
 import { useRouter } from "next/router";
 import { FileList, deleteImage, deleteVideo, updateFileList } from "src/app/redux/slices/fileSlice";
+import { base64ToFileImage } from "src/utils/convertBase64ToFile";
 
 const CropImageForm = (props: { data: string | string[] }) => {
 
@@ -140,7 +141,6 @@ const CropImageForm = (props: { data: string | string[] }) => {
 
             // Vẽ ảnh gốc lên canvas mới
             const image = new Image();
-            image.crossOrigin = "anonymous";
             image.src = canvasElement.toDataURL();
 
             image.onload = () => {
@@ -338,6 +338,7 @@ const CropImageForm = (props: { data: string | string[] }) => {
     }
 
     const handleSaveAsCopy = async () => {
+        handleMenuClose();
         try {
             const username = user?.username;
             const imageFiles = [croppedImageUrl];
@@ -355,6 +356,7 @@ const CropImageForm = (props: { data: string | string[] }) => {
     }
 
     const handleSaveImage = async () => {
+        handleMenuClose();
         try {
             const username = user?.username;
             const imageFiles = [croppedImageUrl];
@@ -381,6 +383,31 @@ const CropImageForm = (props: { data: string | string[] }) => {
         }
     }
 
+    const handleCopyToClipboard = async () => {
+        handleMenuClose();
+        const imageUrl = croppedImageUrl ? croppedImageUrl : imageSrc;
+        const imageFile: File = base64ToFileImage(imageUrl);
+
+        try {
+            await navigator.clipboard.write([
+                new ClipboardItem({
+                    'image/png': imageFile
+                })
+            ])
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
+    const handleOpenMenuSave = (event: SyntheticEvent) => {
+        setAnchorEl(event.currentTarget);
+        setStartDraw(false);
+        if (!!canvas) {
+            canvas.isDrawingMode = false;
+            saveDrawImage();
+        }
+    }
+
     return (
         <>
             <h1 style={{ justifyContent: 'left' }}>Resize & Crop</h1>
@@ -398,7 +425,7 @@ const CropImageForm = (props: { data: string | string[] }) => {
                                     backgroundColor: 'limegreen'
                                 }
                             }}
-                            onClick={(e) => setAnchorEl(e.currentTarget)}
+                            onClick={handleOpenMenuSave}
                         >Save Options
                             <FontAwesomeIcon
                                 icon={faAngleDown}
@@ -436,6 +463,7 @@ const CropImageForm = (props: { data: string | string[] }) => {
                                     fontSize: 18,
                                     color: '#000'
                                 }}
+                                onClick={handleCopyToClipboard}
                             >
                                 Copy to clipboard
                             </MenuItem>
@@ -444,8 +472,9 @@ const CropImageForm = (props: { data: string | string[] }) => {
                                     fontSize: 18,
                                     color: '#000'
                                 }}
+                                onClick={handleMenuClose}
                             >
-                                <a href={croppedImageUrl ?? imageSrc} download>
+                                <a href={croppedImageUrl ? croppedImageUrl : imageSrc} download style={{ textDecoration: 'none', color: '#000' }}>
                                     Download
                                 </a>
                             </MenuItem>

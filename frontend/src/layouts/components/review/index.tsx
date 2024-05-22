@@ -8,6 +8,7 @@ import { updateFileList } from 'src/app/redux/slices/fileSlice';
 import UploadForm from '../upload';
 import { setTitles, setDescriptions } from 'src/app/redux/slices/uploadFileSlice';
 import convertFileToBase64 from 'src/utils/convertToBase64';
+import { base64ToFileImage, base64ToFileVideo } from 'src/utils/convertBase64ToFile';
 
 const ReviewForm = () => {
     const user = useSelector((state) => state.localStorage.loginState.user)
@@ -23,36 +24,6 @@ const ReviewForm = () => {
     const [isAddMoreDialogOpen, setAddMoreDialogOpen] = useState(false);
     const [tagNull, setTagNull] = useState(false);
     const [tagList, setTagList] = useState<string[]>([]);
-
-    const base64ToBufferImage = (base64String: string) => {
-        // Loại bỏ tiền tố 'data:image/jpeg;base64,' hoặc 'data:image/png;base64,'
-        const base64Data = base64String.replace(/^data:image\/\w+;base64,/, '');
-
-        // Chuyển đổi chuỗi base64 thành Buffer
-        return Buffer.from(base64Data, 'base64');
-    };
-
-    const base64ToFileImage = (base64String: string) => {
-        const buffer = base64ToBufferImage(base64String);
-
-        // Tạo đối tượng File từ Buffer
-        return new File([buffer], `image_${Date.now()}.jpg`, { type: "image/jpeg" });
-    };
-
-    const base64ToBufferVideo = (base64String: string) => {
-        // Loại bỏ tiền tố 'data:image/jpeg;base64,' hoặc 'data:image/png;base64,'
-        const base64Data = base64String.replace(/^data:video\/\w+;base64,/, '');
-
-        // Chuyển đổi chuỗi base64 thành Buffer
-        return Buffer.from(base64Data, 'base64');
-    };
-
-    const base64ToFileVideo = (base64String: string) => {
-        const buffer = base64ToBufferVideo(base64String);
-
-        // Tạo đối tượng File từ Buffer
-        return new File([buffer], `video_${Date.now()}.mp4`, { type: "video/mp4" });
-    };
 
     const convertURLToFile = async (url: string) => {
         try {
@@ -299,7 +270,7 @@ const ReviewForm = () => {
 
                     <div className='file-item'>
                         <div className='image-container'>
-                            {imagesReview.map((image, index) => {
+                            {imagesReview.map((image: string, index: number) => {
                                 return (
                                     <div key={index}>
                                         <img src={image} alt={`Uploaded Image File ${index + 1}`} className='file-image' />
@@ -316,7 +287,7 @@ const ReviewForm = () => {
                             })}
                         </div>
                         <div className='video-container'>
-                            {videosReview.map((video, index) => {
+                            {videosReview.map((video: string, index: number) => {
                                 const indexVideo = index + imagesReview.length;
 
                                 return (
