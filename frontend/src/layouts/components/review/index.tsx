@@ -7,6 +7,7 @@ import { useDispatch, useSelector } from 'src/app/hooks';
 import { updateFileList } from 'src/app/redux/slices/fileSlice';
 import UploadForm from '../upload';
 import { setTitles, setDescriptions } from 'src/app/redux/slices/uploadFileSlice';
+import convertFileToBase64 from 'src/utils/convertToBase64';
 
 const ReviewForm = () => {
     const user = useSelector((state) => state.localStorage.loginState.user)
@@ -161,23 +162,30 @@ const ReviewForm = () => {
         const imageFiles: File[] = [];
         const videoFiles: File[] = [];
 
+        const base64CodeImage = []
+        const base64CodeVideo = []
+
         if (imagesReview.length > 0) {
             for (const image of imagesReview) {
                 if (image.startsWith('http')) {
-                    const imageUrl = await convertURLToFile(image);
+                    const imageUrl = await convertURLToFile(image) as File;
                     imageFiles.push(imageUrl);
+                    const base64Code = await convertFileToBase64(imageUrl)
+                    base64CodeImage.push(base64Code);
                 } else {
                     const imageFile = base64ToFileImage(image);
                     imageFiles.push(imageFile);
+                    base64CodeImage.push(image);
                 }
             }
         }
 
         if (videosReview.length > 0) {
-            videosReview.map((video) => {
+            for (const video of videosReview) {
                 const videoFile = base64ToFileVideo(video);
                 videoFiles.push(videoFile);
-            })
+                base64CodeVideo.push(video);
+            }
         }
 
         try {
@@ -196,9 +204,6 @@ const ReviewForm = () => {
             const videoUrl = await uploadFile('video', videoTimestamp, videoSignature, videoFiles);
 
             const username = user?.username;
-
-            const base64CodeImage = [...imagesReview]
-            const base64CodeVideo = [...videosReview]
 
             if (!!username) {
                 //Send backend api request

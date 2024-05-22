@@ -7,10 +7,10 @@ import { styled } from '@mui/material/styles'
 import themeConfig from 'src/configs/themeConfig'
 import React, { SyntheticEvent, useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'src/app/hooks'
-import { deleteImage, updateImage, updateVideo, deleteVideo, FileList } from 'src/app/redux/slices/fileSlice'
+import { deleteImage, updateImage, updateVideo, deleteVideo, FileList, Image } from 'src/app/redux/slices/fileSlice'
 
 // FontAwesome Import
-import { faEdit, faTrash, faLink, faEllipsisVertical, faUpDownLeftRight, faChevronRight, faShareNodes, faDownload, faPencil, faCrop } from '@fortawesome/free-solid-svg-icons';
+import { faEdit, faTrash, faLink, faPaperclip, faEllipsisVertical, faUpDownLeftRight, faChevronRight, faShareNodes, faDownload, faPencil, faCrop } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField } from '@mui/material';
@@ -34,8 +34,6 @@ const Dashboard = () => {
 
   const fileList = useSelector((state) => state.indexedDB.fileListState.file);
 
-  console.log('fileList: ', fileList);
-
   const [editTitle, setEditTitle] = useState("");
   const [editDescription, setEditDescription] = useState("");
   const [editId, setEditId] = useState("");
@@ -46,7 +44,7 @@ const Dashboard = () => {
   const [copyMes, setCopyMes] = useState(false);
   const [anchorEl, setAnchorEl] = useState<(EventTarget & Element) | null>(null);
   const [subAnchorEl, setSubAnchorEl] = useState<null | HTMLElement>(null);
-  const [menuId, setMenuId] = useState("");
+  const [menuImage, setMenuImage] = useState<Image | null>(null);
   const [menuType, setMenuType] = useState("");
 
   useEffect(() => {
@@ -125,12 +123,12 @@ const Dashboard = () => {
       handleCloseDeleteDialog();
 
       if (menuType === 'image') {
-        dispatch(deleteImage({ deleteId: menuId }));
+        dispatch(deleteImage({ deleteId: menuImage?._id ?? '' }));
       } else {
-        dispatch(deleteVideo({ deleteId: menuId }))
+        dispatch(deleteVideo({ deleteId: menuImage?._id ?? '' }))
       }
 
-      const res = await deleteData(menuType, menuId);
+      const res = await deleteData(menuType, menuImage?._id ?? '');
       console.log('res: ', res);
 
     } catch (error) {
@@ -143,30 +141,35 @@ const Dashboard = () => {
   }
 
   const handleViewImageOnMenu = () => {
-    router.push(`/view/${menuType}/${menuId}`);
+    router.push(`/view/${menuType}/${menuImage?._id}`);
   }
 
-  const handleClickToCopy = (text: string) => {
-    const input = document.createElement('input'); //tạo thẻ input giả
-    document.body.appendChild(input); //gán thẻ đó vào bất kì đâu
-    input.value = text; //gán giá trị vào input
-    input.select(); //focus vào input
-    document.execCommand('copy'); //copy text từ input
-    input.remove();
-
-    setCopyMes(true);
+  const handleClickToCopy = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      console.log('copy oke: ', text);
+      setCopyMes(true);
+      handleSubMenuClose();
+      handleMenuClose();
+    } catch (err) {
+      console.error('failed to copy: ', err);
+    }
   }
 
-  const handleCopyLink = (id: string, fileView: string) => {
+  const handleCopyLink = async () => {
     const port = process.env.NEXT_PUBLIC_PORT;
+    console.log('check port: ', port);
 
-    const link = `http://localhost:${port}/view-file/${fileView}/${id}/`;
-    handleClickToCopy(link);
+    const link = `http://localhost:${port}/view/${menuType}/${menuImage?._id}/`;
+
+    await navigator.clipboard.writeText(link);
+    console.log('oke ròi: ', link);
+    handleSubMenuClose();
+    handleMenuClose();
   }
 
-  const handleMenuOpen = (event: SyntheticEvent, id: string, fileView: string) => {
-    console.log('id: ', id);
-    setMenuId(id);
+  const handleMenuOpen = (event: SyntheticEvent, image: Image, fileView: string) => {
+    setMenuImage(image);
     setMenuType(fileView);
     setAnchorEl(event.currentTarget);
   };
@@ -184,7 +187,7 @@ const Dashboard = () => {
   };
 
   const handleCropImage = () => {
-    router.push(`/crop/${menuType}/${menuId}`)
+    router.push(`/crop/${menuType}/${menuImage?._id}`)
   }
 
   return (
@@ -253,7 +256,7 @@ const Dashboard = () => {
                                     icon={faEllipsisVertical}
                                     aria-haspopup="true"
                                     className="menu-icon"
-                                    onClick={(e) => handleMenuOpen(e, image._id, "image")}
+                                    onClick={(e) => handleMenuOpen(e, image, "image")}
                                   />
                                   <Menu
                                     anchorEl={anchorEl}
@@ -272,13 +275,31 @@ const Dashboard = () => {
                                     </MenuItem>
                                     <MenuItem
                                       sx={{ p: 0 }}
-                                      onClick={handleSubMenuOpen}
+                                      onClick={handleCropImage}
                                     >
                                       <FontAwesomeIcon
                                         icon={faEdit}
                                         className='icon'
                                       />
                                       Edit
+                                    </MenuItem>
+                                    <Divider />
+                                    <MenuItem sx={{ p: 0 }} onClick={handleMenuClose}>
+                                      <FontAwesomeIcon
+                                        icon={faDownload}
+                                        className='icon'
+                                      />
+                                      <a href={menuImage?.base64CodeImage} download style={{ textDecoration: 'none', color: '#534f5a' }}>
+                                        Download
+                                      </a>
+                                    </MenuItem>
+
+                                    <MenuItem sx={{ p: 0 }} onClick={handleSubMenuOpen}>
+                                      <FontAwesomeIcon
+                                        icon={faShareNodes}
+                                        className='icon'
+                                      />
+                                      Share
                                       <FontAwesomeIcon
                                         icon={faChevronRight}
                                         className={`icon-right ${Boolean(subAnchorEl) ? 'active' : ''}`}
@@ -292,29 +313,21 @@ const Dashboard = () => {
                                       anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
                                       transformOrigin={{ vertical: 'top', horizontal: 'left' }}
                                     >
-                                      <MenuItem sx={{ p: 0 }} onClick={handleCropImage}>
+                                      <MenuItem sx={{ p: 0 }} onClick={handleCopyLink}>
                                         <FontAwesomeIcon
-                                          icon={faCrop}
+                                          icon={faPaperclip}
                                           className='icon'
                                         />
-                                        Crop
+                                        Public link
+                                      </MenuItem>
+                                      <MenuItem sx={{ p: 0 }} onClick={() => handleClickToCopy(menuImage?.base64CodeImage ?? '')}>
+                                        <FontAwesomeIcon
+                                          icon={faLink}
+                                          className='icon'
+                                        />
+                                        Copy URL
                                       </MenuItem>
                                     </Menu>
-                                    <Divider />
-                                    <MenuItem sx={{ p: 0 }} onClick={handleMenuClose}>
-                                      <FontAwesomeIcon
-                                        icon={faDownload}
-                                        className='icon'
-                                      />
-                                      Download
-                                    </MenuItem>
-                                    <MenuItem sx={{ p: 0 }} onClick={handleMenuClose}>
-                                      <FontAwesomeIcon
-                                        icon={faShareNodes}
-                                        className='icon'
-                                      />
-                                      Share
-                                    </MenuItem>
                                     <Divider />
                                     <MenuItem sx={{ p: 0 }} onClick={handleOpenDeleteDialog}>
                                       <FontAwesomeIcon

@@ -2,7 +2,7 @@ import { Button, Input } from "@mui/material";
 import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "src/app/hooks";
-import { Image, Video, updateImage, updateVideo } from "src/app/redux/slices/fileSlice";
+import { FileList, Image, Video, updateImage, updateVideo } from "src/app/redux/slices/fileSlice";
 import { updateData } from "src/services/fileServices";
 
 const ViewForm = (props: { data: string | string[] }) => {
@@ -22,7 +22,7 @@ const ViewForm = (props: { data: string | string[] }) => {
 
     useEffect(() => {
         const getFile = () => {
-            fileList.map((file) => {
+            fileList.map((file: FileList) => {
                 if (data[0] === 'image' && file.images.some(image => image._id === data[1])) {
                     file.images.map((image) => {
                         if (image._id === data[1]) {
@@ -45,7 +45,7 @@ const ViewForm = (props: { data: string | string[] }) => {
             })
         }
         getFile();
-    }, [data])
+    }, [data, fileList])
 
     useEffect(() => {
         const setTagListView = () => {

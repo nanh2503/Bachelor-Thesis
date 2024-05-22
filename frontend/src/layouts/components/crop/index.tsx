@@ -20,10 +20,6 @@ const CropImageForm = (props: { data: string | string[] }) => {
     const fileList = useSelector((state) => state.indexedDB.fileListState.file)
     const user = useSelector((state) => state.localStorage.loginState.user)
 
-    const previewCanvasRef = useRef<HTMLCanvasElement>(null)
-    const imageRef = useRef<HTMLImageElement>(null)
-    const hiddenAnchorRef = useRef<HTMLAnchorElement>(null)
-    const blobUrlRef = useRef('')
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const canvasRefInternal = useRef<fabric.Canvas | null>(null);
 
@@ -56,13 +52,13 @@ const CropImageForm = (props: { data: string | string[] }) => {
                         if (image._id === data[1]) {
                             setImageSrc(image.base64CodeImage);
                         }
-                    })
+                    });
                 }
-            })
-        }
+            });
+        };
 
-        getFile()
-    }, [data])
+        getFile();
+    }, [data, fileList]);
 
     useEffect(() => {
         const updateCanvasSize = () => {
@@ -265,53 +261,6 @@ const CropImageForm = (props: { data: string | string[] }) => {
         setCompletedCrop(undefined);
     }
 
-    const onDownloadCropClick = async () => {
-        const image = imageRef.current;
-        const previewCanvas = previewCanvasRef.current;
-        if (!image || !previewCanvas || !completedCrop) {
-            throw new Error('Crop canvas does not exist')
-        }
-
-        const scaleX = image.naturalWidth / image.width;
-        const scaleY = image.naturalHeight / image.height;
-
-        const offscreen = new OffscreenCanvas(
-            completedCrop.width * scaleX,
-            completedCrop.height * scaleY
-        )
-
-        const ctx = offscreen.getContext('2d');
-        if (!ctx) {
-            throw new Error('No 2d context');
-        }
-
-        ctx.drawImage(
-            previewCanvas,
-            0,
-            0,
-            previewCanvas.width,
-            previewCanvas.height,
-            0,
-            0,
-            offscreen.width,
-            offscreen.height
-        )
-
-        const blob = await offscreen.convertToBlob({
-            type: 'image/png',
-        })
-
-        if (blobUrlRef.current) {
-            URL.revokeObjectURL(blobUrlRef.current)
-        }
-        blobUrlRef.current = URL.createObjectURL(blob)
-
-        if (hiddenAnchorRef.current) {
-            hiddenAnchorRef.current.href = blobUrlRef.current
-            hiddenAnchorRef.current.click()
-        }
-    }
-
     const handleZoomOut = () => {
         if (scale > 1) {
             setScale(scale - 0.1)
@@ -420,7 +369,7 @@ const CropImageForm = (props: { data: string | string[] }) => {
                 dispatch(deleteVideo({ deleteId: data[1] }));
             }
 
-            await deleteData(data[1]);
+            await deleteData(data[0], data[1]);
 
             const file = await fetchNewestData('newest');
             dispatch(updateFileList(file));
@@ -489,6 +438,16 @@ const CropImageForm = (props: { data: string | string[] }) => {
                                 }}
                             >
                                 Copy to clipboard
+                            </MenuItem>
+                            <MenuItem
+                                style={{
+                                    fontSize: 18,
+                                    color: '#000'
+                                }}
+                            >
+                                <a href={croppedImageUrl ?? imageSrc} download>
+                                    Download
+                                </a>
                             </MenuItem>
                         </Menu>
                         <Button
