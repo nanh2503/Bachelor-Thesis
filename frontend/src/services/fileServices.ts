@@ -23,3 +23,11 @@ export const updateData = (id: string, title: string, description: string) => {
 export const deleteData = (fileType: string, id: string) => {
     return axios.delete('/api/delete', { params: { fileType, id } });
 }
+
+export const clickIncrease = (fileType: string, id: string) => {
+    return axios.put('/api/click-increase', { fileType, id })
+}
+
+export const setFavoriteFile = (fileType: string, id: string) => {
+    return axios.put('/api/set-favorite', { fileType, id })
+}

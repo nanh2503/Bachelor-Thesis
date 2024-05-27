@@ -63,7 +63,7 @@ export const persistor = persistStore(store);
 
 const makeStore = () => store;
 
-export type RootState = ReturnType<typeof combinedReducer>;
+export type AppState = ReturnType<typeof combinedReducer>;
 export type AppDispatch = typeof store.dispatch;
 
 export const wrapper = createWrapper(makeStore, { debug: false });

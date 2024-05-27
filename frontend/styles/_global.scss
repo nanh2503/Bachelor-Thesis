@@ -384,7 +384,7 @@ input {
   margin-bottom: 20px;
 }
 
-.image-container {
+.image-container, .video-container {
   margin-top: 20px;
 }
 
@@ -402,10 +402,11 @@ input {
   margin-bottom: 20px;
 }
 
-.icon-container {
+.icon-container{
   display: inline-block;
 }
 
+.heart-icon,
 .copy-link-icon,
 .menu-icon {
   color: #fff;
@@ -423,6 +424,14 @@ input {
   &:hover {
     color: #ffcc00;
   }
+}
+
+.heart-icon{
+  margin-left: 10px;
+}
+
+.heart-active{
+  color: #ffcc00;
 }
 
 .mes {
@@ -555,4 +564,24 @@ input{
   gap: 20px;
   display: flex;
   top: 120px
+}
+
+.folder-selector label {
+  font-weight: 800;
+  font-size: 20px;
+  margin-right: 10px;
+}
+
+.folder-selector select {
+  font-weight: 600;
+  font-size: 16px;
+  padding: 5px 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.folder-selector select:focus {
+  border-color: #007BFF;
+  outline: none;
+  box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
 }

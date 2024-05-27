@@ -1,5 +1,5 @@
 import { useRouter } from "next/router"
-import CropImageForm from "src/layouts/components/crop";
+import CropImageForm from "src/layouts/components/edit";
 
 const CropImagePage = () => {
     const router = useRouter();

@@ -2,20 +2,17 @@
 import ApexChartWrapper from 'src/@core/styles/libs/react-apexcharts'
 
 // ** Demo Components Imports
-import { Card, CardContent, Divider, Menu, MenuItem, Typography } from '@mui/material'
+import { Card, CardContent, Typography } from '@mui/material'
 import { styled } from '@mui/material/styles'
 import themeConfig from 'src/configs/themeConfig'
-import React, { SyntheticEvent, useEffect, useState } from 'react'
+import React, { ChangeEvent, useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'src/app/hooks'
-import { deleteImage, updateImage, updateVideo, deleteVideo, FileList, Image } from 'src/app/redux/slices/fileSlice'
+import { FileList, setClickNumImage, setClickNumVideo } from 'src/app/redux/slices/fileSlice'
 
-// FontAwesome Import
-import { faEdit, faTrash, faLink, faPaperclip, faEllipsisVertical, faUpDownLeftRight, faChevronRight, faShareNodes, faDownload, faPencil, faCrop } from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-
-import { Dialog, DialogTitle, DialogContent, DialogActions, Button, TextField } from '@mui/material';
-import { deleteData, updateData } from 'src/services/fileServices'
+import { clickIncrease } from 'src/services/fileServices'
 import { useRouter } from 'next/router'
+import MediaOverlay from 'src/layouts/components/dashboard/MediaOverlay'
+import MenuIcons from 'src/layouts/components/dashboard/MenuIcons'
 
 // Styled component for the trophy image
 const TrophyImg = styled('img')({
@@ -25,169 +22,33 @@ const TrophyImg = styled('img')({
   position: 'absolute'
 })
 
-
 const Dashboard = () => {
   const dispatch = useDispatch();
   const router = useRouter();
 
   const isLoggedIn = useSelector((state) => state.localStorage.loginState.isLoggedIn);
-
   const fileList = useSelector((state) => state.indexedDB.fileListState.file);
+  const { imagesNum, videosNum } = useSelector((state) => state.indexedDB.fileListState);
 
-  const [editTitle, setEditTitle] = useState("");
-  const [editDescription, setEditDescription] = useState("");
-  const [editId, setEditId] = useState("");
-  const [tagList, setTagList] = useState<string[]>([]);
-  const [isEditDialogOpen, setEditDialogOpen] = useState(false);
-  const [confirmDeleteDialogOpen, setConfirmDeleteDialogOpen] = useState(false);
-  const [fileEdit, setFileEdit] = useState("");
-  const [copyMes, setCopyMes] = useState(false);
-  const [anchorEl, setAnchorEl] = useState<(EventTarget & Element) | null>(null);
-  const [subAnchorEl, setSubAnchorEl] = useState<null | HTMLElement>(null);
-  const [menuImage, setMenuImage] = useState<Image | null>(null);
-  const [menuType, setMenuType] = useState("");
+  const [folder, setFolder] = useState("total");
 
   useEffect(() => {
     if (!isLoggedIn) router.push("/login");
   }, [])
 
-  const handleOpenEditDialog = (id: string, fileEdit: string) => {
-    setFileEdit(fileEdit)
-    setEditId(id);
-    if (fileEdit === 'image') {
-      fileList?.map((file: FileList) => {
-        if (file.images.some(image => image._id === id)) {
-          setEditTitle(file.title)
-          setTagList(file.tagList)
-          file.images.map(image => {
-            if (image._id === id) {
-              setEditDescription(image.description)
-            }
-          })
-        }
-      })
+  const handleViewFile = async (id: string, fileView: string) => {
+    if (fileView === 'image') {
+      dispatch(setClickNumImage({ fileId: id }));
     } else {
-      fileList?.map((file: FileList) => {
-        if (file.videos.some(video => video._id === id)) {
-          setEditTitle(file.title)
-          setTagList(file.tagList)
-          file.videos.map(video => {
-            if (video._id === id) {
-              setEditDescription(video.description)
-            }
-          })
-        }
-      })
+      dispatch(setClickNumVideo({ fileId: id }))
     }
-
-    setEditDialogOpen(true);
-  };
-
-  const handleTitleChange = (newTitle: string) => {
-    setEditTitle(newTitle)
-  };
-
-  const handleDescriptionChange = (newDescription: string) => {
-    setEditDescription(newDescription)
-  };
-
-  const handleSaveChanges = async () => {
-    try {
-      if (fileEdit === 'image') {
-        dispatch(updateImage({ editId, editTitle, editDescription, editTagList: tagList }))
-      } else {
-        dispatch(updateVideo({ editId, editTitle, editDescription, editTagList: tagList }))
-      }
-
-      await updateData(editId, editTitle, editDescription)
-    } catch (error) {
-      console.error('Error during save:', error);
-    }
-
-    // Đóng dialog
-    setEditDialogOpen(false);
-  };
-
-  const handleOpenDeleteDialog = () => {
-    setConfirmDeleteDialogOpen(true);
-    handleMenuClose();
-  };
-
-  const handleCloseDeleteDialog = () => {
-    setConfirmDeleteDialogOpen(false);
-  };
-
-  const handleDeleteFile = async () => {
-    try {
-      // Đóng dialog
-      handleCloseDeleteDialog();
-
-      if (menuType === 'image') {
-        dispatch(deleteImage({ deleteId: menuImage?._id ?? '' }));
-      } else {
-        dispatch(deleteVideo({ deleteId: menuImage?._id ?? '' }))
-      }
-
-      const res = await deleteData(menuType, menuImage?._id ?? '');
-      console.log('res: ', res);
-
-    } catch (error) {
-      console.error('Error during delete:', error);
-    }
-  };
-
-  const handleViewImage = (id: string, fileView: string) => {
     router.push(`/view/${fileView}/${id}`)
+
+    await clickIncrease(fileView, id);
   }
 
-  const handleViewImageOnMenu = () => {
-    router.push(`/view/${menuType}/${menuImage?._id}`);
-  }
-
-  const handleClickToCopy = async (text: string) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      console.log('copy oke: ', text);
-      setCopyMes(true);
-      handleSubMenuClose();
-      handleMenuClose();
-    } catch (err) {
-      console.error('failed to copy: ', err);
-    }
-  }
-
-  const handleCopyLink = async () => {
-    const port = process.env.NEXT_PUBLIC_PORT;
-    console.log('check port: ', port);
-
-    const link = `http://localhost:${port}/view/${menuType}/${menuImage?._id}/`;
-
-    await navigator.clipboard.writeText(link);
-    console.log('oke ròi: ', link);
-    handleSubMenuClose();
-    handleMenuClose();
-  }
-
-  const handleMenuOpen = (event: SyntheticEvent, image: Image, fileView: string) => {
-    setMenuImage(image);
-    setMenuType(fileView);
-    setAnchorEl(event.currentTarget);
-  };
-
-  const handleMenuClose = () => {
-    setAnchorEl(null);
-  };
-
-  const handleSubMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
-    setSubAnchorEl(event.currentTarget);
-  }
-
-  const handleSubMenuClose = () => {
-    setSubAnchorEl(null);
-  };
-
-  const handleCropImage = () => {
-    router.push(`/crop/${menuType}/${menuImage?._id}`)
+  const handleChangeFolder = (event: ChangeEvent<HTMLSelectElement>) => {
+    setFolder(event.target.value);
   }
 
   return (
@@ -199,10 +60,21 @@ const Dashboard = () => {
               <Typography variant='h2' mt={20} mb={20} textAlign={'center'}>
                 Welcome to {themeConfig.templateName} 🥳
               </Typography>
+
+              <div className="folder-selector">
+                <label htmlFor="folder">View folder: </label>
+                <select name="folder" id="folder" onChange={handleChangeFolder}>
+                  <option value="total">Total</option>
+                  <option value="image">Image</option>
+                  <option value="video">Video</option>
+                </select>
+                <label style={{ marginLeft: 20 }}>{folder === 'total' ? (imagesNum + videosNum) : folder === 'image' ? imagesNum : videosNum} files</label>
+              </div>
+
               <div className='container-box'>
                 {fileList?.map((file: FileList, fileIndex: number) => (
                   <React.Fragment key={fileIndex}>
-                    {file.images.map((image, imageIndex) => (
+                    {(folder === 'total' || folder === 'image') && file.images.map((image, imageIndex) => (
                       <div key={`image-${imageIndex}`} >
                         <div
                           style={{
@@ -217,134 +89,23 @@ const Dashboard = () => {
                           }}
                         >
                           {image.base64CodeImage && (
-                            <>
-                              <div onClick={() => handleViewImage(image._id, "image")}>
+                            <div >
+                              <div onClick={() => handleViewFile(image._id, "image")} >
                                 {/* Image */}
                                 <img src={image.base64CodeImage} alt={`Image ${imageIndex}`} style={{ width: '100%', height: 'auto' }} />
                                 {/* Image Overlay */}
-                                <div style={{ position: 'absolute', bottom: 0, left: 0, width: '100%', padding: '10px', background: 'rgba(0, 0, 0, 0.7)' }}>
-                                  <div style={{ display: 'flex', position: 'relative' }}>
-                                    <div>
-                                      <div style={{ color: 'white', fontWeight: 'bold', fontSize: '16px' }}>{file.title}</div>
-                                      <div style={{ color: 'white', fontSize: '14px', margin: '5px 0' }}>{image.description}</div>
-                                    </div>
-                                    <div style={{ display: 'flex', marginLeft: '20px' }}>
-                                      {file.tagList.map((tag, index) => (
-                                        <div key={index} style={{ color: 'silver', fontSize: '14px', marginLeft: '5px', marginTop: '30px', fontStyle: 'italic' }}>
-                                          #{tag}
-                                        </div>
-                                      ))}
-                                    </div>
-                                  </div>
-                                </div>
+                                <MediaOverlay file={file} media={image} />
                               </div>
 
-                              <div style={{ position: 'absolute', top: 0, right: 0, paddingTop: '10px', zIndex: 1 }}>
-                                <div className='icon-container'>
-                                  <FontAwesomeIcon
-                                    icon={faLink}
-                                    className="copy-link-icon"
-                                    onClick={() => handleClickToCopy(image.base64CodeImage)}
-                                    onMouseLeave={() => setCopyMes(false)}
-                                  />
-                                  <div className='mes'>
-                                    {!copyMes ? " Copy Link" : "Copied!"}
-                                  </div>
-                                </div>
-                                <div className='icon-container'>
-                                  <FontAwesomeIcon
-                                    icon={faEllipsisVertical}
-                                    aria-haspopup="true"
-                                    className="menu-icon"
-                                    onClick={(e) => handleMenuOpen(e, image, "image")}
-                                  />
-                                  <Menu
-                                    anchorEl={anchorEl}
-                                    open={Boolean(anchorEl)}
-                                    onClose={handleMenuClose}
-                                    sx={{ '& .MuiMenu-paper': { width: 200, marginTop: 2 } }}
-                                    anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
-                                    transformOrigin={{ vertical: 'top', horizontal: 'left' }}
-                                  >
-                                    <MenuItem sx={{ p: 0 }} onClick={handleViewImageOnMenu}>
-                                      <FontAwesomeIcon
-                                        icon={faUpDownLeftRight}
-                                        className='icon'
-                                      />
-                                      Open
-                                    </MenuItem>
-                                    <MenuItem
-                                      sx={{ p: 0 }}
-                                      onClick={handleCropImage}
-                                    >
-                                      <FontAwesomeIcon
-                                        icon={faEdit}
-                                        className='icon'
-                                      />
-                                      Edit
-                                    </MenuItem>
-                                    <Divider />
-                                    <MenuItem sx={{ p: 0 }} onClick={handleMenuClose}>
-                                      <FontAwesomeIcon
-                                        icon={faDownload}
-                                        className='icon'
-                                      />
-                                      <a href={menuImage?.base64CodeImage} download style={{ textDecoration: 'none', color: '#534f5a' }}>
-                                        Download
-                                      </a>
-                                    </MenuItem>
+                              <MenuIcons media={image} menuType='image' />
 
-                                    <MenuItem sx={{ p: 0 }} onClick={handleSubMenuOpen}>
-                                      <FontAwesomeIcon
-                                        icon={faShareNodes}
-                                        className='icon'
-                                      />
-                                      Share
-                                      <FontAwesomeIcon
-                                        icon={faChevronRight}
-                                        className={`icon-right ${Boolean(subAnchorEl) ? 'active' : ''}`}
-                                      />
-                                    </MenuItem>
-                                    <Menu
-                                      anchorEl={subAnchorEl}
-                                      open={Boolean(subAnchorEl)}
-                                      onClose={handleSubMenuClose}
-                                      sx={{ '& .MuiMenu-paper': { width: 200, marginTop: -10, marginLeft: 1 } }}
-                                      anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-                                      transformOrigin={{ vertical: 'top', horizontal: 'left' }}
-                                    >
-                                      <MenuItem sx={{ p: 0 }} onClick={handleCopyLink}>
-                                        <FontAwesomeIcon
-                                          icon={faPaperclip}
-                                          className='icon'
-                                        />
-                                        Public link
-                                      </MenuItem>
-                                      <MenuItem sx={{ p: 0 }} onClick={() => handleClickToCopy(menuImage?.base64CodeImage ?? '')}>
-                                        <FontAwesomeIcon
-                                          icon={faLink}
-                                          className='icon'
-                                        />
-                                        Copy URL
-                                      </MenuItem>
-                                    </Menu>
-                                    <Divider />
-                                    <MenuItem sx={{ p: 0 }} onClick={handleOpenDeleteDialog}>
-                                      <FontAwesomeIcon
-                                        icon={faTrash}
-                                        className='icon'
-                                      />
-                                      Delete
-                                    </MenuItem>
-                                  </Menu>
-                                </div>
-                              </div>
-                            </>
+                            </div>
                           )}
                         </div>
                       </div>
                     ))}
-                    {file.videos.map((video, videoIndex) => (
+
+                    {(folder === 'total' || folder === 'video') && file.videos.map((video, videoIndex) => (
                       <div key={`video-${videoIndex}`}>
                         <div
                           style={{
@@ -355,35 +116,24 @@ const Dashboard = () => {
                             borderRadius: '15px',
                             border: '3px solid transparent',
                             backgroundImage: 'linear-gradient(45deg, #ff0000, #ff9900, #ff9900, #33cc33, #0099cc, #9933cc)',
+                            cursor: 'pointer'
                           }}
                         >
                           {video.base64CodeVideo && (
-                            <div>
-                              {/* Video */}
-                              <video controls style={{ width: '100%', height: 'auto' }}>
-                                <source src={video.base64CodeVideo} type="video/mp4" />
-                              </video>
+                            <>
+                              <div>
+                                {/* Video */}
+                                <video controls style={{ width: '100%', height: 'auto' }}>
+                                  <source src={video.base64CodeVideo} type="video/mp4" />
+                                </video>
 
-                              {/* Edit and Delete Icons */}
-                              <div style={{ position: 'absolute', top: 0, right: 0, padding: '10px', zIndex: 1, background: 'rgba(0, 0, 0, 0.7)' }}>
-                                <FontAwesomeIcon
-                                  icon={faLink}
-                                  className="copy-link-icon"
-                                  onClick={() => handleOpenEditDialog(video._id, "video")}
-                                />
-                                <FontAwesomeIcon
-                                  icon={faEllipsisVertical}
-                                  className="menu-icon"
-                                  onClick={handleOpenDeleteDialog}
-                                />
+                                {/* Video Overlay */}
+                                <MediaOverlay file={file} media={video} />
                               </div>
 
-                              {/* Video Overlay */}
-                              <div style={{ position: 'absolute', bottom: 0, left: 0, width: '100%', padding: '10px', background: 'rgba(0, 0, 0, 0.7)' }}>
-                                <div style={{ color: 'white', fontWeight: 'bold', fontSize: '16px' }}>{file.title}</div>
-                                <div style={{ color: 'white', fontSize: '14px', margin: '5px 0' }}>{video.description}</div>
-                              </div>
-                            </div>
+                              <MenuIcons media={video} menuType='video' />
+
+                            </>
                           )}
                         </div>
                       </div>
@@ -394,43 +144,6 @@ const Dashboard = () => {
               <TrophyImg alt='trophy' src='/images/pages/trophy.png' />
             </CardContent>
           </Card>
-
-          {/* Dialog for Editing */}
-          <Dialog open={isEditDialogOpen} onClose={() => setEditDialogOpen(false)}>
-            <DialogTitle>Edit Item</DialogTitle>
-            <DialogContent>
-              <TextField
-                label="Title"
-                value={editTitle}
-                onChange={(e) => handleTitleChange(e.target.value)}
-              />
-              <TextField
-                label="Description"
-                value={editDescription}
-                onChange={(e) => handleDescriptionChange(e.target.value)}
-              />
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={() => setEditDialogOpen(false)}>Cancel</Button>
-              <Button onClick={handleSaveChanges}>Save</Button>
-            </DialogActions>
-          </Dialog>
-
-          {/* Dialog for Confirming Deletion */}
-          <Dialog open={confirmDeleteDialogOpen} onClose={handleCloseDeleteDialog}>
-            <DialogTitle>Confirm Deletion</DialogTitle>
-            <DialogContent>
-              <Typography variant="body2">
-                Are you sure you want to delete this image?
-              </Typography>
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={handleCloseDeleteDialog}>Cancel</Button>
-              <Button onClick={handleDeleteFile} color="error">
-                Delete
-              </Button>
-            </DialogActions>
-          </Dialog>
         </ApexChartWrapper>
       )}
     </>

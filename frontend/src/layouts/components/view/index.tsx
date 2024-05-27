@@ -147,7 +147,7 @@ const ViewForm = (props: { data: string | string[] }) => {
                 <div className='file-item'>
                     {!!image && (
                         <div className='image-container'>
-                            <img src={image.imageUrl} alt={`View Image File ${data[1]}`} className='file-image' />
+                            <img src={image.base64CodeImage} alt={`View Image File ${data[1]}`} className='file-image' />
                             <div className='description-container'>
                                 <input
                                     placeholder='Add description'
@@ -162,7 +162,7 @@ const ViewForm = (props: { data: string | string[] }) => {
                     {!!video && (
                         <div className="video-container">
                             <video controls className="file-video" >
-                                <source src={video.videoUrl} type="video/mp4" />
+                                <source src={video.base64CodeVideo} type="video/mp4" />
                             </video>
                             <div className="description-container">
                                 <input

@@ -1,7 +1,7 @@
 // ** Icon imports
 import { HomeOutline, AccountCogOutline } from 'mdi-material-ui'
-import PeopleIcon from '@mui/icons-material/People'
 import GroupsIcon from '@mui/icons-material/Groups'
+import FavoriteIcon from '@mui/icons-material/Favorite';
 
 // ** Type import
 import { VerticalNavItemsType } from 'src/@core/layouts/types'
@@ -14,9 +14,9 @@ const navigation = (): VerticalNavItemsType => {
       path: '/'
     },
     {
-      title: 'Friends',
-      icon: PeopleIcon,
-      path: '/friends'
+      title: 'Favorite',
+      icon: FavoriteIcon,
+      path: '/favorite'
     },
     {
       title: 'Groups',
