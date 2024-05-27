@@ -275,31 +275,36 @@ const fileListState = createSlice({
                     return image;
                 })
 
-                const favorFile = updateImages.find(image => image._id === fileId && image.isFavorite);
-
-                if (!!favorFile) {
-                    fileItem.images.push(favorFile);
-                    fileItem._id = file._id;
-                    fileItem.title = file.title;
-                    fileItem.tagList = file.tagList;
-
-                    state.favorImageNum = state.favorImageNum + 1;
-                } else {
-                    state.favoriteFile = state.favoriteFile.map(file => ({
-                        ...file,
-                        images: file.images.filter(image => image._id !== fileId)
-                    }))
-
-                    state.favorImageNum = state.favorImageNum - 1;
-
-                    state.favoriteFile = state.favoriteFile.filter(file => file.images.length > 0 || file.videos.length > 0);
-                }
-
                 return {
                     ...file,
                     images: updateImages
                 }
             });
+
+            state.file.map(file => {
+                file.images.map(image => {
+                    if (image._id === fileId) {
+                        if (!image.isFavorite) {
+                            state.favoriteFile = state.favoriteFile.map(file => ({
+                                ...file,
+                                images: file.images.filter(image => image._id !== fileId)
+                            }))
+
+                            state.favoriteFile = state.favoriteFile.filter(file => file.images.length > 0 || file.videos.length > 0);
+
+
+                            state.favorImageNum = state.favorImageNum - 1;
+                        } else {
+                            fileItem.images.push(image);
+                            fileItem._id = file._id;
+                            fileItem.title = file.title;
+                            fileItem.tagList = file.tagList;
+
+                            state.favorImageNum = state.favorImageNum + 1;
+                        }
+                    }
+                })
+            })
 
             if (fileItem.images.length > 0) {
                 state.favoriteFile.push(fileItem);
@@ -327,31 +332,35 @@ const fileListState = createSlice({
                     return video;
                 })
 
-                const favorFile = updateVideos.find(video => video._id === fileId && video.isFavorite);
-
-                if (!!favorFile) {
-                    fileItem.videos.push(favorFile);
-                    fileItem._id = file._id;
-                    fileItem.title = file.title;
-                    fileItem.tagList = file.tagList;
-
-                    state.favorVideoNum = state.favorVideoNum + 1;
-                } else {
-                    state.favoriteFile = state.favoriteFile.map(file => ({
-                        ...file,
-                        videos: file.videos.filter(video => video._id !== fileId)
-                    }))
-
-                    state.favorVideoNum = state.favorVideoNum - 1;
-
-                    state.favoriteFile = state.favoriteFile.filter(file => file.images.length > 0 || file.videos.length > 0);
-                }
-
-
                 return {
                     ...file,
                     videos: updateVideos
                 };
+            })
+
+            state.file.map(file => {
+                file.videos.map(video => {
+                    if (video._id === fileId) {
+                        if (!video.isFavorite) {
+                            state.favoriteFile = state.favoriteFile.map(file => ({
+                                ...file,
+                                videos: file.videos.filter(video => video._id !== fileId)
+                            }))
+
+                            state.favoriteFile = state.favoriteFile.filter(file => file.images.length > 0 || file.videos.length > 0);
+
+                            state.favorVideoNum = state.favorVideoNum - 1;
+                        } else {
+                            fileItem.videos.push(video);
+                            fileItem._id = file._id;
+                            fileItem.title = file.title;
+                            fileItem.tagList = file.tagList;
+
+                            state.favorVideoNum = state.favorVideoNum + 1;
+                        }
+
+                    }
+                })
             })
 
             if (fileItem.videos.length > 0) {
