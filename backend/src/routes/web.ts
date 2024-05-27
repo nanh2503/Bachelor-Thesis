@@ -1,6 +1,6 @@
 import express, { Application } from 'express'
 import { handleLogin, handleRegister } from '../controllers/userController'
-import { deleteData, handleFetchData, handleUpload, updateData } from '../controllers/fileController'
+import { deleteData, handleClickIncrease, handleFetchData, handleSetFavoriteFile, handleUpload, updateData } from '../controllers/fileController'
 import { handlegenerateSignature } from '../controllers/signUploadController'
 import { handleSetUserInfoController, handleUpdateUserInfoController } from '../controllers/userInfoController'
 
@@ -16,6 +16,8 @@ export const webRoutes = (app: Application) => {
     router.delete('/api/delete', deleteData)
     router.post('/api/updateUserInfo', handleUpdateUserInfoController)
     router.post('/api/setUserInfo', handleSetUserInfoController)
+    router.put('/api/click-increase', handleClickIncrease)
+    router.put('/api/set-favorite', handleSetFavoriteFile)
     router.get('/', (req, res) => {
         res.send("hello Nganh")
     })

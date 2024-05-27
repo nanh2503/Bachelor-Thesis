@@ -4,12 +4,16 @@ export interface FileImage {
     imageUrl: string;
     description: string;
     base64CodeImage: string;
+    clickNum: number;
+    isFavorite: boolean;
 }
 
 export interface FileVideo {
     videoUrl: string;
     description: string;
     base64CodeVideo: string;
+    clickNum: number;
+    isFavorite: boolean;
 }
 
 export interface FileInterface extends Document {
@@ -32,6 +36,14 @@ const imageSchema = new mongoose.Schema<FileImage>({
     base64CodeImage: {
         type: String,
         required: false,
+    },
+    clickNum: {
+        type: Number,
+        required: false,
+    },
+    isFavorite: {
+        type: Boolean,
+        required: false,
     }
 });
 
@@ -46,6 +58,14 @@ const videoSchema = new mongoose.Schema<FileVideo>({
     },
     base64CodeVideo: {
         type: String,
+        required: false,
+    },
+    clickNum: {
+        type: Number,
+        required: false,
+    },
+    isFavorite: {
+        type: Boolean,
         required: false,
     }
 });

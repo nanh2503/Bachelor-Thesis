@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { FileInterface } from "../models/fileModels";
-import { handleDeleteDataService, handleFetchDataService, handleUpdateDataService, handleUploadFile } from "../services/fileServices";
+import { handleClickService, handleDeleteDataService, handleFetchDataService, handleSetFavoriteService, handleUpdateDataService, handleUploadFile } from "../services/fileServices";
 
 
 export interface FileData {
@@ -69,9 +69,7 @@ export const handleFetchData = async (req: Request, res: Response): Promise<void
 }
 
 export const updateData = async (req: Request, res: Response): Promise<void | File> => {
-    let id = req.body.id;
-    let title = req.body.title;
-    let description = req.body.description;
+    let { id, title, description } = req.body;
 
     if (!id) {
         const errorResponse: FileData = {
@@ -100,7 +98,7 @@ export const deleteData = async (req: Request, res: Response): Promise<void | Fi
     if (!id || !fileType) {
         const errorResponse: FileData = {
             errCode: 1,
-            errMessage: 'The id and fileType is required',
+            errMessage: 'The id and fileType are required',
             file: []
         }
         res.status(400).json(errorResponse);
@@ -108,6 +106,53 @@ export const deleteData = async (req: Request, res: Response): Promise<void | Fi
     }
 
     let fileData = await handleDeleteDataService(fileType.toString(), id.toString());
+
+    const response: FileData = {
+        errCode: fileData.errCode,
+        errMessage: fileData.errMessage,
+        file: fileData.file ? fileData.file : []
+    }
+
+    res.status(200).json(response)
+}
+
+export const handleClickIncrease = async (req: Request, res: Response): Promise<void | File> => {
+    let { fileType, id } = req.body;
+
+    if (!fileType || !id) {
+        const errorResponse: FileData = {
+            errCode: 1,
+            errMessage: 'The id and fileType are required',
+            file: []
+        }
+        res.status(400).json(errorResponse);
+        return;
+    }
+
+    let fileData = await handleClickService(fileType, id);
+
+    const response: FileData = {
+        errCode: fileData.errCode,
+        errMessage: fileData.errMessage,
+        file: fileData.file ? fileData.file : []
+    }
+
+    res.status(200).json(response)
+}
+
+export const handleSetFavoriteFile = async (req: Request, res: Response): Promise<void | File> => {
+    let { fileType, id } = req.body;
+
+    if (!fileType || !id) {
+        const errorResponse: FileData = {
+            errCode: 1,
+            errMessage: 'The id and fileType are required',
+            file: []
+        }
+        res.status(400).json(errorResponse);
+        return;
+    }
+    let fileData = await handleSetFavoriteService(fileType, id);
 
     const response: FileData = {
         errCode: fileData.errCode,

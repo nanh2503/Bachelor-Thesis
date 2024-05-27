@@ -6,14 +6,14 @@ export const handleUploadFile = (username: string, imageUrl: string[], videoUrl:
         try {
             let fileData: FileData = { errCode: -1, errMessage: '' };
 
-            const images: { imageUrl: string; description: string, base64CodeImage: string }[] = [];
+            const images: { imageUrl: string; description: string, base64CodeImage: string, clickNum: number, isFavorite: boolean }[] = [];
             base64CodeImage.forEach((base64CodeImage, index) => {
-                images.push({ imageUrl: imageUrl[index] || '', description: description[index] || '', base64CodeImage });
+                images.push({ imageUrl: imageUrl[index] || '', description: description[index] || '', base64CodeImage, clickNum: 0, isFavorite: false });
             });
 
-            const videos: { videoUrl: string; description: string, base64CodeVideo: string }[] = [];
+            const videos: { videoUrl: string; description: string, base64CodeVideo: string, clickNum: number, isFavorite: boolean }[] = [];
             base64CodeVideo.forEach((base64CodeVideo, index) => {
-                videos.push({ videoUrl: videoUrl[index] || '', description: description[index + base64CodeImage.length] || '', base64CodeVideo });
+                videos.push({ videoUrl: videoUrl[index] || '', description: description[index + base64CodeImage.length] || '', base64CodeVideo, clickNum: 0, isFavorite: false });
             });
 
             const newFile = new File({
@@ -84,7 +84,7 @@ export const handleUpdateDataService = async (id: string, title: string, descrip
         });
 
         if (!existingData) {
-            fileData.errCode = 0;
+            fileData.errCode = 2;
             fileData.errMessage = 'Data not found!';
         } else {
             // Tìm và cập nhật thông tin của ảnh trong mảng images
@@ -103,7 +103,7 @@ export const handleUpdateDataService = async (id: string, title: string, descrip
                 fileData.file = [updatedImageData];
 
             } else {
-                fileData.errCode = 0;
+                fileData.errCode = 2;
                 fileData.errMessage = 'Image not found!';
             }
 
@@ -153,7 +153,7 @@ export const handleDeleteDataService = async (fileType: string, id: string): Pro
                 fileData.errMessage = 'File updated successfully!';
             }
         } else {
-            fileData.errCode = 0;
+            fileData.errCode = 2;
             fileData.errMessage = 'File not found!';
         }
 
@@ -163,3 +163,87 @@ export const handleDeleteDataService = async (fileType: string, id: string): Pro
         throw e;
     }
 };
+
+export const handleClickService = async (fileType: string, id: string): Promise<FileData> => {
+    try {
+        let fileData: FileData = { errCode: -1, errMessage: '', file: [] }
+        let existingData;
+
+        if (fileType === 'image') {
+            existingData = await File.findOne({ 'images._id': id })
+        } else {
+            existingData = await File.findOne({ 'videos._id': id })
+        }
+
+        if (!existingData) {
+            fileData.errCode = 2;
+            fileData.errMessage = 'Data not found';
+        } else {
+            let updateFile;
+            if (fileType === 'image') {
+                updateFile = existingData.images.id(id);
+            } else {
+                updateFile = existingData.videos.id(id);
+            }
+
+            if (updateFile) {
+                updateFile.clickNum = updateFile.clickNum + 1;
+            } else {
+                fileData.errCode = 2;
+                fileData.errMessage = 'File not found!';
+            }
+
+            await existingData.save();
+
+            fileData.errCode = 0;
+            fileData.errMessage = 'Click increasing!'
+        }
+
+        return fileData;
+    } catch (e) {
+        console.error(e);
+        throw (e);
+    }
+}
+
+export const handleSetFavoriteService = async (fileType: string, id: string): Promise<FileData> => {
+    try {
+        let fileData: FileData = { errCode: -1, errMessage: '', file: [] }
+        let existingData;
+
+        if (fileType === 'image') {
+            existingData = await File.findOne({ 'images._id': id })
+        } else {
+            existingData = await File.findOne({ 'videos._id': id })
+        }
+
+        if (!existingData) {
+            fileData.errCode = 2;
+            fileData.errMessage = 'Data not found';
+        } else {
+            let updateFile;
+            if (fileType === 'image') {
+                updateFile = existingData.images.id(id);
+            } else {
+                updateFile = existingData.videos.id(id);
+            }
+
+            if (updateFile) {
+                updateFile.isFavorite = !updateFile.isFavorite;
+            } else {
+                fileData.errCode = 2;
+                fileData.errMessage = 'File not found!';
+            }
+
+            await existingData.save();
+
+            fileData.errCode = 0;
+            fileData.errMessage = 'Set favorite successful!'
+        }
+
+        return fileData;
+    } catch (e) {
+        console.error(e);
+        throw (e);
+    }
+}
