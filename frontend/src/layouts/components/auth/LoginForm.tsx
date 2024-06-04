@@ -111,9 +111,9 @@ const LoginForm = (props: PropsWithoutRef<{
     event.preventDefault()
   }
 
-  const fetchData = async (user: string) => {
+  const fetchData = async (user: string, page: number) => {
     try {
-      const response = await handleFetchData(user);
+      const response = await handleFetchData(user, page);
 
       return response.data.file;
     } catch (error) {
@@ -132,14 +132,16 @@ const LoginForm = (props: PropsWithoutRef<{
       }
       if (data && data.errCode === 0) {
         dispatch(setUser(data.user))
+
+        const fileList = await fetchData(data.user.username, 1)
+
+        dispatch(setFileList(fileList))
+        router.push("/")
+
         const userInfo = await handleSetUserInfoService(data.user.email);
         if (!!userInfo) {
           dispatch(setUserInfo(userInfo.data.userInfo))
         }
-        const fileList = await fetchData(data.user.username)
-
-        dispatch(setFileList(fileList))
-        router.push("/")
       }
     } catch (e) {
       const errorResponse = ((e as AxiosError).response ?? {}) as AxiosResponse;

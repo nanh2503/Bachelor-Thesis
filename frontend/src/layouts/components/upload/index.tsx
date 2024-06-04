@@ -18,6 +18,17 @@ const UploadForm = (props: PropsWithoutRef<{
   const [pasteURLFiles, setPasteURLFiles] = useState<string>('')
 
   useEffect(() => {
+    document.addEventListener('paste', async (e) => {
+      e.preventDefault();
+      const data = e.clipboardData?.files;
+      if (data) {
+        const clipboardItem = data[0];
+        setSelectedFiles([clipboardItem]);
+      }
+    })
+  }, []);
+
+  useEffect(() => {
     const processFiles = async () => {
       if (selectedFiles.length > 0 || pasteURLFiles.length > 0) {
         onUploadComplete();
@@ -83,7 +94,7 @@ const UploadForm = (props: PropsWithoutRef<{
   }
 
   return (
-    <div className="Dialog UploadDialog">
+    <div id='upload-form' contentEditable="true" className="Dialog UploadDialog">
       <div className="Dialog-wrapper">
         <button type="button" aria-label="close" className="PopUpClose" onClick={handleClose}>
           <img src="/images/pages/upload/close.svg" alt="Close" />

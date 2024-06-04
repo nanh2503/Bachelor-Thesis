@@ -5,14 +5,15 @@ import ApexChartWrapper from 'src/@core/styles/libs/react-apexcharts'
 import { Card, CardContent, Typography } from '@mui/material'
 import { styled } from '@mui/material/styles'
 import themeConfig from 'src/configs/themeConfig'
-import React, { ChangeEvent, useEffect, useState } from 'react'
+import React, { ChangeEvent, useCallback, useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'src/app/hooks'
-import { FileList, setClickNumImage, setClickNumVideo } from 'src/app/redux/slices/fileSlice'
+import { FileList, setClickNumImage, setClickNumVideo, updateFileList } from 'src/app/redux/slices/fileSlice'
 
-import { clickIncrease } from 'src/services/fileServices'
+import { clickIncrease, handleFetchData } from 'src/services/fileServices'
 import { useRouter } from 'next/router'
 import MediaOverlay from 'src/layouts/components/dashboard/MediaOverlay'
 import MenuIcons from 'src/layouts/components/dashboard/MenuIcons'
+import variable from '/styles/variables.module.scss'
 
 // Styled component for the trophy image
 const TrophyImg = styled('img')({
@@ -26,15 +27,50 @@ const Dashboard = () => {
   const dispatch = useDispatch();
   const router = useRouter();
 
+  const loadingRef = useRef(false);
+
   const isLoggedIn = useSelector((state) => state.localStorage.loginState.isLoggedIn);
+  const user = useSelector((state) => state.localStorage.userInfoState.userInfo);
   const fileList = useSelector((state) => state.indexedDB.fileListState.file);
   const { imagesNum, videosNum } = useSelector((state) => state.indexedDB.fileListState);
 
+  const [page, setPage] = useState(2);
   const [folder, setFolder] = useState("total");
+  const [reachedEnd, setReachedEnd] = useState(false);
+
+  const loadMoreFiles = useCallback(async (username: string, pageNumber: number) => {
+    if (!loadingRef.current && !reachedEnd) {
+      loadingRef.current = true;
+      try {
+        const newFileList = await handleFetchData(username, pageNumber);
+        const files = newFileList.data.file;
+        if (files && files.length > 0) {
+          dispatch(updateFileList(files));
+        } else {
+          setReachedEnd(true);
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        loadingRef.current = false;
+      }
+    }
+  }, [dispatch, reachedEnd]);
 
   useEffect(() => {
     if (!isLoggedIn) router.push("/login");
-  }, [])
+  }, [isLoggedIn, router])
+
+  useEffect(() => {
+    const intervalId = setInterval(() => {
+      if (!loadingRef.current && !reachedEnd && user) {
+        loadMoreFiles(user.username, page);
+        setPage(page + 1);
+      }
+    }, 200);
+
+    return () => clearInterval(intervalId);
+  }, [user, page, loadMoreFiles, reachedEnd]);
 
   const handleViewFile = async (id: string, fileView: string) => {
     if (fileView === 'image') {
@@ -141,6 +177,7 @@ const Dashboard = () => {
                   </React.Fragment>
                 ))}
               </div>
+              {loadingRef.current && !reachedEnd && <p>Loading...</p>}
               <TrophyImg alt='trophy' src='/images/pages/trophy.png' />
             </CardContent>
           </Card>

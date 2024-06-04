@@ -31,7 +31,7 @@ import { createEmotionCache } from 'src/@core/utils/create-emotion-cache'
 import 'react-perfect-scrollbar/dist/css/styles.css'
 
 // ** Global css styles
-import '../../styles/_global.scss'
+import '/styles/_global.scss'
 
 import { persistor, wrapper } from "../app/store";
 import { PersistGate } from 'redux-persist/integration/react'

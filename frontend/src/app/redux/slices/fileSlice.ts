@@ -102,10 +102,44 @@ const fileListState = createSlice({
         updateFileList: (state, action: PayloadAction<FileList[]>) => {
             let numberOfImages = 0;
             let numberOfVideos = 0;
+            let favorImages = 0;
+            let favorVideos = 0;
+
+            const listFile: FileList[] = [];
 
             action.payload?.map(file => {
                 numberOfImages += file.images.length;
                 numberOfVideos += file.videos.length;
+
+                const fileItem: FileList = {
+                    _id: "",
+                    images: [],
+                    videos: [],
+                    title: "",
+                    tagList: []
+                };
+
+                file.images.map(image => {
+                    if (image.isFavorite) {
+                        fileItem.images.push(image);
+                        favorImages++;
+                    }
+                })
+
+                file.videos.map(video => {
+                    if (video.isFavorite) {
+                        fileItem.videos.push(video);
+                        favorVideos++;
+                    }
+                })
+
+                if (fileItem.images.length > 0 || fileItem.videos.length > 0) {
+                    fileItem._id = file._id;
+                    fileItem.title = file.title;
+                    fileItem.tagList = file.tagList;
+
+                    listFile.push(fileItem);
+                }
             })
 
             return {
@@ -113,6 +147,9 @@ const fileListState = createSlice({
                 file: [...state.file, ...action.payload],
                 imagesNum: state.imagesNum + numberOfImages,
                 videosNum: state.videosNum + numberOfVideos,
+                favoriteFile: [...state.favoriteFile, ...listFile],
+                favorImageNum: state.favorImageNum + favorImages,
+                favorVideoNum: state.favorVideoNum + favorVideos
             };
         },
         updateImage: (state, action: PayloadAction<{ editId: string; editTitle: string; editDescription: string; editTagList: string[] }>) => {

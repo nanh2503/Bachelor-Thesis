@@ -44,11 +44,8 @@ import BlankLayout from 'src/@core/layouts/BlankLayout';
 // ** Demo Imports
 import FooterIllustrationsV1 from 'src/views/pages/auth/FooterIllustration';
 import { AxiosError, AxiosResponse } from 'axios'
-import { useDispatch } from 'src/app/hooks';
-import { setUser } from 'src/app/redux/slices/loginSlice';
 import { useRouter } from 'next/router'
-import { handleRegisterService, handleUpdateUserInfoService } from 'src/services/userServices';
-import { setUserInfo } from 'src/app/redux/slices/userInfoSlice';
+import { handleRegisterService } from 'src/services/userServices';
 
 interface State {
     username: string,
@@ -99,7 +96,6 @@ const RegisterForm = (props: PropsWithoutRef<{
 
     // ** Hook
     const router = useRouter()
-    const dispatch = useDispatch()
 
     const handleChange = (prop: keyof State) => (event: ChangeEvent<HTMLInputElement>) => {
         setValues({ ...values, [prop]: event.target.value })
@@ -119,12 +115,8 @@ const RegisterForm = (props: PropsWithoutRef<{
             const data = response.data;
             if (data && data.errCode !== 0) {
                 setValues(prevState => ({ ...prevState, errMessage: data.errMessage }));
-            }
-            if (data && data.errCode === 0) {
-                dispatch(setUser(data.user))
-                router.push("/")
-                await handleUpdateUserInfoService(values.email, values.username);
-                dispatch(setUserInfo(data.user))
+            } else if (data && data.errCode === 0) {
+                router.push(`/otp-verification/${values.email}`)
             }
         } catch (e) {
             const errorResponse = ((e as AxiosError).response ?? {}) as AxiosResponse;

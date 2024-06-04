@@ -12,8 +12,8 @@ export const handleUploadBackendService = (username: string, imageUrl: string[],
     return axios.post('/api/upload', { username, imageUrl, videoUrl, titles, descriptions, base64CodeImage, base64CodeVideo, tagList })
 }
 
-export const handleFetchData = (arg: string) => {
-    return axios.get('/api/get-file', { params: { arg } })
+export const handleFetchData = (arg: string, page: number) => {
+    return axios.get('/api/get-file', { params: { arg, page } })
 }
 
 export const updateData = (id: string, title: string, description: string) => {
