@@ -1,5 +1,5 @@
 import express, { Application } from 'express'
-import { handleLogin, handleRegister } from '../controllers/userController'
+import { handleCheckUserOTP, handleLogin, handleRegister } from '../controllers/userController'
 import { deleteData, handleClickIncrease, handleFetchData, handleSetFavoriteFile, handleUpload, updateData } from '../controllers/fileController'
 import { handlegenerateSignature } from '../controllers/signUploadController'
 import { handleSetUserInfoController, handleUpdateUserInfoController } from '../controllers/userInfoController'
@@ -7,8 +7,9 @@ import { handleSetUserInfoController, handleUpdateUserInfoController } from '../
 const router = express.Router()
 
 export const webRoutes = (app: Application) => {
-    router.post('/api/login', handleLogin)
+    router.post('/api/checkOTP', handleCheckUserOTP)
     router.post('/api/register', handleRegister)
+    router.post('/api/login', handleLogin)
     router.post('/api/upload', handleUpload)
     router.post('/api/sign-upload', handlegenerateSignature)
     router.get('/api/get-file', handleFetchData)

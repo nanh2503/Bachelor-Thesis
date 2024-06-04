@@ -10,7 +10,7 @@ export interface FileData {
 }
 
 export const handleUpload = async (req: Request, res: Response): Promise<void> => {
-    let { username, imageUrl, videoUrl, titles, descriptions, base64CodeImage, base64CodeVideo, tagList } = req.body;
+    const { username, imageUrl, videoUrl, titles, descriptions, base64CodeImage, base64CodeVideo, tagList } = req.body;
 
     if (!username) {
         const errorResponse: FileData = {
@@ -32,7 +32,7 @@ export const handleUpload = async (req: Request, res: Response): Promise<void> =
         return;
     }
 
-    let fileData = await handleUploadFile(username, imageUrl, videoUrl, titles, descriptions, base64CodeImage, base64CodeVideo, tagList);
+    const fileData = await handleUploadFile(username, imageUrl, videoUrl, titles, descriptions, base64CodeImage, base64CodeVideo, tagList);
 
     const response: FileData = {
         errCode: fileData.errCode,
@@ -44,7 +44,8 @@ export const handleUpload = async (req: Request, res: Response): Promise<void> =
 }
 
 export const handleFetchData = async (req: Request, res: Response): Promise<void | File[]> => {
-    let arg = req.query.arg;
+    const arg = req.query.arg;
+    const page = parseInt(req.query.page?.toString() ?? '1', 10);
 
     if (!arg) {
         const errorResponse: FileData = {
@@ -56,7 +57,7 @@ export const handleFetchData = async (req: Request, res: Response): Promise<void
         return;
     }
 
-    let fileData = await handleFetchDataService(arg.toString());
+    const fileData = await handleFetchDataService(arg.toString(), page);
 
     const response: FileData = {
         errCode: fileData.errCode,
@@ -69,7 +70,7 @@ export const handleFetchData = async (req: Request, res: Response): Promise<void
 }
 
 export const updateData = async (req: Request, res: Response): Promise<void | File> => {
-    let { id, title, description } = req.body;
+    const { id, title, description } = req.body;
 
     if (!id) {
         const errorResponse: FileData = {
@@ -81,7 +82,7 @@ export const updateData = async (req: Request, res: Response): Promise<void | Fi
         return;
     }
 
-    let fileData = await handleUpdateDataService(id, title, description);
+    const fileData = await handleUpdateDataService(id, title, description);
 
     const response: FileData = {
         errCode: fileData.errCode,
@@ -93,7 +94,7 @@ export const updateData = async (req: Request, res: Response): Promise<void | Fi
 }
 
 export const deleteData = async (req: Request, res: Response): Promise<void | File> => {
-    let { fileType, id } = req.query;
+    const { fileType, id } = req.query;
 
     if (!id || !fileType) {
         const errorResponse: FileData = {
@@ -105,7 +106,7 @@ export const deleteData = async (req: Request, res: Response): Promise<void | Fi
         return;
     }
 
-    let fileData = await handleDeleteDataService(fileType.toString(), id.toString());
+    const fileData = await handleDeleteDataService(fileType.toString(), id.toString());
 
     const response: FileData = {
         errCode: fileData.errCode,
@@ -117,7 +118,7 @@ export const deleteData = async (req: Request, res: Response): Promise<void | Fi
 }
 
 export const handleClickIncrease = async (req: Request, res: Response): Promise<void | File> => {
-    let { fileType, id } = req.body;
+    const { fileType, id } = req.body;
 
     if (!fileType || !id) {
         const errorResponse: FileData = {
@@ -129,7 +130,7 @@ export const handleClickIncrease = async (req: Request, res: Response): Promise<
         return;
     }
 
-    let fileData = await handleClickService(fileType, id);
+    const fileData = await handleClickService(fileType, id);
 
     const response: FileData = {
         errCode: fileData.errCode,
@@ -141,7 +142,7 @@ export const handleClickIncrease = async (req: Request, res: Response): Promise<
 }
 
 export const handleSetFavoriteFile = async (req: Request, res: Response): Promise<void | File> => {
-    let { fileType, id } = req.body;
+    const { fileType, id } = req.body;
 
     if (!fileType || !id) {
         const errorResponse: FileData = {
@@ -152,7 +153,7 @@ export const handleSetFavoriteFile = async (req: Request, res: Response): Promis
         res.status(400).json(errorResponse);
         return;
     }
-    let fileData = await handleSetFavoriteService(fileType, id);
+    const fileData = await handleSetFavoriteService(fileType, id);
 
     const response: FileData = {
         errCode: fileData.errCode,
