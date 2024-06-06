@@ -72,29 +72,36 @@ const sendOTPVerificationEmail = async (email: string) => {
 export const handleCheckOTP = (otp: string): Promise<UserData> => {
     return new Promise(async (resolve, reject) => {
         try {
-            let userData: UserData = { errCode: -1, errMessage: '' }
+            let userData: UserData = { errCode: -1, errMessage: '', action: '' }
 
             let userOTP = await UserOTPVerification.findOne({ email: tempAcc.email })
-
+            let existUser = await checkUserEmail(tempAcc.email);
             if (userOTP) {
                 const checkOTP = await bcrypt.compare(otp, userOTP.otp)
 
                 if (checkOTP) {
-                    //hash the password
-                    const saltRounds = 10;
-                    const hashedPassword = await bcrypt.hash(tempAcc.password, saltRounds);
+                    if (!existUser) {
+                        //hash the password
+                        const saltRounds = 10;
+                        const hashedPassword = await bcrypt.hash(tempAcc.password, saltRounds);
 
-                    const newUser = new User({
-                        username: tempAcc.username,
-                        email: tempAcc.email,
-                        password: hashedPassword,
-                    })
+                        const newUser = new User({
+                            username: tempAcc.username,
+                            email: tempAcc.email,
+                            password: hashedPassword,
+                        })
 
-                    await newUser.save();
+                        await newUser.save();
 
-                    userData.errCode = 0;
-                    userData.errMessage = 'Registration successful!';
-                    userData.user = newUser.toObject();
+                        userData.errCode = 0;
+                        userData.action = 'register';
+                        userData.errMessage = 'Registration successful!';
+                        userData.user = newUser.toObject();
+                    } else {
+                        userData.errCode = 0;
+                        userData.action = 'reset-password';
+                        userData.errMessage = 'Verify OTP successful!';
+                    }
                 } else {
                     userData.errCode = 2;
                     userData.errMessage = 'This OTP is not true. Please try again!';
@@ -146,7 +153,7 @@ export const handleUserRegister = (username: string, email: string, password: st
                     } catch (err) {
                         console.error(err);
                         userData.errCode = 1;
-                        userData.errMessage = 'An error occurred while saving user account';
+                        userData.errMessage = 'An error occurred while send OTP mail';
                         return resolve(userData);
                     }
                 } else {
@@ -198,6 +205,67 @@ export const handleUserLogin = (email: string, password: string): Promise<UserDa
     })
 }
 
+export const handleForgetPassword = (email: string): Promise<UserData> => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            let userData: UserData = { errCode: -1, errMessage: '' };
+            let isExist = await checkUserEmail(email);
+
+            if (isExist) {
+                tempAcc.email = email;
+                try {
+                    await sendOTPVerificationEmail(email);
+
+                    userData.errCode = 0;
+                    userData.errMessage = 'Verification OTP email sent';
+                    return resolve(userData);
+                } catch (err) {
+                    console.error(err);
+                    userData.errCode = 1;
+                    userData.errMessage = 'An error occurred while send OTP mail';
+                    return resolve(userData);
+                }
+            } else {
+                //return error
+                userData.errCode = 1;
+                userData.errMessage = "This email is not exist in the system. Please try again!";
+            }
+
+            resolve(userData);
+        } catch (e) {
+            reject(e);
+        }
+    })
+}
+
+export const handleResetPassword = (password: string, cfPassword: string): Promise<UserData> => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            let userData: UserData = { errCode: -1, errMessage: '' }
+
+            let existUser = await User.findOne({ email: tempAcc.email });
+
+            if (password === cfPassword) {
+                const saltRounds = 10;
+                const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+                existUser.password = hashedPassword;
+
+                await existUser.save();
+
+                userData.errCode = 0;
+                userData.errMessage = 'Reset password successfully!';
+            } else {
+                userData.errCode = 2;
+                userData.errMessage = "Password and confirm password are not the same.";
+            }
+
+            resolve(userData);
+        } catch (e) {
+            reject(e);
+        }
+    })
+}
 
 
 
