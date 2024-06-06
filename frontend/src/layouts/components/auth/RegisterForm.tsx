@@ -1,5 +1,5 @@
 // ** React Imports
-import { useState, Fragment, ChangeEvent, MouseEvent, ReactNode, PropsWithoutRef } from 'react'
+import { useState, Fragment, ChangeEvent, MouseEvent, ReactNode, PropsWithoutRef, useEffect } from 'react'
 
 // ** Next Imports
 import Link from 'next/link'
@@ -43,9 +43,10 @@ import BlankLayout from 'src/@core/layouts/BlankLayout';
 
 // ** Demo Imports
 import FooterIllustrationsV1 from 'src/views/pages/auth/FooterIllustration';
-import { AxiosError, AxiosResponse } from 'axios'
+import axios, { AxiosError, AxiosResponse } from 'axios'
 import { useRouter } from 'next/router'
 import { handleRegisterService } from 'src/services/userServices';
+import { isValidEmail } from 'src/utils/format';
 
 interface State {
     username: string,
@@ -97,6 +98,10 @@ const RegisterForm = (props: PropsWithoutRef<{
     // ** Hook
     const router = useRouter()
 
+    useEffect(() => {
+        setValues(prevState => ({ ...prevState, errMessage: '' }))
+    }, [values.email, values.password, values.cfPassword, values.username])
+
     const handleChange = (prop: keyof State) => (event: ChangeEvent<HTMLInputElement>) => {
         setValues({ ...values, [prop]: event.target.value })
     }
@@ -111,7 +116,6 @@ const RegisterForm = (props: PropsWithoutRef<{
         try {
             const response = await handleRegisterService(values.username, values.email, values.password, values.cfPassword)
 
-            // @ts-ignore
             const data = response.data;
             if (data && data.errCode !== 0) {
                 setValues(prevState => ({ ...prevState, errMessage: data.errMessage }));
@@ -119,13 +123,7 @@ const RegisterForm = (props: PropsWithoutRef<{
                 router.push(`/otp-verification/${values.email}`)
             }
         } catch (e) {
-            const errorResponse = ((e as AxiosError).response ?? {}) as AxiosResponse;
-            if (errorResponse.data) {
-                setValues(prevState => ({ ...prevState, errMessage: errorResponse.data.message }));
-            } else {
-                // Xử lý trường hợp 'data' không tồn tại trong 'errorResponse'
-                console.error('Data is undefined in errorResponse:', errorResponse);
-            }
+            setValues(prevState => ({ ...prevState, errMessage: e.data.errMessage }));
         }
     }
 
@@ -174,15 +172,15 @@ const RegisterForm = (props: PropsWithoutRef<{
                                 sx={{ mb: 5 }}
                             />
                         </FormControl>
-                        <FormControl fullWidth>
+                        <FormControl fullWidth sx={{ mb: 5 }}>
                             <InputLabel htmlFor='auth-register-email'>Email</InputLabel>
                             <OutlinedInput
                                 label='Email'
                                 value={values.email}
                                 id='auth-register-email'
                                 onChange={handleChange('email')}
-                                sx={{ mb: 5 }}
                             />
+                            {values.email.length > 0 && !isValidEmail(values.email) && <div className="auth-error-msg">Invalid email</div>}
                         </FormControl>
                         <FormControl fullWidth>
                             <InputLabel htmlFor='auth-register-password'>Password</InputLabel>
@@ -208,11 +206,11 @@ const RegisterForm = (props: PropsWithoutRef<{
                             />
                         </FormControl>
                         <FormControl fullWidth>
-                            <InputLabel htmlFor='auth-register-password'>Confirm Password</InputLabel>
+                            <InputLabel htmlFor='auth-register-cfpassword'>Confirm Password</InputLabel>
                             <OutlinedInput
                                 label='Password'
                                 value={values.cfPassword}
-                                id='auth-register-password'
+                                id='auth-register-cfpassword'
                                 onChange={handleChange('cfPassword')}
                                 type={values.showPassword ? 'text' : 'password'}
                                 endAdornment={

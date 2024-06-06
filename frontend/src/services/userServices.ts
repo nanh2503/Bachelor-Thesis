@@ -20,3 +20,10 @@ export const handleUpdateUserInfoService = (email: string, username: string, ava
     return axios.post('/api/updateUserInfo', { email, username, avatar, birthDate, phoneNum, gender })
 }
 
+export const handleForgetPasswordService = (email: string) => {
+    return axios.post('/api/forgerPassword', { email })
+}
+
+export const handleResetPasswordService = (password: string, cfPassword: string) => {
+    return axios.post("/api/resetPassword", { password, cfPassword })
+}

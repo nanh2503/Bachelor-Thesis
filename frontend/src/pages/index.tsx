@@ -59,7 +59,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     if (!isLoggedIn) router.push("/login");
-  }, [isLoggedIn, router])
+  }, [])
 
   useEffect(() => {
     const intervalId = setInterval(() => {
@@ -97,15 +97,21 @@ const Dashboard = () => {
                 Welcome to {themeConfig.templateName} 🥳
               </Typography>
 
-              <div className="folder-selector">
-                <label htmlFor="folder">View folder: </label>
-                <select name="folder" id="folder" onChange={handleChangeFolder}>
-                  <option value="total">Total</option>
-                  <option value="image">Image</option>
-                  <option value="video">Video</option>
-                </select>
-                <label style={{ marginLeft: 20 }}>{folder === 'total' ? (imagesNum + videosNum) : folder === 'image' ? imagesNum : videosNum} files</label>
-              </div>
+              {fileList.length > 0 ? (
+                <div className="folder-selector">
+                  <label htmlFor="folder">View folder: </label>
+                  <select name="folder" id="folder" onChange={handleChangeFolder}>
+                    <option value="total">Total</option>
+                    <option value="image">Image</option>
+                    <option value="video">Video</option>
+                  </select>
+                  <label style={{ marginLeft: 20 }}>{folder === 'total' ? (imagesNum + videosNum) : folder === 'image' ? imagesNum : videosNum} files</label>
+                </div>
+              ) : (
+                <div style={{ textAlign: 'center', marginTop: -50, marginBottom: 120, fontSize: 18 }}>
+                  Let's upload your images and videos to create something amazing
+                </div>
+              )}
 
               <div className='container-box'>
                 {fileList?.map((file: FileList, fileIndex: number) => (

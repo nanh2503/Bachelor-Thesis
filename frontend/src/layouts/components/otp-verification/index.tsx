@@ -1,16 +1,16 @@
 import { useEffect, useState } from 'react';
 import style from '/styles/otp.module.scss';
-import { handleCheckOTPService, handleUpdateUserInfoService } from 'src/services/userServices';
+import { handleCheckOTPService, handleForgetPasswordService, handleUpdateUserInfoService } from 'src/services/userServices';
 import { useDispatch } from 'src/app/hooks';
 import { setUser } from 'src/app/redux/slices/loginSlice';
 import { setUserInfo } from 'src/app/redux/slices/userInfoSlice';
 import { useRouter } from 'next/router';
+import { Box, Typography } from '@mui/material';
 
 interface State {
     errCode: number,
     errMessage: string,
 }
-
 
 const OTPVerfication = (props: { email: string }) => {
     const { email } = props;
@@ -57,24 +57,58 @@ const OTPVerfication = (props: { email: string }) => {
                     }
                 }
             }
+
+            const handleInputEvent = () => {
+                setValues(prevState => ({ ...prevState, errMessage: '' }))
+            }
+
+            input.addEventListener('input', handleInputEvent);
+
+            return () => {
+                input.removeEventListener('input', handleInputEvent);
+            }
         })
     })
 
     const handleVerifyOTP = async () => {
-        let otp = '';
-        const inputs = document.querySelectorAll(`.${style.otpCardInput} input`) as NodeListOf<HTMLInputElement>;
-        inputs.forEach(input => {
-            otp += input.value;
-        })
-        const res = await handleCheckOTPService(otp);
-        const data = res.data;
-        if (data && data.errCode !== 0) {
-            setValues(prevState => ({ ...prevState, errMessage: data.errMessage, errCode: data.errCode }))
-        } else if (data && data.errCode === 0) {
-            dispatch(setUser(data.user))
-            router.push("/");
-            await handleUpdateUserInfoService(data.user.email, data.user.username);
-            dispatch(setUserInfo(data.user))
+        try {
+            let otp = '';
+            const inputs = document.querySelectorAll(`.${style.otpCardInput} input`) as NodeListOf<HTMLInputElement>;
+            inputs.forEach(input => {
+                otp += input.value;
+            })
+            const res = await handleCheckOTPService(otp);
+            const data = res.data;
+
+            if (data && data.errCode !== 0) {
+                setValues(prevState => ({ ...prevState, errMessage: data.errMessage }))
+            } else {
+                if (data.action === 'register') {
+                    dispatch(setUser(data.user))
+                    router.push("/");
+                    await handleUpdateUserInfoService(data.user.email, data.user.username);
+                    dispatch(setUserInfo(data.user))
+                } else {
+                    router.push(`/reset-password/${email}`);
+                }
+            }
+        } catch (e) {
+            setValues(prevState => ({ ...prevState, errMessage: e.data.errMessage }));
+        }
+    }
+
+    const handleResendMail = async () => {
+        try {
+            const response = await handleForgetPasswordService(email);
+
+            const data = response.data;
+            if (data && data.errCode !== 0) {
+                setValues(prevState => ({ ...prevState, errMessage: data.errMessage }));
+            } else if (data && data.errCode === 0) {
+                router.push(`/otp-verification/${email}`)
+            }
+        } catch (e) {
+            setValues(prevState => ({ ...prevState, errMessage: e.data.errMessage }));
         }
     }
 
@@ -89,10 +123,17 @@ const OTPVerfication = (props: { email: string }) => {
                     <input type="text" maxLength={1} />
                     <input type="text" maxLength={1} />
                 </div>
-                <p>Didn't get the OTP <a href="#">Resend</a></p>
+                {values.errMessage &&
+                    <Box sx={{ mt: -5, mb: 5 }}>
+                        <Typography variant='body2' sx={{ color: 'red' }}>
+                            {values.errMessage}
+                        </Typography>
+                    </Box>
+                }
+                <p>Didn't get the OTP <span style={{ color: 'blue', borderBottom: '1px solid blue', cursor: 'pointer' }} onClick={handleResendMail}>Resend</span></p>
                 <button onClick={handleVerifyOTP}>Verify</button>
             </div>
-        </div>
+        </div >
     )
 }
 

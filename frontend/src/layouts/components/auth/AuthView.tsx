@@ -1,24 +1,31 @@
-import { useMemo, useState } from "react"
+import { useMemo, useState, useEffect } from "react";
 import LoginForm from "./LoginForm";
 import RegisterForm from "./RegisterForm";
 import themeConfig from "src/configs/themeConfig";
+import ForgetPasswordForm from "../forget-password";
 
 enum RenderViews {
     NONE,
     LOGIN,
-    REGISTER
+    REGISTER,
+    FORGET_PASSWORD
 }
 
 const AuthView = () => {
-    const [view, setView] = useState(RenderViews.NONE);
+    const [view, setView] = useState(RenderViews.LOGIN);
 
     const slideTransform = useMemo(() => {
-        if (view === RenderViews.LOGIN) {
-            return 'translateX(0)'
-        } else if (view === RenderViews.REGISTER) {
-            return 'translateX(-100%)'
+        switch (view) {
+            case RenderViews.LOGIN:
+                return 'translateX(-100%)';
+            case RenderViews.REGISTER:
+                return 'translateX(-200%)';
+            case RenderViews.FORGET_PASSWORD:
+                return 'translateX(0)';
+            default:
+                return 'translateX(-100%)';
         }
-    }, [view])
+    }, [view]);
 
     return (
         <div id="auth-view" style={{ display: 'grid', gridTemplateColumns: "50% 50%" }}>
@@ -39,20 +46,28 @@ const AuthView = () => {
                     willChange: 'transform',
                     transition: '0.35s',
                 }}>
+                    <ForgetPasswordForm
+                        onChangeViewLogin={() => {
+                            setView(RenderViews.LOGIN);
+                        }}
+                    />
                     <LoginForm
                         onChangeViewRegister={() => {
-                            setView(RenderViews.REGISTER)
+                            setView(RenderViews.REGISTER);
+                        }}
+                        onClickForgotPassword={() => {
+                            setView(RenderViews.FORGET_PASSWORD);
                         }}
                     />
                     <RegisterForm
                         onChangeViewLogin={() => {
-                            setView(RenderViews.LOGIN)
+                            setView(RenderViews.LOGIN);
                         }}
                     />
                 </div>
             </div>
         </div>
-    )
-}
+    );
+};
 
-export default AuthView
+export default AuthView;

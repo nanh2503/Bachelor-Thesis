@@ -1,5 +1,5 @@
 // ** React Imports
-import { ChangeEvent, MouseEvent, PropsWithoutRef, ReactNode, useState } from 'react'
+import { ChangeEvent, MouseEvent, PropsWithoutRef, ReactNode, useEffect, useState } from 'react'
 
 // ** Next Imports
 import Link from 'next/link'
@@ -50,6 +50,7 @@ import { useRouter } from 'next/router'
 import { setFileList } from 'src/app/redux/slices/fileSlice'
 import { handleFetchData } from 'src/services/fileServices';
 import { setUserInfo } from 'src/app/redux/slices/userInfoSlice';
+import { isValidEmail } from 'src/utils/format';
 
 interface State {
   email: string,
@@ -79,9 +80,10 @@ const FormControlLabel = styled(MuiFormControlLabel)<FormControlLabelProps>(({ t
 
 const LoginForm = (props: PropsWithoutRef<{
   onChangeViewRegister?: () => void;
+  onClickForgotPassword?: () => void;
 }>) => {
   // eslint-disable-next-line @typescript-eslint/no-empty-function
-  const { onChangeViewRegister = () => { } } = props;
+  const { onChangeViewRegister = () => { }, onClickForgotPassword = () => { } } = props;
 
   // ** State
   const [values, setValues] = useState<State>({
@@ -92,12 +94,15 @@ const LoginForm = (props: PropsWithoutRef<{
     errMessage: '',
   })
 
-
   // ** Hook
   const router = useRouter()
   const dispatch = useDispatch()
 
   // const { isLoggedIn, user } = useSelector((state) => state.loginState)
+
+  useEffect(() => {
+    setValues(prevState => ({ ...prevState, errMessage: '' }))
+  }, [values.email, values.password])
 
   const handleChange = (prop: keyof State) => (event: ChangeEvent<HTMLInputElement>) => {
     setValues({ ...values, [prop]: event.target.value })
@@ -144,13 +149,7 @@ const LoginForm = (props: PropsWithoutRef<{
         }
       }
     } catch (e) {
-      const errorResponse = ((e as AxiosError).response ?? {}) as AxiosResponse;
-      if (errorResponse.data) {
-        setValues(prevState => ({ ...prevState, errMessage: errorResponse.data.message }));
-      } else {
-        // Xử lý trường hợp 'data' không tồn tại trong 'errorResponse'
-        console.error('Data is undefined in errorResponse:', errorResponse);
-      }
+      setValues(prevState => ({ ...prevState, errMessage: e.data.errMessage }));
     }
   }
 
@@ -190,15 +189,15 @@ const LoginForm = (props: PropsWithoutRef<{
             <Typography variant='body2'>Please sign-in to your account and start the adventure</Typography>
           </Box>
           <form noValidate autoComplete='off' onSubmit={e => e.preventDefault()}>
-            <FormControl fullWidth>
+            <FormControl fullWidth sx={{ mb: 5 }}>
               <InputLabel htmlFor='auth-login-email'>Email</InputLabel>
               <OutlinedInput
                 label='Email'
                 value={values.email}
                 id='auth-login-email'
                 onChange={handleChange('email')}
-                sx={{ mb: 5 }}
               />
+              {values.email.length > 0 && !isValidEmail(values.email) && <div className="auth-error-msg">Invalid email</div>}
             </FormControl>
             <FormControl fullWidth>
               <InputLabel htmlFor='auth-login-password'>Password</InputLabel>
@@ -226,9 +225,9 @@ const LoginForm = (props: PropsWithoutRef<{
               sx={{ mb: 4, display: 'flex', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'space-between' }}
             >
               <FormControlLabel control={<Checkbox />} label='Remember Me' />
-              <Link passHref href='/'>
-                <LinkStyled onClick={e => e.preventDefault()}>Forgot Password?</LinkStyled>
-              </Link>
+              <Typography variant='body2' style={{ cursor: 'pointer', color: "#507DD4" }} onClick={onClickForgotPassword}>
+                Forgot Password?
+              </Typography>
             </Box>
             {values.errMessage &&
               <Box sx={{ mt: -3, mb: 3 }}>
