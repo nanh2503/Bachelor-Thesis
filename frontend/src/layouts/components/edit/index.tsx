@@ -8,7 +8,7 @@ import { Button, Menu, MenuItem } from "@mui/material";
 import { fabric } from 'fabric';
 import { deleteData, handleFetchData, handleUploadBackendService } from "src/services/fileServices";
 import { useRouter } from "next/router";
-import { FileList, deleteImage, deleteVideo, updateFileList } from "src/app/redux/slices/fileSlice";
+import { FileList, deleteImage, deleteVideo } from "src/app/redux/slices/fileSlice";
 import { base64ToFileImage } from "src/utils/convertBase64ToFile";
 
 const CropImageForm = (props: { data: string | string[] }) => {
@@ -51,7 +51,7 @@ const CropImageForm = (props: { data: string | string[] }) => {
                 if (data[0] === 'image' && file.images.some((image) => image._id === data[1])) {
                     file.images.map((image) => {
                         if (image._id === data[1]) {
-                            setImageSrc(image.base64CodeImage);
+                            setImageSrc(image.imageUrl);
                         }
                     });
                 }
@@ -346,8 +346,8 @@ const CropImageForm = (props: { data: string | string[] }) => {
             if (!!username) {
                 await handleUploadBackendService(username, [], [], '', [], imageFiles, [], []);
             }
-            const file = await fetchNewestData('newest');
-            dispatch(updateFileList(file));
+            const { fileList, imagesNum, videosNum } = await fetchNewestData('newest');
+            dispatch(updateFileList({ fileList, imagesNum, videosNum }));
 
             router.push("/")
         } catch (err) {
@@ -373,8 +373,8 @@ const CropImageForm = (props: { data: string | string[] }) => {
 
             await deleteData(data[0], data[1]);
 
-            const file = await fetchNewestData('newest');
-            dispatch(updateFileList(file));
+            // const file = await fetchNewestData('newest');
+            // dispatch(updateFileList(file));
 
             router.push("/")
 

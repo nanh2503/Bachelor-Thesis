@@ -1,13 +1,15 @@
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle, Typography } from "@mui/material";
 import { useState } from "react";
-import { useDispatch } from "src/app/hooks";
-import { deleteImage, deleteVideo } from "src/app/redux/slices/fileSlice";
+import { useDispatch, useSelector } from "src/app/hooks";
+import { deleteFile } from "src/app/redux/slices/fileSlice";
 import { deleteData } from "src/services/fileServices";
 
 const DeleteDialog = (props: { deleteId: string, fileType: string }) => {
     const { deleteId, fileType } = props;
 
     const dispatch = useDispatch();
+
+    const user = useSelector((state) => state.localStorage.userInfoState.userInfo);
 
     const [isOpen, setOpen] = useState(true);
 
@@ -20,12 +22,9 @@ const DeleteDialog = (props: { deleteId: string, fileType: string }) => {
             // Đóng dialog
             handleCloseDeleteDialog();
 
-            if (fileType === 'image') {
-                dispatch(deleteImage({ deleteId: deleteId }));
-                await deleteData(fileType, deleteId);
-            } else {
-                dispatch(deleteVideo({ deleteId: deleteId }))
-                await deleteData(fileType, deleteId);
+            if (user) {
+                dispatch(deleteFile({ type: fileType, deleteId: deleteId }));
+                await deleteData(user?.username, fileType, deleteId);
             }
         } catch (error) {
             console.error('Error during delete:', error);

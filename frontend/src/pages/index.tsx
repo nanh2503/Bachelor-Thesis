@@ -7,7 +7,7 @@ import { styled } from '@mui/material/styles'
 import themeConfig from 'src/configs/themeConfig'
 import React, { ChangeEvent, useCallback, useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'src/app/hooks'
-import { FileList, setClickNumImage, setClickNumVideo, updateFileList } from 'src/app/redux/slices/fileSlice'
+import { FileList, Image, Video, deleteFile, setClickNumFile, setFileList, setFileView } from 'src/app/redux/slices/fileSlice'
 
 import { clickIncrease, handleFetchData } from 'src/services/fileServices'
 import { useRouter } from 'next/router'
@@ -31,10 +31,10 @@ const Dashboard = () => {
 
   const isLoggedIn = useSelector((state) => state.localStorage.loginState.isLoggedIn);
   const user = useSelector((state) => state.localStorage.userInfoState.userInfo);
-  const fileList = useSelector((state) => state.indexedDB.fileListState.file);
-  const { imagesNum, videosNum } = useSelector((state) => state.indexedDB.fileListState);
+  const { imagesNum, videosNum, fileDelete } = useSelector((state) => state.indexedDB.fileListState);
 
-  const [page, setPage] = useState(2);
+  const [fileListState, setFileListState] = useState<FileList[]>([]);
+  const [page, setPage] = useState(1);
   const [folder, setFolder] = useState("total");
   const [reachedEnd, setReachedEnd] = useState(false);
 
@@ -43,9 +43,19 @@ const Dashboard = () => {
       loadingRef.current = true;
       try {
         const newFileList = await handleFetchData(username, pageNumber);
-        const files = newFileList.data.file;
-        if (files && files.length > 0) {
-          dispatch(updateFileList(files));
+
+        if (!newFileList.data.file[0]) {
+          setReachedEnd(true);
+        }
+
+        const { fileList, imagesNum, videosNum } = newFileList.data.file[0];
+
+        if (pageNumber === 1) {
+          dispatch(setFileList({ imagesNum, videosNum }));
+        }
+
+        if (fileList && fileList.length > 0) {
+          setFileListState(prevState => ([...prevState, ...fileList]))
         } else {
           setReachedEnd(true);
         }
@@ -55,7 +65,7 @@ const Dashboard = () => {
         loadingRef.current = false;
       }
     }
-  }, [dispatch, reachedEnd]);
+  }, [reachedEnd]);
 
   useEffect(() => {
     if (!isLoggedIn) router.push("/login");
@@ -72,15 +82,35 @@ const Dashboard = () => {
     return () => clearInterval(intervalId);
   }, [user, page, loadMoreFiles, reachedEnd]);
 
-  const handleViewFile = async (id: string, fileView: string) => {
-    if (fileView === 'image') {
-      dispatch(setClickNumImage({ fileId: id }));
-    } else {
-      dispatch(setClickNumVideo({ fileId: id }))
-    }
-    router.push(`/view/${fileView}/${id}`)
+  useEffect(() => {
+    if (fileDelete && fileDelete.id) {
+      let updatedFileList = [...fileListState];
 
-    await clickIncrease(fileView, id);
+      if (fileDelete.type === 'image') {
+        updatedFileList = fileListState.map(fileList => ({
+          ...fileList,
+          images: fileList.images.filter(image => image._id !== fileDelete.id)
+        }));
+      } else if (fileDelete.type === 'video') {
+        updatedFileList = fileListState.map(fileList => ({
+          ...fileList,
+          videos: fileList.videos.filter(video => video._id !== fileDelete.id)
+        }));
+      }
+      setFileListState(updatedFileList);
+
+      dispatch(deleteFile({ type: null, deleteId: null }));
+    }
+  }, [fileDelete, fileListState])
+
+  const handleViewFile = async (file: Image | Video, fileView: string, title: string, tagList: string[]) => {
+    dispatch(setFileView({ file: file, title, tagList }))
+    dispatch(setClickNumFile({ fileId: file._id, fileType: fileView }));
+    router.push(`/view/${fileView}/${file._id}`)
+
+    if (user) {
+      await clickIncrease(user.username, fileView, file._id);
+    }
   }
 
   const handleChangeFolder = (event: ChangeEvent<HTMLSelectElement>) => {
@@ -97,93 +127,95 @@ const Dashboard = () => {
                 Welcome to {themeConfig.templateName} 🥳
               </Typography>
 
-              {fileList.length > 0 ? (
-                <div className="folder-selector">
-                  <label htmlFor="folder">View folder: </label>
-                  <select name="folder" id="folder" onChange={handleChangeFolder}>
-                    <option value="total">Total</option>
-                    <option value="image">Image</option>
-                    <option value="video">Video</option>
-                  </select>
-                  <label style={{ marginLeft: 20 }}>{folder === 'total' ? (imagesNum + videosNum) : folder === 'image' ? imagesNum : videosNum} files</label>
+              {fileListState.length > 0 ? (
+                <div>
+                  <div className="folder-selector">
+                    <label htmlFor="folder">View folder: </label>
+                    <select name="folder" id="folder" onChange={handleChangeFolder}>
+                      <option value="total">Total</option>
+                      <option value="image">Image</option>
+                      <option value="video">Video</option>
+                    </select>
+                    <label style={{ marginLeft: 20 }}>{folder === 'total' ? (imagesNum + videosNum) : folder === 'image' ? imagesNum : videosNum} files</label>
+                  </div>
+                  <div className='container-box'>
+                    {fileListState?.map((file: FileList, fileIndex: number) => (
+                      <React.Fragment key={fileIndex}>
+                        {(folder === 'total' || folder === 'image') && file.images.map((image, imageIndex) => (
+                          <div key={`image-${imageIndex}`} >
+                            <div
+                              style={{
+                                marginBottom: '20px',
+                                breakInside: 'avoid',
+                                position: 'relative',
+                                overflow: 'hidden',
+                                borderRadius: '15px',
+                                border: '3px solid transparent',
+                                backgroundImage: 'linear-gradient(45deg, #ff0000, #ff9900, #ff9900, #33cc33, #0099cc, #9933cc)',
+                                cursor: 'pointer'
+                              }}
+                            >
+                              {image.imageUrl && (
+                                <div >
+                                  <div onClick={() => handleViewFile(image, "image", file.title, file.tagList)} >
+                                    {/* Image */}
+                                    <img src={image.imageUrl} alt={`Image ${imageIndex}`} style={{ width: '100%', height: 'auto' }} />
+                                    {/* Image Overlay */}
+                                    <MediaOverlay file={file} media={image} />
+                                  </div>
+
+                                  <MenuIcons file={file} media={image} menuType='image' />
+
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+
+                        {(folder === 'total' || folder === 'video') && file.videos.map((video, videoIndex) => (
+                          <div key={`video-${videoIndex}`}>
+                            <div
+                              style={{
+                                marginBottom: '20px',
+                                breakInside: 'avoid',
+                                position: 'relative',
+                                overflow: 'hidden',
+                                borderRadius: '15px',
+                                border: '3px solid transparent',
+                                backgroundImage: 'linear-gradient(45deg, #ff0000, #ff9900, #ff9900, #33cc33, #0099cc, #9933cc)',
+                                cursor: 'pointer'
+                              }}
+                            >
+                              {video.videoUrl && (
+                                <>
+                                  <div>
+                                    {/* Video */}
+                                    <video controls style={{ width: '100%', height: 'auto' }}>
+                                      <source src={video.videoUrl} type="video/mp4" />
+                                    </video>
+
+                                    {/* Video Overlay */}
+                                    <MediaOverlay file={file} media={video} />
+                                  </div>
+
+                                  <MenuIcons file={file} media={video} menuType='video' />
+
+                                </>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </React.Fragment>
+                    ))}
+                  </div>
+                  {loadingRef.current && !reachedEnd && <p>Loading...</p>}
                 </div>
+
               ) : (
                 <div style={{ textAlign: 'center', marginTop: -50, marginBottom: 120, fontSize: 18 }}>
                   Let's upload your images and videos to create something amazing
                 </div>
               )}
-
-              <div className='container-box'>
-                {fileList?.map((file: FileList, fileIndex: number) => (
-                  <React.Fragment key={fileIndex}>
-                    {(folder === 'total' || folder === 'image') && file.images.map((image, imageIndex) => (
-                      <div key={`image-${imageIndex}`} >
-                        <div
-                          style={{
-                            marginBottom: '20px',
-                            breakInside: 'avoid',
-                            position: 'relative',
-                            overflow: 'hidden',
-                            borderRadius: '15px',
-                            border: '3px solid transparent',
-                            backgroundImage: 'linear-gradient(45deg, #ff0000, #ff9900, #ff9900, #33cc33, #0099cc, #9933cc)',
-                            cursor: 'pointer'
-                          }}
-                        >
-                          {image.base64CodeImage && (
-                            <div >
-                              <div onClick={() => handleViewFile(image._id, "image")} >
-                                {/* Image */}
-                                <img src={image.base64CodeImage} alt={`Image ${imageIndex}`} style={{ width: '100%', height: 'auto' }} />
-                                {/* Image Overlay */}
-                                <MediaOverlay file={file} media={image} />
-                              </div>
-
-                              <MenuIcons media={image} menuType='image' />
-
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-
-                    {(folder === 'total' || folder === 'video') && file.videos.map((video, videoIndex) => (
-                      <div key={`video-${videoIndex}`}>
-                        <div
-                          style={{
-                            marginBottom: '20px',
-                            breakInside: 'avoid',
-                            position: 'relative',
-                            overflow: 'hidden',
-                            borderRadius: '15px',
-                            border: '3px solid transparent',
-                            backgroundImage: 'linear-gradient(45deg, #ff0000, #ff9900, #ff9900, #33cc33, #0099cc, #9933cc)',
-                            cursor: 'pointer'
-                          }}
-                        >
-                          {video.base64CodeVideo && (
-                            <>
-                              <div>
-                                {/* Video */}
-                                <video controls style={{ width: '100%', height: 'auto' }}>
-                                  <source src={video.base64CodeVideo} type="video/mp4" />
-                                </video>
-
-                                {/* Video Overlay */}
-                                <MediaOverlay file={file} media={video} />
-                              </div>
-
-                              <MenuIcons media={video} menuType='video' />
-
-                            </>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </React.Fragment>
-                ))}
-              </div>
-              {loadingRef.current && !reachedEnd && <p>Loading...</p>}
               <TrophyImg alt='trophy' src='/images/pages/trophy.png' />
             </CardContent>
           </Card>

@@ -138,9 +138,6 @@ const LoginForm = (props: PropsWithoutRef<{
       if (data && data.errCode === 0) {
         dispatch(setUser(data.user))
 
-        const fileList = await fetchData(data.user.username, 1)
-
-        dispatch(setFileList(fileList))
         router.push("/")
 
         const userInfo = await handleSetUserInfoService(data.user.email);
@@ -149,6 +146,7 @@ const LoginForm = (props: PropsWithoutRef<{
         }
       }
     } catch (e) {
+      console.error(e);
       setValues(prevState => ({ ...prevState, errMessage: e.data.errMessage }));
     }
   }

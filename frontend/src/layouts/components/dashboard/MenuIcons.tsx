@@ -3,16 +3,18 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Divider, Menu, MenuItem } from "@mui/material";
 import { useRouter } from "next/router";
 import { SyntheticEvent, useEffect, useState } from "react";
-import { useDispatch } from "src/app/hooks";
-import { Image, Video, setClickNumImage, setClickNumVideo, setFavoriteImage, setFavoriteVideo } from "src/app/redux/slices/fileSlice";
-import { clickIncrease, setFavoriteFile } from "src/services/fileServices";
+import { useDispatch, useSelector } from "src/app/hooks";
+import { FileList, Image, Video, setClickNumFile, setFavoriteFile, setFileView } from "src/app/redux/slices/fileSlice";
+import { clickIncrease, setFavoriteFileService } from "src/services/fileServices";
 import DeleteDialog from "./DeleteDialog";
 
-const MenuIcons = (props: { media: Image | Video, menuType: string }) => {
-    const { media, menuType } = props;
+const MenuIcons = (props: { file: FileList, media: Image | Video, menuType: string }) => {
+    const { file, media, menuType } = props;
 
     const dispatch = useDispatch();
     const router = useRouter();
+
+    const user = useSelector((state) => state.localStorage.loginState.user)
 
     const [base64Code, setBase64Code] = useState<string | undefined>("");
     const [anchorEl, setAnchorEl] = useState<(EventTarget & Element) | null>(null);
@@ -22,10 +24,10 @@ const MenuIcons = (props: { media: Image | Video, menuType: string }) => {
 
     useEffect(() => {
         const getBase64Code = () => {
-            if ('base64CodeImage' in media) {
-                return media.base64CodeImage;
-            } else if ('base64CodeVideo' in media) {
-                return media.base64CodeVideo;
+            if ('imageUrl' in media) {
+                return media.imageUrl;
+            } else if ('videoUrl' in media) {
+                return media.videoUrl;
             }
         }
 
@@ -38,24 +40,22 @@ const MenuIcons = (props: { media: Image | Video, menuType: string }) => {
     };
 
     const handleViewFileOnMenu = async () => {
-        if (menuType === 'image') {
-            dispatch(setClickNumImage({ fileId: media?._id }));
+        if (user) {
+            dispatch(setFileView({ file: media, title: file.title, tagList: file.tagList }));
+            dispatch(setClickNumFile({ fileId: media._id, fileType: menuType }));
             router.push(`/view/${menuType}/${media?._id}`);
 
-            await clickIncrease(menuType, media?._id);
-        } else {
-            dispatch(setClickNumVideo({ fileId: media?._id }));
-            router.push(`/view/${menuType}/${media?._id}`);
-
-            await clickIncrease(menuType, media?._id);
+            await clickIncrease(user.username, menuType, media?._id);
         }
     }
 
     const handleEditImage = async () => {
-        dispatch(setClickNumImage({ fileId: media?._id }));
+        dispatch(setClickNumFile({ fileId: media?._id, fileType: menuType }));
         router.push(`/edit/${menuType}/${media?._id}`)
 
-        await clickIncrease(menuType, media?._id);
+        if (user) {
+            await clickIncrease(user.username, menuType, media?._id);
+        }
     }
 
     const handleMenuOpen = (event: SyntheticEvent) => {
@@ -103,12 +103,10 @@ const MenuIcons = (props: { media: Image | Video, menuType: string }) => {
     };
 
     const handleSetFavoriteFile = async () => {
-        if (menuType === 'image') {
-            dispatch(setFavoriteImage({ fileId: media._id }))
-            await setFavoriteFile(menuType, media._id);
-        } else {
-            dispatch(setFavoriteVideo({ fileId: media._id }))
-            await setFavoriteFile(menuType, media._id);
+        if (user) {
+            media.isFavorite = !media.isFavorite;
+            dispatch(setFavoriteFile({ fileType: menuType, fileId: media._id, isFavor: media.isFavorite ? true : false }))
+            await setFavoriteFileService(user.username, menuType, media._id);
         }
     }
 

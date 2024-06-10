@@ -2,7 +2,7 @@ import { Button, Input } from "@mui/material";
 import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "src/app/hooks";
-import { FileList, Image, Video, updateImage, updateVideo } from "src/app/redux/slices/fileSlice";
+import { Image, Video } from "src/app/redux/slices/fileSlice";
 import { updateData } from "src/services/fileServices";
 
 const ViewForm = (props: { data: string | string[] }) => {
@@ -11,41 +11,23 @@ const ViewForm = (props: { data: string | string[] }) => {
 
     const { data } = props
 
-    const fileList = useSelector((state) => state.indexedDB.fileListState.file)
+    const fileView = useSelector((state) => state.indexedDB.fileListState.fileView);
+    const user = useSelector((state) => state.localStorage.userInfoState.userInfo);
 
-    const [image, setImage] = useState<Image | null>(null)
-    const [video, setVideo] = useState<Video | null>(null)
+    const [file, setFile] = useState<Image | Video | null>(null)
     const [title, setTitle] = useState("")
     const [des, setDes] = useState("")
     const [tagList, setTagList] = useState<string[]>([])
     const [tagNull, setTagNull] = useState(false);
 
     useEffect(() => {
-        const getFile = () => {
-            fileList.map((file: FileList) => {
-                if (data[0] === 'image' && file.images.some(image => image._id === data[1])) {
-                    file.images.map((image) => {
-                        if (image._id === data[1]) {
-                            setImage(image);
-                            setDes(image.description);
-                        }
-                        setTitle(file.title);
-                        setTagList(file.tagList);
-                    })
-                } else if (data[0] === 'video' && file.videos.some(video => video._id === data[1])) {
-                    file.videos.map(video => {
-                        if (video._id === data[1]) {
-                            setVideo(video);
-                            setDes(video.description);
-                        }
-                        setTitle(file.title);
-                        setTagList(file.tagList);
-                    })
-                }
-            })
+        if (fileView && fileView.file) {
+            setFile(fileView.file);
+            setTitle(fileView.title);
+            setDes(fileView.file.description);
+            setTagList(fileView.tagList);
         }
-        getFile();
-    }, [data, fileList])
+    }, [data, fileView])
 
     useEffect(() => {
         const setTagListView = () => {
@@ -82,13 +64,10 @@ const ViewForm = (props: { data: string | string[] }) => {
         e.preventDefault();
 
         try {
-            if (data[0] === 'image') {
-                dispatch(updateImage({ editId: data[1], editTitle: title, editDescription: des, editTagList: tagList }))
-            } else {
-                dispatch(updateVideo({ editId: data[1], editTitle: title, editDescription: des, editTagList: tagList }))
+            if (user) {
+                const res = await updateData(user.username, data[0], data[1], title, des, tagList);
+                console.log('res: ', res);
             }
-
-            await updateData(data[1], title, des);
         } catch (error) {
             console.error('Error during save:', error);
         }
@@ -145,31 +124,23 @@ const ViewForm = (props: { data: string | string[] }) => {
                 </div>
 
                 <div className='file-item'>
-                    {!!image && (
+                    {!!file && (
                         <div className='image-container'>
-                            <img src={image.base64CodeImage} alt={`View Image File ${data[1]}`} className='file-image' />
+                            {
+                                data[0] === 'image' && file && 'imageUrl' in file
+                                    ? (<img src={file.imageUrl} alt={`View Image File ${data[1]}`} className='file-image' />)
+                                    : data[0] === 'video' && file && 'videoUrl' in file
+                                        ? (<video controls className="file-video" >
+                                            <source src={file.videoUrl} type="video/mp4" />
+                                        </video>)
+                                        : null
+                            }
                             <div className='description-container'>
                                 <input
                                     placeholder='Add description'
                                     value={des}
                                     onChange={(e) => handleDescriptionChange(e.target.value)}
                                     className='description-input'
-                                />
-                            </div>
-                        </div>
-                    )}
-
-                    {!!video && (
-                        <div className="video-container">
-                            <video controls className="file-video" >
-                                <source src={video.base64CodeVideo} type="video/mp4" />
-                            </video>
-                            <div className="description-container">
-                                <input
-                                    placeholder="Add description"
-                                    value={des}
-                                    onChange={(e) => handleDescriptionChange(e.target.value)}
-                                    className="description-input"
                                 />
                             </div>
                         </div>

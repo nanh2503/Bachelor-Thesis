@@ -5,7 +5,6 @@ export interface Image {
     _id: string,
     imageUrl: string,
     description: string,
-    base64CodeImage: string,
     clickNum: number,
     isFavorite: boolean,
 }
@@ -14,7 +13,6 @@ export interface Video {
     _id: string,
     videoUrl: string,
     description: string,
-    base64CodeVideo: string,
     clickNum: number,
     isFavorite: boolean,
 }
@@ -33,7 +31,11 @@ export interface FileListState {
     videosNum: number,
     favoriteFile: FileList[],
     favorImageNum: number,
-    favorVideoNum: number
+    favorVideoNum: number,
+    fileDelete: { type: string | null, id: string | null } | null,
+    fileEdit: { type: string | null, id: string | null } | null,
+    fileView: { file: Image | Video | null, title: string, tagList: string[] } | null,
+    fileDisFavor: { type: string | null, id: string | null } | null,
 }
 
 const initialState: FileListState = {
@@ -42,115 +44,38 @@ const initialState: FileListState = {
     videosNum: 0,
     favoriteFile: [],
     favorImageNum: 0,
-    favorVideoNum: 0
+    favorVideoNum: 0,
+    fileDelete: null,
+    fileEdit: null,
+    fileView: null,
+    fileDisFavor: null
 }
 
 const fileListState = createSlice({
     name: 'fileList',
     initialState,
     reducers: {
-        setFileList: (state, action: PayloadAction<FileList[]>) => {
-            state.file = action.payload;
-            let numberOfImages = 0;
-            let numberOfVideos = 0;
-            let favorImages = 0;
-            let favorVideos = 0;
+        setFileList: (state, action: PayloadAction<{ imagesNum: number, videosNum: number }>) => {
+            const { imagesNum, videosNum } = action.payload;
 
-            const listFile: FileList[] = [];
-
-            state.file.map(file => {
-                numberOfImages += file.images.length;
-                numberOfVideos += file.videos.length;
-
-                const fileItem: FileList = {
-                    _id: "",
-                    images: [],
-                    videos: [],
-                    title: "",
-                    tagList: []
-                };
-
-                file.images.map(image => {
-                    if (image.isFavorite) {
-                        fileItem.images.push(image);
-                        favorImages++;
-                    }
-                })
-
-                file.videos.map(video => {
-                    if (video.isFavorite) {
-                        fileItem.videos.push(video);
-                        favorVideos++;
-                    }
-                })
-
-                if (fileItem.images.length > 0 || fileItem.videos.length > 0) {
-                    fileItem._id = file._id;
-                    fileItem.title = file.title;
-                    fileItem.tagList = file.tagList;
-
-                    listFile.push(fileItem);
-                }
-            })
-
-            state.imagesNum = numberOfImages;
-            state.videosNum = numberOfVideos;
-            state.favoriteFile = listFile;
-            state.favorImageNum = favorImages;
-            state.favorVideoNum = favorVideos;
+            state.imagesNum = imagesNum;
+            state.videosNum = videosNum;
         },
-        updateFileList: (state, action: PayloadAction<FileList[]>) => {
-            let numberOfImages = 0;
-            let numberOfVideos = 0;
-            let favorImages = 0;
-            let favorVideos = 0;
+        setFavoriteFileList: (state, action: PayloadAction<{ favorImageNum: number, favorVideoNum: number }>) => {
+            const { favorImageNum, favorVideoNum } = action.payload;
 
-            const listFile: FileList[] = [];
+            state.favorImageNum = favorImageNum;
+            state.favorVideoNum = favorVideoNum;
+        },
+        updateFileList: (state, action: PayloadAction<{ imagesNum: number, videosNum: number }>) => {
+            const { imagesNum, videosNum } = action.payload;
 
-            action.payload?.map(file => {
-                numberOfImages += file.images.length;
-                numberOfVideos += file.videos.length;
-
-                const fileItem: FileList = {
-                    _id: "",
-                    images: [],
-                    videos: [],
-                    title: "",
-                    tagList: []
-                };
-
-                file.images.map(image => {
-                    if (image.isFavorite) {
-                        fileItem.images.push(image);
-                        favorImages++;
-                    }
-                })
-
-                file.videos.map(video => {
-                    if (video.isFavorite) {
-                        fileItem.videos.push(video);
-                        favorVideos++;
-                    }
-                })
-
-                if (fileItem.images.length > 0 || fileItem.videos.length > 0) {
-                    fileItem._id = file._id;
-                    fileItem.title = file.title;
-                    fileItem.tagList = file.tagList;
-
-                    listFile.push(fileItem);
-                }
-            })
-
-            return {
-                ...state,
-                file: [...state.file, ...action.payload],
-                imagesNum: state.imagesNum + numberOfImages,
-                videosNum: state.videosNum + numberOfVideos,
-                favoriteFile: [...state.favoriteFile, ...listFile],
-                favorImageNum: state.favorImageNum + favorImages,
-                favorVideoNum: state.favorVideoNum + favorVideos
-            };
+            state.imagesNum += imagesNum;
+            state.videosNum += videosNum;
+        },
+        setFileView: (state, action: PayloadAction<{ file: Image | Video, title: string, tagList: string[] }>) => {
+            const { file, title, tagList } = action.payload;
+            state.fileView = { file, title, tagList }
         },
         updateImage: (state, action: PayloadAction<{ editId: string; editTitle: string; editDescription: string; editTagList: string[] }>) => {
             const { editId, editTitle, editDescription, editTagList } = action.payload;
@@ -181,18 +106,15 @@ const fileListState = createSlice({
                 file: updatedFiles
             };
         },
-        deleteImage: (state, action: PayloadAction<{ deleteId: string }>) => {
-            const { deleteId } = action.payload;
+        deleteFile: (state, action: PayloadAction<{ type: string | null, deleteId: string | null }>) => {
+            const { type, deleteId } = action.payload;
+            state.fileDelete = { type: type, id: deleteId };
 
-            // Sử dụng map để tạo mảng mới, áp dụng filter cho mỗi đối tượng file
-            state.file = state.file.map(file => ({
-                ...file,
-                images: file.images ? file.images.filter(image => image._id !== deleteId) : file.images,
-            }));
-
-            state.imagesNum = state.imagesNum - 1;
-
-            state.file = state.file.filter(file => file.images.length > 0 || file.videos.length > 0);
+            if (type === 'image') {
+                state.imagesNum -= 1;
+            } else if (type === 'video') {
+                state.videosNum -= 1;
+            }
         },
         updateVideo: (state, action: PayloadAction<{ editId: string; editTitle: string; editDescription: string; editTagList: string[] }>) => {
             const { editId, editTitle, editDescription, editTagList } = action.payload;
@@ -223,191 +145,78 @@ const fileListState = createSlice({
                 file: updatedFiles
             };
         },
-        deleteVideo: (state, action: PayloadAction<{ deleteId: string }>) => {
-            const { deleteId } = action.payload;
-
-            // Sử dụng map để tạo mảng mới, áp dụng filter cho mỗi đối tượng file
-            state.file = state.file.map(file => ({
-                ...file,
-                videos: file.videos ? file.videos.filter(video => video._id !== deleteId) : file.videos,
-            }));
-
-            state.videosNum = state.videosNum - 1;
-
-            state.file = state.file.filter(file => file.images.length > 0 || file.videos.length > 0);
-        },
-        setClickNumImage: (state, action: PayloadAction<{ fileId: string }>) => {
-            const { fileId } = action.payload;
-            const updateFile = state.file.map(file => {
-                if (file.images.some(image => image._id === fileId)) {
-                    return {
-                        ...file,
-                        images: file.images.map(image => {
-                            if (image._id === fileId) {
-                                return {
-                                    ...image,
-                                    clickNum: image.clickNum + 1
+        setClickNumFile: (state, action: PayloadAction<{ fileId: string, fileType: string }>) => {
+            const { fileId, fileType } = action.payload;
+            let updateFile;
+            if (fileType === 'image') {
+                updateFile = state.file.map(file => {
+                    if (file.images.some(image => image._id === fileId)) {
+                        return {
+                            ...file,
+                            images: file.images.map(image => {
+                                if (image._id === fileId) {
+                                    return {
+                                        ...image,
+                                        clickNum: image.clickNum + 1
+                                    }
                                 }
-                            }
 
-                            return image;
-                        })
+                                return image;
+                            })
+                        }
                     }
-                }
 
-                return file;
-            })
+                    return file;
+                })
+            } else {
+                updateFile = state.file.map(file => {
+                    if (file.videos.some(video => video._id === fileId)) {
+                        return {
+                            ...file,
+                            videos: file.videos.map(video => {
+                                if (video._id === fileId) {
+                                    return {
+                                        ...video,
+                                        clickNum: video.clickNum + 1
+                                    }
+                                }
+
+                                return video;
+                            })
+                        }
+                    }
+
+                    return file;
+                })
+            }
 
             return {
                 ...state,
                 file: updateFile
             }
         },
-        setClickNumVideo: (state, action: PayloadAction<{ fileId: string }>) => {
-            const { fileId } = action.payload;
-            const updateFile = state.file.map(file => {
-                if (file.videos.some(video => video._id === fileId)) {
-                    return {
-                        ...file,
-                        videos: file.videos.map(video => {
-                            if (video._id === fileId) {
-                                return {
-                                    ...video,
-                                    clickNum: video.clickNum + 1
-                                }
-                            }
+        setFavoriteFile: (state, action: PayloadAction<{ fileType: string | null, fileId: string | null, isFavor: boolean | null }>) => {
+            const { fileType, fileId, isFavor } = action.payload;
 
-                            return video;
-                        })
-                    }
+            if (fileType === 'image') {
+                if (isFavor) {
+                    state.favorImageNum += 1;
+                } else {
+                    state.favorImageNum -= 1;
+                    state.fileDisFavor = { type: fileType, id: fileId }
                 }
-
-                return file;
-            })
-
-            return {
-                ...state,
-                file: updateFile
+            } else if (fileType === 'video') {
+                if (isFavor) {
+                    state.favorVideoNum += 1;
+                } else {
+                    state.favorVideoNum -= 1;
+                    state.fileDisFavor = { type: fileType, id: fileId }
+                }
             }
         },
-        setFavoriteImage: (state, action: PayloadAction<{ fileId: string }>) => {
-            const { fileId } = action.payload;
-            const fileItem: FileList = {
-                _id: "",
-                images: [],
-                videos: [],
-                title: "",
-                tagList: []
-            }
-
-            state.file = state.file.map(file => {
-                const updateImages = file.images.map(image => {
-                    if (image._id === fileId) {
-                        return {
-                            ...image,
-                            isFavorite: !image.isFavorite
-                        };
-                    }
-
-                    return image;
-                })
-
-                return {
-                    ...file,
-                    images: updateImages
-                }
-            });
-
-            state.file.map(file => {
-                file.images.map(image => {
-                    if (image._id === fileId) {
-                        if (!image.isFavorite) {
-                            state.favoriteFile = state.favoriteFile.map(file => ({
-                                ...file,
-                                images: file.images.filter(image => image._id !== fileId)
-                            }))
-
-                            state.favoriteFile = state.favoriteFile.filter(file => file.images.length > 0 || file.videos.length > 0);
-
-
-                            state.favorImageNum = state.favorImageNum - 1;
-                        } else {
-                            fileItem.images.push(image);
-                            fileItem._id = file._id;
-                            fileItem.title = file.title;
-                            fileItem.tagList = file.tagList;
-
-                            state.favorImageNum = state.favorImageNum + 1;
-                        }
-                    }
-                })
-            })
-
-            if (fileItem.images.length > 0) {
-                state.favoriteFile.push(fileItem);
-            }
-        },
-        setFavoriteVideo: (state, action: PayloadAction<{ fileId: string }>) => {
-            const { fileId } = action.payload;
-            const fileItem: FileList = {
-                _id: "",
-                images: [],
-                videos: [],
-                title: "",
-                tagList: []
-            }
-
-            state.file = state.file.map(file => {
-                const updateVideos = file.videos.map(video => {
-                    if (video._id === fileId) {
-                        return {
-                            ...video,
-                            isFavorite: !video.isFavorite
-                        }
-                    }
-
-                    return video;
-                })
-
-                return {
-                    ...file,
-                    videos: updateVideos
-                };
-            })
-
-            state.file.map(file => {
-                file.videos.map(video => {
-                    if (video._id === fileId) {
-                        if (!video.isFavorite) {
-                            state.favoriteFile = state.favoriteFile.map(file => ({
-                                ...file,
-                                videos: file.videos.filter(video => video._id !== fileId)
-                            }))
-
-                            state.favoriteFile = state.favoriteFile.filter(file => file.images.length > 0 || file.videos.length > 0);
-
-                            state.favorVideoNum = state.favorVideoNum - 1;
-                        } else {
-                            fileItem.videos.push(video);
-                            fileItem._id = file._id;
-                            fileItem.title = file.title;
-                            fileItem.tagList = file.tagList;
-
-                            state.favorVideoNum = state.favorVideoNum + 1;
-                        }
-
-                    }
-                })
-            })
-
-            if (fileItem.videos.length > 0) {
-                state.favoriteFile.push(fileItem);
-            }
-
-        }
     }
 })
 
-export const { setFileList, updateFileList, updateImage, deleteImage, updateVideo, deleteVideo, setClickNumImage, setClickNumVideo, setFavoriteImage, setFavoriteVideo } = fileListState.actions;
+export const { setFileList, setFavoriteFileList, updateFileList, updateImage, deleteFile, updateVideo, setClickNumFile, setFavoriteFile, setFileView } = fileListState.actions;
 export default fileListState.reducer;
 

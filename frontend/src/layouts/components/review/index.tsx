@@ -4,11 +4,11 @@ import { Input, Button, Dialog } from '@mui/material';
 import { handleFetchData, handleGetSignatureForUpload, handleUploadBackendService, handleUploadCloudService } from 'src/services/fileServices';
 import { ThreeDots } from 'react-loader-spinner';
 import { useDispatch, useSelector } from 'src/app/hooks';
-import { updateFileList } from 'src/app/redux/slices/fileSlice';
 import UploadForm from '../upload';
 import { setTitles, setDescriptions } from 'src/app/redux/slices/uploadFileSlice';
 import convertFileToBase64 from 'src/utils/convertToBase64';
 import { base64ToFileImage, base64ToFileVideo } from 'src/utils/convertBase64ToFile';
+import { updateFileList } from 'src/app/redux/slices/fileSlice';
 
 const ReviewForm = () => {
     const user = useSelector((state) => state.localStorage.loginState.user)
@@ -178,11 +178,11 @@ const ReviewForm = () => {
 
             if (!!username) {
                 //Send backend api request
-                await handleUploadBackendService(username, imageUrl, videoUrl, titles, descriptions, base64CodeImage, base64CodeVideo, tagList);
+                await handleUploadBackendService(username, imageUrl, videoUrl, titles, descriptions, tagList);
             }
 
-            const newFile = await fetchNewestData('newest')
-            dispatch(updateFileList(newFile))
+            // const newFile = await fetchNewestData('newest')
+            dispatch(updateFileList({ imagesNum: imageUrl.length, videosNum: videoUrl.length }))
 
             setLoading(false);
             router.push("/")
