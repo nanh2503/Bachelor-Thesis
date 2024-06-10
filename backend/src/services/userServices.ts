@@ -37,11 +37,11 @@ const sendOTPVerificationEmail = async (email: string) => {
 
         let userOTP = await UserOTPVerification.findOne({ email: email })
         if (userOTP) {
-            userOTP.otp = hashedOTP,
-                userOTP.createAt = new Date(),
-                userOTP.expiresAt = new Date(Date.now() + 3600000),
+            userOTP.otp = hashedOTP;
+            userOTP.createAt = new Date();
+            userOTP.expiresAt = new Date(Date.now() + 3600000);
 
-                await userOTP.save();
+            await userOTP.save();
         } else {
             const newOTPVerification = await new UserOTPVerification({
                 email: email,

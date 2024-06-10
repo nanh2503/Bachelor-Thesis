@@ -1,27 +1,31 @@
 import mongoose, { Document } from "mongoose";
 
-export interface FileImage {
+export interface FileImage extends Document {
     imageUrl: string;
     description: string;
-    base64CodeImage: string;
     clickNum: number;
     isFavorite: boolean;
 }
 
-export interface FileVideo {
+export interface FileVideo extends Document {
     videoUrl: string;
     description: string;
-    base64CodeVideo: string;
     clickNum: number;
     isFavorite: boolean;
 }
 
-export interface FileInterface extends Document {
-    username: string,
+export interface FileInterface {
     images: FileImage[];
     videos: FileVideo[];
     title: string;
     tagList: string[];
+}
+
+export interface FileListInterface extends Document {
+    username: string;
+    fileList: FileInterface[];
+    imagesNum: number;
+    videosNum: number;
 }
 
 const imageSchema = new mongoose.Schema<FileImage>({
@@ -30,10 +34,6 @@ const imageSchema = new mongoose.Schema<FileImage>({
         required: false,
     },
     description: {
-        type: String,
-        required: false,
-    },
-    base64CodeImage: {
         type: String,
         required: false,
     },
@@ -56,10 +56,6 @@ const videoSchema = new mongoose.Schema<FileVideo>({
         type: String,
         required: false,
     },
-    base64CodeVideo: {
-        type: String,
-        required: false,
-    },
     clickNum: {
         type: Number,
         required: false,
@@ -70,12 +66,8 @@ const videoSchema = new mongoose.Schema<FileVideo>({
     }
 });
 
-const schema = new mongoose.Schema<FileInterface>(
+const fileSchema = new mongoose.Schema<FileInterface>(
     {
-        username: {
-            type: String,
-            required: true
-        },
         images: [imageSchema],
         videos: [videoSchema],
         title: {
@@ -85,13 +77,31 @@ const schema = new mongoose.Schema<FileInterface>(
         tagList: {
             type: [String],
             required: false
-        }
+        },
     },
     {
         timestamps: true,
     }
 );
 
-const File = mongoose.models.file || mongoose.model<FileInterface>('file', schema);
+const schema = new mongoose.Schema<FileListInterface>(
+    {
+        username: {
+            type: String,
+            required: true
+        },
+        fileList: [fileSchema],
+        imagesNum: {
+            type: Number,
+            required: true,
+        },
+        videosNum: {
+            type: Number,
+            required: true,
+        },
+    }
+)
 
-export default File;
+const FileList = mongoose.model<FileListInterface>('fileList', schema);
+
+export default FileList;

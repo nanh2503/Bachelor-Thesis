@@ -1,16 +1,16 @@
 import { Request, Response } from "express";
-import { FileInterface } from "../models/fileModels";
-import { handleClickService, handleDeleteDataService, handleFetchDataService, handleSetFavoriteService, handleUpdateDataService, handleUploadFile } from "../services/fileServices";
+import { FileListInterface } from "../models/fileModels";
+import { handleClickService, handleDeleteDataService, handleFetchDataService, handleSetFavoriteService, handleUpdateDataService, handleUploadFile, hanldeGetFavoriteFileService } from "../services/fileServices";
 
 
 export interface FileData {
     errCode: number;
     errMessage: string;
-    file?: Partial<FileInterface>[];
+    file?: Partial<FileListInterface>[];
 }
 
 export const handleUpload = async (req: Request, res: Response): Promise<void> => {
-    const { username, imageUrl, videoUrl, titles, descriptions, base64CodeImage, base64CodeVideo, tagList } = req.body;
+    const { username, imageUrl, videoUrl, titles, descriptions, tagList } = req.body;
 
     if (!username) {
         const errorResponse: FileData = {
@@ -32,7 +32,7 @@ export const handleUpload = async (req: Request, res: Response): Promise<void> =
         return;
     }
 
-    const fileData = await handleUploadFile(username, imageUrl, videoUrl, titles, descriptions, base64CodeImage, base64CodeVideo, tagList);
+    const fileData = await handleUploadFile(username, imageUrl, videoUrl, titles, descriptions, tagList);
 
     const response: FileData = {
         errCode: fileData.errCode,
@@ -69,20 +69,45 @@ export const handleFetchData = async (req: Request, res: Response): Promise<void
 
 }
 
-export const updateData = async (req: Request, res: Response): Promise<void | File> => {
-    const { id, title, description } = req.body;
+export const handleGetFavoriteFile = async (req: Request, res: Response): Promise<void | File[]> => {
+    const username = req.query.username;
+    const page = parseInt(req.query.page?.toString() ?? '1', 10);
 
-    if (!id) {
+    if (!username) {
         const errorResponse: FileData = {
             errCode: 1,
-            errMessage: 'The id is required',
+            errMessage: 'The username is required',
             file: []
         }
         res.status(400).json(errorResponse);
         return;
     }
 
-    const fileData = await handleUpdateDataService(id, title, description);
+    const fileData = await hanldeGetFavoriteFileService(username.toString(), page);
+
+    const response: FileData = {
+        errCode: fileData.errCode,
+        errMessage: fileData.errMessage,
+        file: fileData.file ? fileData.file : []
+    }
+
+    res.status(200).json(response)
+}
+
+export const updateData = async (req: Request, res: Response): Promise<void | File> => {
+    const { username, fileType, id, title, description, tagList } = req.body;
+
+    if (!id || !username) {
+        const errorResponse: FileData = {
+            errCode: 1,
+            errMessage: 'The username and id are required',
+            file: []
+        }
+        res.status(400).json(errorResponse);
+        return;
+    }
+
+    const fileData = await handleUpdateDataService(username, fileType, id, title, description, tagList);
 
     const response: FileData = {
         errCode: fileData.errCode,
@@ -94,19 +119,19 @@ export const updateData = async (req: Request, res: Response): Promise<void | Fi
 }
 
 export const deleteData = async (req: Request, res: Response): Promise<void | File> => {
-    const { fileType, id } = req.query;
+    const { username, fileType, id } = req.query;
 
-    if (!id || !fileType) {
+    if (!username || !id || !fileType) {
         const errorResponse: FileData = {
             errCode: 1,
-            errMessage: 'The id and fileType are required',
+            errMessage: 'The username and id and fileType are required',
             file: []
         }
         res.status(400).json(errorResponse);
         return;
     }
 
-    const fileData = await handleDeleteDataService(fileType.toString(), id.toString());
+    const fileData = await handleDeleteDataService(username.toString(), fileType.toString(), id.toString());
 
     const response: FileData = {
         errCode: fileData.errCode,
@@ -118,19 +143,19 @@ export const deleteData = async (req: Request, res: Response): Promise<void | Fi
 }
 
 export const handleClickIncrease = async (req: Request, res: Response): Promise<void | File> => {
-    const { fileType, id } = req.body;
+    const { username, fileType, id } = req.body;
 
-    if (!fileType || !id) {
+    if (!username || !fileType || !id) {
         const errorResponse: FileData = {
             errCode: 1,
-            errMessage: 'The id and fileType are required',
+            errMessage: 'The username and id and fileType are required',
             file: []
         }
         res.status(400).json(errorResponse);
         return;
     }
 
-    const fileData = await handleClickService(fileType, id);
+    const fileData = await handleClickService(username, fileType, id);
 
     const response: FileData = {
         errCode: fileData.errCode,
@@ -142,18 +167,18 @@ export const handleClickIncrease = async (req: Request, res: Response): Promise<
 }
 
 export const handleSetFavoriteFile = async (req: Request, res: Response): Promise<void | File> => {
-    const { fileType, id } = req.body;
+    const { username, fileType, id } = req.body;
 
-    if (!fileType || !id) {
+    if (!username || !fileType || !id) {
         const errorResponse: FileData = {
             errCode: 1,
-            errMessage: 'The id and fileType are required',
+            errMessage: 'The username and id and fileType are required',
             file: []
         }
         res.status(400).json(errorResponse);
         return;
     }
-    const fileData = await handleSetFavoriteService(fileType, id);
+    const fileData = await handleSetFavoriteService(username, fileType, id);
 
     const response: FileData = {
         errCode: fileData.errCode,
