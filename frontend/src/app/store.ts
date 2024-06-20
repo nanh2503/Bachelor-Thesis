@@ -2,7 +2,7 @@ import { configureStore, combineReducers } from '@reduxjs/toolkit';
 import { createWrapper } from 'next-redux-wrapper';
 import { persistStore, persistReducer } from 'redux-persist';
 import createIndexedDBStorage from 'redux-persist-indexeddb-storage';
-import loginReducer from './redux/slices/loginSlice';
+import userReducer from './redux/slices/userSlice';
 import fileListReducer from './redux/slices/fileSlice';
 import userInfoReducer from './redux/slices/userInfoSlice';
 import uploadFileReducer from './redux/slices/uploadFileSlice';
@@ -19,7 +19,7 @@ const indexedDBStorage = createIndexedDBStorage({
 const persistConfigLocalStorage = {
   key: 'root',
   storage,
-  whitelist: ['loginState', 'userInfoState'],
+  whitelist: ['userState', 'userInfoState'],
 };
 
 const persistConfigIndexedDB = {
@@ -30,7 +30,7 @@ const persistConfigIndexedDB = {
 
 // Separate reducers for localStorage and IndexedDB
 const localStorageReducers = combineReducers({
-  loginState: loginReducer,
+  userState: userReducer,
   userInfoState: userInfoReducer,
 });
 

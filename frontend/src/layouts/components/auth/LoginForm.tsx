@@ -1,5 +1,5 @@
 // ** React Imports
-import { ChangeEvent, MouseEvent, PropsWithoutRef, ReactNode, useEffect, useState } from 'react'
+import { ChangeEvent, MouseEvent, PropsWithoutRef, useEffect, useState } from 'react'
 
 // ** Next Imports
 import Link from 'next/link'
@@ -37,18 +37,11 @@ import {
 // ** Configs
 import themeConfig from 'src/configs/themeConfig'
 
-// ** Layout Import
-import BlankLayout from 'src/@core/layouts/BlankLayout'
-
 // ** Demo Imports
-import FooterIllustrationsV1 from 'src/views/pages/auth/FooterIllustration'
 import { handleLoginService, handleSetUserInfoService } from 'src/services/userServices'
-import { AxiosError, AxiosResponse } from 'axios'
-import { useDispatch } from 'src/app/hooks'
-import { setUser } from 'src/app/redux/slices/loginSlice'
+import { useDispatch, useSelector } from 'src/app/hooks'
+import { setUser } from 'src/app/redux/slices/userSlice'
 import { useRouter } from 'next/router'
-import { setFileList } from 'src/app/redux/slices/fileSlice'
-import { handleFetchData } from 'src/services/fileServices';
 import { setUserInfo } from 'src/app/redux/slices/userInfoSlice';
 import { isValidEmail } from 'src/utils/format';
 
@@ -65,12 +58,6 @@ const Card = styled(MuiCard)<CardProps>(({ theme }) => ({
   [theme.breakpoints.up('sm')]: { width: '28rem' }
 }))
 
-const LinkStyled = styled('a')(({ theme }) => ({
-  fontSize: '0.875rem',
-  textDecoration: 'none',
-  color: theme.palette.primary.main
-}))
-
 const FormControlLabel = styled(MuiFormControlLabel)<FormControlLabelProps>(({ theme }) => ({
   '& .MuiFormControlLabel-label': {
     fontSize: '0.875rem',
@@ -84,6 +71,7 @@ const LoginForm = (props: PropsWithoutRef<{
 }>) => {
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   const { onChangeViewRegister = () => { }, onClickForgotPassword = () => { } } = props;
+  const user = useSelector((state) => state.localStorage.userState.user);
 
   // ** State
   const [values, setValues] = useState<State>({
@@ -98,7 +86,7 @@ const LoginForm = (props: PropsWithoutRef<{
   const router = useRouter()
   const dispatch = useDispatch()
 
-  // const { isLoggedIn, user } = useSelector((state) => state.loginState)
+  // const { isLoggedIn, user } = useSelector((state) => state.userState)
 
   useEffect(() => {
     setValues(prevState => ({ ...prevState, errMessage: '' }))
@@ -116,16 +104,6 @@ const LoginForm = (props: PropsWithoutRef<{
     event.preventDefault()
   }
 
-  const fetchData = async (user: string, page: number) => {
-    try {
-      const response = await handleFetchData(user, page);
-
-      return response.data.file;
-    } catch (error) {
-      console.error(error);
-    }
-  }
-
   const handleLogin = async () => {
     try {
       const response = await handleLoginService(values.email, values.password)
@@ -133,10 +111,16 @@ const LoginForm = (props: PropsWithoutRef<{
       // @ts-ignore
       const data = response.data;
       if (data && data.errCode !== 0) {
+        console.log("not ocee");
+        console.log('check data not oce: ', data);
+
         setValues(prevState => ({ ...prevState, errMessage: data.errMessage }));
       }
       if (data && data.errCode === 0) {
-        dispatch(setUser(data.user))
+        console.log("ocee");
+        console.log('check data oce: ', data);
+
+        dispatch(setUser({ user: data.user, accessToken: data.accessToken }))
 
         router.push("/")
 
@@ -147,12 +131,13 @@ const LoginForm = (props: PropsWithoutRef<{
       }
     } catch (e) {
       console.error(e);
-      setValues(prevState => ({ ...prevState, errMessage: e.data.errMessage }));
+      const error = e as { data: { errMessage: string } }
+      setValues(prevState => ({ ...prevState, errMessage: error.data.errMessage }));
     }
   }
 
   return (
-    <Box className='content-center' sx={{ minWidth: '100%' }}>
+    <Box className='content-center' sx={{ minWidth: '100%', display: 'flex', alignItems: 'center' }}>
       <Card sx={{ zIndex: 1 }}>
         <CardContent sx={{ padding: theme => `${theme.spacing(1, 9, 7)} !important` }}>
           <Box sx={{ mb: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -195,7 +180,8 @@ const LoginForm = (props: PropsWithoutRef<{
                 id='auth-login-email'
                 onChange={handleChange('email')}
               />
-              {values.email.length > 0 && !isValidEmail(values.email) && <div className="auth-error-msg">Invalid email</div>}
+              {values.email.length > 0 && !isValidEmail(values.email)
+                && <div style={{ color: 'red', fontSize: 14 }}>Invalid email</div>}
             </FormControl>
             <FormControl fullWidth>
               <InputLabel htmlFor='auth-login-password'>Password</InputLabel>
@@ -281,11 +267,8 @@ const LoginForm = (props: PropsWithoutRef<{
           </form>
         </CardContent>
       </Card>
-      <FooterIllustrationsV1 />
     </Box>
   )
 }
-
-LoginForm.getLayout = (page: ReactNode) => <BlankLayout>{page}</BlankLayout>
 
 export default LoginForm

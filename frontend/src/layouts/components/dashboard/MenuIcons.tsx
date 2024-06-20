@@ -7,6 +7,7 @@ import { useDispatch, useSelector } from "src/app/hooks";
 import { FileList, Image, Video, setClickNumFile, setFavoriteFile, setFileView } from "src/app/redux/slices/fileSlice";
 import { clickIncrease, setFavoriteFileService } from "src/services/fileServices";
 import DeleteDialog from "./DeleteDialog";
+import { convertURLCloudToBase64 } from "src/utils/convertToBase64";
 
 const MenuIcons = (props: { file: FileList, media: Image | Video, menuType: string }) => {
     const { file, media, menuType } = props;
@@ -14,25 +15,32 @@ const MenuIcons = (props: { file: FileList, media: Image | Video, menuType: stri
     const dispatch = useDispatch();
     const router = useRouter();
 
-    const user = useSelector((state) => state.localStorage.loginState.user)
+    const user = useSelector((state) => state.localStorage.userState.user)
 
-    const [base64Code, setBase64Code] = useState<string | undefined>("");
+    const [urlFile, setUrlFile] = useState("");
+    const [base64Code, setBase64Code] = useState("");
     const [anchorEl, setAnchorEl] = useState<(EventTarget & Element) | null>(null);
     const [subAnchorEl, setSubAnchorEl] = useState<(EventTarget & Element) | null>(null);
     const [copyMes, setCopyMes] = useState(false);
     const [confirmDeleteDialogOpen, setConfirmDeleteDialogOpen] = useState(false);
 
     useEffect(() => {
-        const getBase64Code = () => {
+        const getBase64Code = async () => {
             if ('imageUrl' in media) {
-                return media.imageUrl;
+                const url = media.imageUrl;
+                setUrlFile(url);
+                const base64Code = await convertURLCloudToBase64(url);
+                setBase64Code(base64Code);
             } else if ('videoUrl' in media) {
-                return media.videoUrl;
+                const url = media.videoUrl;
+                setUrlFile(url);
+                const base64Code = await convertURLCloudToBase64(url);
+                setBase64Code(base64Code);
             }
         }
 
-        const base64Code = getBase64Code();
-        setBase64Code(base64Code);
+        getBase64Code();
+
     }, [media])
 
     const handleMenuClose = () => {
@@ -50,6 +58,7 @@ const MenuIcons = (props: { file: FileList, media: Image | Video, menuType: stri
     }
 
     const handleEditImage = async () => {
+        dispatch(setFileView({ file: media }));
         dispatch(setClickNumFile({ fileId: media?._id, fileType: menuType }));
         router.push(`/edit/${menuType}/${media?._id}`)
 
@@ -84,14 +93,12 @@ const MenuIcons = (props: { file: FileList, media: Image | Video, menuType: stri
         handleMenuClose();
     }
 
-    const handleClickToCopy = async () => {
+    const handleClickToCopy = async (text: string) => {
         try {
-            if (base64Code) {
-                await navigator.clipboard.writeText(base64Code);
-                setCopyMes(true);
-                handleSubMenuClose();
-                handleMenuClose();
-            }
+            await navigator.clipboard.writeText(text);
+            setCopyMes(true);
+            handleSubMenuClose();
+            handleMenuClose();
         } catch (err) {
             console.error('failed to copy: ', err);
         }
@@ -127,7 +134,7 @@ const MenuIcons = (props: { file: FileList, media: Image | Video, menuType: stri
                     <FontAwesomeIcon
                         icon={faLink}
                         className="copy-link-icon"
-                        onClick={handleClickToCopy}
+                        onClick={() => handleClickToCopy(urlFile)}
                         onMouseLeave={() => setCopyMes(false)}
                     />
                     <div className='mes'>
@@ -205,12 +212,12 @@ const MenuIcons = (props: { file: FileList, media: Image | Video, menuType: stri
                                 />
                                 Public link
                             </MenuItem>
-                            <MenuItem sx={{ p: 0 }} onClick={handleClickToCopy}>
+                            <MenuItem sx={{ p: 0 }} onClick={() => handleClickToCopy(base64Code)}>
                                 <FontAwesomeIcon
                                     icon={faLink}
                                     className='icon'
                                 />
-                                Copy URL
+                                Base64 Code
                             </MenuItem>
                         </Menu>
                         <Divider />
@@ -226,7 +233,7 @@ const MenuIcons = (props: { file: FileList, media: Image | Video, menuType: stri
             </div>
 
             {confirmDeleteDialogOpen && (
-                <DeleteDialog deleteId={media._id} fileType={menuType} />
+                <DeleteDialog deleteId={media._id} fileType={menuType} deleteType="file" />
             )}
         </div>
     )

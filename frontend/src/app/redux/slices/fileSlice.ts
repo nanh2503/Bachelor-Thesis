@@ -1,5 +1,4 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { Video } from "mdi-material-ui";
 
 export interface Image {
     _id: string,
@@ -34,7 +33,7 @@ export interface FileListState {
     favorVideoNum: number,
     fileDelete: { type: string | null, id: string | null } | null,
     fileEdit: { type: string | null, id: string | null } | null,
-    fileView: { file: Image | Video | null, title: string, tagList: string[] } | null,
+    fileView: { file: Image | Video | null, title: string | null, tagList: string[] | null } | null,
     fileDisFavor: { type: string | null, id: string | null } | null,
 }
 
@@ -73,9 +72,15 @@ const fileListState = createSlice({
             state.imagesNum += imagesNum;
             state.videosNum += videosNum;
         },
-        setFileView: (state, action: PayloadAction<{ file: Image | Video, title: string, tagList: string[] }>) => {
+        setFileView: (state, action: PayloadAction<{ file: Image | Video, title?: string, tagList?: string[] }>) => {
             const { file, title, tagList } = action.payload;
-            state.fileView = { file, title, tagList }
+            console.log('check state file: ', file);
+
+            state.fileView = {
+                file,
+                title: title ?? null,
+                tagList: tagList ?? null
+            };
         },
         updateImage: (state, action: PayloadAction<{ editId: string; editTitle: string; editDescription: string; editTagList: string[] }>) => {
             const { editId, editTitle, editDescription, editTagList } = action.payload;

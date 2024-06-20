@@ -3,28 +3,48 @@ import { useState } from "react";
 import { useDispatch, useSelector } from "src/app/hooks";
 import { deleteFile } from "src/app/redux/slices/fileSlice";
 import { deleteData } from "src/services/fileServices";
+import { handleDeleteUserService } from "src/services/userServices";
 
-const DeleteDialog = (props: { deleteId: string, fileType: string }) => {
-    const { deleteId, fileType } = props;
+type DeleteDialogProps = {
+    deleteId: string;
+    fileType?: string;
+    deleteType: string;
+    onDelete?: (deleteId: string) => void;
+    onCancel?: () => void
+};
+
+const DeleteDialog = ({ deleteId, fileType, deleteType, onDelete, onCancel }: DeleteDialogProps) => {
 
     const dispatch = useDispatch();
 
     const user = useSelector((state) => state.localStorage.userInfoState.userInfo);
+    const accessToken = useSelector((state) => state.localStorage.userState.accessToken);
 
     const [isOpen, setOpen] = useState(true);
 
     const handleCloseDeleteDialog = () => {
         setOpen(false);
+        if (onCancel) {
+            onCancel();
+        }
     };
 
-    const handleDeleteFile = async () => {
+    const handleDelete = async () => {
         try {
             // Đóng dialog
             handleCloseDeleteDialog();
 
             if (user) {
-                dispatch(deleteFile({ type: fileType, deleteId: deleteId }));
-                await deleteData(user?.username, fileType, deleteId);
+                if (deleteType === 'file' && fileType) {
+                    dispatch(deleteFile({ type: fileType, deleteId: deleteId }));
+                    await deleteData(user?.username, fileType, deleteId);
+                } else {
+                    console.log('check deleteId: ', deleteId);
+                    if (onDelete) {
+                        onDelete(deleteId);
+                    }
+                    await handleDeleteUserService(accessToken, deleteId);
+                }
             }
         } catch (error) {
             console.error('Error during delete:', error);
@@ -36,12 +56,12 @@ const DeleteDialog = (props: { deleteId: string, fileType: string }) => {
             <DialogTitle>Confirm Deletion</DialogTitle>
             <DialogContent>
                 <Typography variant="body2">
-                    Are you sure you want to delete this image?
+                    Are you sure you want to delete this {deleteType === 'file' ? 'file' : 'user'}?
                 </Typography>
             </DialogContent>
             <DialogActions>
                 <Button onClick={handleCloseDeleteDialog}>Cancel</Button>
-                <Button onClick={handleDeleteFile} color="error">
+                <Button onClick={handleDelete} color="error">
                     Delete
                 </Button>
             </DialogActions>

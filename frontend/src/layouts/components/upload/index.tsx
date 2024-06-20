@@ -3,7 +3,7 @@ import { Input } from '@mui/material';
 import { useRouter } from 'next/router';
 import { useDispatch } from 'src/app/hooks';
 import { setImagesReview, setVideosReview } from 'src/app/redux/slices/uploadFileSlice';
-import convertFileToBase64 from 'src/utils/convertToBase64';
+import { convertFileToBase64 } from 'src/utils/convertToBase64';
 
 const UploadForm = (props: PropsWithoutRef<{
   onUploadComplete?: () => void;

@@ -1,5 +1,5 @@
 // ** React Imports
-import { useState, Fragment, ChangeEvent, MouseEvent, ReactNode, PropsWithoutRef, useEffect } from 'react'
+import { useState, Fragment, ChangeEvent, MouseEvent, PropsWithoutRef, useEffect } from 'react'
 
 // ** Next Imports
 import Link from 'next/link'
@@ -38,12 +38,7 @@ import {
 // ** Configs
 import themeConfig from 'src/configs/themeConfig';
 
-// ** Layout Import
-import BlankLayout from 'src/@core/layouts/BlankLayout';
-
 // ** Demo Imports
-import FooterIllustrationsV1 from 'src/views/pages/auth/FooterIllustration';
-import axios, { AxiosError, AxiosResponse } from 'axios'
 import { useRouter } from 'next/router'
 import { handleRegisterService } from 'src/services/userServices';
 import { isValidEmail } from 'src/utils/format';
@@ -123,7 +118,8 @@ const RegisterForm = (props: PropsWithoutRef<{
                 router.push(`/otp-verification/${values.email}`)
             }
         } catch (e) {
-            setValues(prevState => ({ ...prevState, errMessage: e.data.errMessage }));
+            const error = e as { data: { errMessage: string } }
+            setValues(prevState => ({ ...prevState, errMessage: error.data.errMessage }));
         }
     }
 
@@ -227,22 +223,8 @@ const RegisterForm = (props: PropsWithoutRef<{
                                 }
                             />
                         </FormControl>
-                        <FormControlLabel
-                            control={<Checkbox />}
-                            label={
-                                <Fragment>
-                                    <span>I agree to </span>
-                                    <Link href='/' passHref>
-                                        <LinkStyled onClick={(e: MouseEvent<HTMLElement>) => e.preventDefault()}>
-                                            privacy policy & terms
-                                        </LinkStyled>
-                                    </Link>
-                                </Fragment>
-                            }
-                        />
-
                         {values.errMessage &&
-                            <Box sx={{ mt: -3, mb: 3 }}>
+                            <Box sx={{ mt: 3, mb: 3 }}>
                                 <Typography variant='body2' sx={{ color: 'red' }}>
                                     {values.errMessage}
                                 </Typography>
@@ -254,7 +236,7 @@ const RegisterForm = (props: PropsWithoutRef<{
                             size='large'
                             type='submit'
                             variant='contained'
-                            sx={{ marginBottom: 7 }}
+                            sx={{ marginBottom: 7, marginTop: 7 }}
                             onClick={() => handleRegister()}
                         >
                             Register
@@ -295,11 +277,8 @@ const RegisterForm = (props: PropsWithoutRef<{
                     </form>
                 </CardContent>
             </Card>
-            <FooterIllustrationsV1 />
         </Box>
     )
 }
-
-RegisterForm.getLayout = (page: ReactNode) => <BlankLayout>{page}</BlankLayout>
 
 export default RegisterForm

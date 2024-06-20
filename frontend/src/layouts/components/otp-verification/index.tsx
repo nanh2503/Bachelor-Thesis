@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import style from '/styles/otp.module.scss';
 import { handleCheckOTPService, handleForgetPasswordService, handleUpdateUserInfoService } from 'src/services/userServices';
 import { useDispatch } from 'src/app/hooks';
-import { setUser } from 'src/app/redux/slices/loginSlice';
+import { setUser } from 'src/app/redux/slices/userSlice';
 import { setUserInfo } from 'src/app/redux/slices/userInfoSlice';
 import { useRouter } from 'next/router';
 import { Box, Typography } from '@mui/material';
@@ -84,8 +84,7 @@ const OTPVerfication = (props: { email: string }) => {
                 setValues(prevState => ({ ...prevState, errMessage: data.errMessage }))
             } else {
                 if (data.action === 'register') {
-                    dispatch(setUser(data.user))
-                    router.push("/");
+                    router.push("/login");
                     await handleUpdateUserInfoService(data.user.email, data.user.username);
                     dispatch(setUserInfo(data.user))
                 } else {
@@ -93,7 +92,8 @@ const OTPVerfication = (props: { email: string }) => {
                 }
             }
         } catch (e) {
-            setValues(prevState => ({ ...prevState, errMessage: e.data.errMessage }));
+            const error = e as { data: { errMessage: string } }
+            setValues(prevState => ({ ...prevState, errMessage: error.data.errMessage }));
         }
     }
 
@@ -108,7 +108,8 @@ const OTPVerfication = (props: { email: string }) => {
                 router.push(`/otp-verification/${email}`)
             }
         } catch (e) {
-            setValues(prevState => ({ ...prevState, errMessage: e.data.errMessage }));
+            const error = e as { data: { errMessage: string } }
+            setValues(prevState => ({ ...prevState, errMessage: error.data.errMessage }));
         }
     }
 

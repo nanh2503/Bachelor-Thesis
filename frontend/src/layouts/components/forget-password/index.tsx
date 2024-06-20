@@ -4,6 +4,8 @@ import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import { useRouter } from "next/router";
 import { isValidEmail } from "src/utils/format";
 import { handleForgetPasswordService } from "src/services/userServices";
+import styles from "styles/auth.module.scss";
+import FooterIllustrationsV1 from "src/views/pages/auth/FooterIllustration";
 
 interface State {
     email: string,
@@ -40,25 +42,26 @@ const ForgetPasswordForm = (props: PropsWithoutRef<{
             if (data && data.errCode !== 0) {
                 setValues(prevState => ({ ...prevState, errMessage: data.errMessage }));
             } else if (data && data.errCode === 0) {
-                router.push(`/otp-verification`)
+                router.push(`/otp-verification/${values.email}`)
             }
         } catch (e) {
-            setValues(prevState => ({ ...prevState, errMessage: e.data.errMessage }));
+            const error = e as { data: { errMessage: string } }
+            setValues(prevState => ({ ...prevState, errMessage: error.data.errMessage }));
         }
     }
 
-    return <div className="auth-form">
-        <Container maxWidth="xl">
+    return <div className={styles.authForm}>
+        <div className={styles.container}>
             <div style={{ marginBottom: '15px' }}>
                 <Button onClick={onChangeViewLogin} startIcon={<ArrowBackIosNewIcon />} sx={{ fontSize: 18 }}>
                     Back
                 </Button>
             </div>
-            <div className="title">Forgot password?</div>
-            <div className="desc">Lost your password? Please enter your email address. You will receive a link to create a new password via email.</div>
-            <div className="auth-form-item">
-                <label htmlFor="email" className="item-name">Email</label>
-                <div className="input-item">
+            <div className={styles.title}>Forgot password?</div>
+            <div className={styles.desc}>Lost your password? Please enter your email address. You will receive a link to create a new password via email.</div>
+            <div className={styles.authFormItem}>
+                <label htmlFor="email">Email</label>
+                <div className={styles.input}>
                     <OutlinedInput
                         id="email"
                         autoComplete="email"
@@ -66,9 +69,9 @@ const ForgetPasswordForm = (props: PropsWithoutRef<{
                         placeholder="Enter your email"
                         onChange={handleChange('email')}
                     />
-                    {values.email.length > 0 && !isValidEmail(values.email) && <div className="auth-error-msg">Invalid email</div>}
+                    {values.email.length > 0 && !isValidEmail(values.email) && <div className={styles.errorMsg}>Invalid email</div>}
                     {values.errMessage &&
-                        <div className="auth-error-msg">
+                        <div className={styles.errorMsg}>
                             {values.errMessage}
                         </div>
                     }
@@ -79,12 +82,13 @@ const ForgetPasswordForm = (props: PropsWithoutRef<{
                 fullWidth
                 size='large'
                 variant='contained'
-                sx={{ marginTop: 7 }}
+                sx={{ marginTop: 7, color: '#fff' }}
                 onClick={handleSearchAccount}
             >
                 Search Account
             </Button>
-        </Container>
+        </div>
+        <FooterIllustrationsV1 />
     </div>
 }
 

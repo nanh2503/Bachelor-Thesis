@@ -6,10 +6,12 @@ import { faCrop, faMagnifyingGlassPlus, faMagnifyingGlassMinus, faRotateRight, f
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Button, Menu, MenuItem } from "@mui/material";
 import { fabric } from 'fabric';
-import { deleteData, handleFetchData, handleUploadBackendService } from "src/services/fileServices";
+import { deleteData, handleFetchData, handleGetSignatureForUpload, handleUploadBackendService } from "src/services/fileServices";
 import { useRouter } from "next/router";
 import { FileList, deleteImage, deleteVideo } from "src/app/redux/slices/fileSlice";
 import { base64ToFileImage } from "src/utils/convertBase64ToFile";
+import { convertURLCloudToBase64 } from "src/utils/convertToBase64";
+import { getSignatureForUpload, uploadFile } from "src/utils/uploadFileToCloud";
 
 const CropImageForm = (props: { data: string | string[] }) => {
 
@@ -18,12 +20,13 @@ const CropImageForm = (props: { data: string | string[] }) => {
     const dispatch = useDispatch();
     const router = useRouter();
 
-    const fileList = useSelector((state) => state.indexedDB.fileListState.file)
-    const user = useSelector((state) => state.localStorage.loginState.user)
+    const fileView = useSelector((state) => state.indexedDB.fileListState.fileView);
+    const user = useSelector((state) => state.localStorage.userState.user);
 
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const canvasRefInternal = useRef<fabric.Canvas | null>(null);
 
+    const [loading, setLoading] = useState(false);
     const [imageSrc, setImageSrc] = useState<string>("")
     const [scale, setScale] = useState(1)
     const [rotate, setRotate] = useState(0)
@@ -46,20 +49,19 @@ const CropImageForm = (props: { data: string | string[] }) => {
     const [anchorEl, setAnchorEl] = useState<(EventTarget & Element) | null>(null);
 
     useEffect(() => {
-        const getFile = () => {
-            fileList.map((file: FileList) => {
-                if (data[0] === 'image' && file.images.some((image) => image._id === data[1])) {
-                    file.images.map((image) => {
-                        if (image._id === data[1]) {
-                            setImageSrc(image.imageUrl);
-                        }
-                    });
+        const fetchImage = async () => {
+            if (fileView && fileView.file && 'imageUrl' in fileView.file) {
+                try {
+                    const newBase64Code = await convertURLCloudToBase64(fileView.file.imageUrl);
+                    setImageSrc(newBase64Code);
+                } catch (error) {
+                    console.error(error);
                 }
-            });
+            }
         };
 
-        getFile();
-    }, [data, fileList]);
+        fetchImage();
+    }, [data, fileView]);
 
     useEffect(() => {
         const updateCanvasSize = () => {
@@ -88,6 +90,7 @@ const CropImageForm = (props: { data: string | string[] }) => {
         canvasFabric.isDrawingMode = false;
         canvasFabric.freeDrawingBrush.color = 'red';
         canvasFabric.freeDrawingBrush.width = 10;
+
 
         setCanvas(canvasFabric);
         canvasRefInternal.current = canvasFabric;
@@ -267,57 +270,6 @@ const CropImageForm = (props: { data: string | string[] }) => {
         }
     }
 
-    const handleMouseDownZoom = (event: React.MouseEvent<HTMLElement>) => {
-        setDrag(true);
-        setStartPos({
-            x: event.clientX,
-            y: event.clientY
-        })
-    }
-
-    const handleMouseMoveZoom = (event: React.MouseEvent<HTMLElement>) => {
-        if (drag && canvasRef.current) {
-            const { clientX, clientY } = event;
-
-            //Tính toán sự thay đổi vị trí của chuột so với vị trí ban đầu
-            const dx = clientX - startPos.x;
-            const dy = clientY - startPos.y;
-
-            //Lấy kích thước và vị trí của khung container
-            const imageContainer = document.querySelector('.image-container');
-            const containerRect = imageContainer?.getBoundingClientRect();
-
-            //Lấy kích thước và vị trí của ảnh
-            const imageCrop = document.querySelector('.file-crop');
-            const imageCropBound = imageCrop?.getBoundingClientRect();
-
-            //Set vị trí mới cho ảnh
-            let newOffsetX = offset.x + dx;
-            let newOffsetY = offset.y + dy;
-
-            //Khi khung ảnh trùng với khung container thì không cho kéo ảnh nữa
-            if (
-                !!containerRect && !!imageCropBound && (
-                    (containerRect.left <= imageCropBound.left && dx > 0) ||
-                    (containerRect.right >= imageCropBound.right && dx < 0) ||
-                    (containerRect.top <= imageCropBound.top && dy > 0) ||
-                    (containerRect.bottom >= imageCropBound.bottom && dy < 0)
-                )
-            ) {
-                //Không cập nhật newOffsetX và newOffsetY
-                newOffsetX = offset.x;
-                newOffsetY = offset.y;
-            }
-
-            setOffset({ x: newOffsetX, y: newOffsetY });
-            setStartPos({ x: clientX, y: clientY });
-        }
-    }
-
-    const handleMouseUpZoom = () => {
-        setDrag(false);
-    }
-
     const handleSetActualSize = () => {
         setScale(1);
         setOffset({ x: 0, y: 0 });
@@ -327,27 +279,31 @@ const CropImageForm = (props: { data: string | string[] }) => {
         setAnchorEl(null);
     }
 
-    const fetchNewestData = async (arg: string) => {
-        try {
-            const res = await handleFetchData(arg);
-
-            return res.data.file;
-        } catch (err) {
-            console.error(err);
-        }
-    }
-
     const handleSaveAsCopy = async () => {
         handleMenuClose();
+
         try {
+            const imageFile = await base64ToFileImage(croppedImageUrl);
+
+            console.log('check imageFile: ', imageFile);
+
+            setLoading(true);
+
+            //Get signature for Image upload
+            const { timestamp: imageTimestamp, signature: imageSignature } = await getSignatureForUpload('images');
+
+            //Upload image file
+            const imageUrl = await uploadFile('image', imageTimestamp, imageSignature, [imageFile]);
+
             const username = user?.username;
-            const imageFiles = [croppedImageUrl];
 
             if (!!username) {
-                await handleUploadBackendService(username, [], [], '', [], imageFiles, [], []);
+                //Send backend api request
+                await handleUploadBackendService(username, imageUrl, [], '', [], []);
             }
-            const { fileList, imagesNum, videosNum } = await fetchNewestData('newest');
-            dispatch(updateFileList({ fileList, imagesNum, videosNum }));
+
+            setLoading(false);
+            router.push("/")
 
             router.push("/")
         } catch (err) {
@@ -357,24 +313,26 @@ const CropImageForm = (props: { data: string | string[] }) => {
 
     const handleSaveImage = async () => {
         handleMenuClose();
+
         try {
+            const imageFile = await base64ToFileImage(croppedImageUrl);
+
+            setLoading(true);
+
+            //Get signature for Image upload
+            const { timestamp: imageTimestamp, signature: imageSignature } = await getSignatureForUpload('images');
+
+            //Upload image file
+            const imageUrl = await uploadFile('image', imageTimestamp, imageSignature, [imageFile]);
+
             const username = user?.username;
-            const imageFiles = [croppedImageUrl];
 
             if (!!username) {
-                await handleUploadBackendService(username, [], [], '', [], imageFiles, [], []);
+                //Send backend api request
+                await handleUploadBackendService(username, imageUrl, [], '', [], []);
+
+                await deleteData(username, data[0], data[1]);
             }
-
-            if (data[0] === 'image') {
-                dispatch(deleteImage({ deleteId: data[1] }));
-            } else {
-                dispatch(deleteVideo({ deleteId: data[1] }));
-            }
-
-            await deleteData(data[0], data[1]);
-
-            // const file = await fetchNewestData('newest');
-            // dispatch(updateFileList(file));
 
             router.push("/")
 
@@ -407,6 +365,37 @@ const CropImageForm = (props: { data: string | string[] }) => {
             saveDrawImage();
         }
     }
+
+    const saveRotatedImage = (rotationDegrees: number) => {
+        if (!!canvas && !canvas.isDrawingMode && canvasRef.current) {
+            const canvasElement = canvasRef.current;
+
+            // Tạo một canvas mới để vẽ các nét vẽ
+            const drawingCanvas = document.createElement('canvas');
+            drawingCanvas.width = canvasElement.width;
+            drawingCanvas.height = canvasElement.height;
+            const ctx = drawingCanvas.getContext('2d');
+
+            // Vẽ ảnh gốc lên canvas mới
+            const image = new Image();
+            image.src = canvasElement.toDataURL();
+
+            image.onload = () => {
+                // Xoay canvas mới theo góc được cung cấp
+                ctx?.clearRect(0, 0, drawingCanvas.width, drawingCanvas.height);
+                ctx?.save();
+                ctx?.translate(drawingCanvas.width / 2, drawingCanvas.height / 2);
+                ctx?.rotate((rotationDegrees * Math.PI) / 180);
+                ctx?.drawImage(image, -drawingCanvas.width / 2, -drawingCanvas.height / 2, drawingCanvas.width, drawingCanvas.height);
+                ctx?.restore();
+
+                // Kết hợp canvas mới (bao gồm ảnh và các nét vẽ) với canvas ban đầu
+                canvas.clear();
+                canvas.setBackgroundImage(drawingCanvas.toDataURL(), canvas.renderAll.bind(canvas));
+                setCroppedImageUrl(drawingCanvas.toDataURL());
+            };
+        }
+    };
 
     return (
         <>
@@ -530,12 +519,18 @@ const CropImageForm = (props: { data: string | string[] }) => {
                                 <FontAwesomeIcon
                                     icon={faRotateRight}
                                     className="icon"
-                                    onClick={() => setRotate(rotate + 90)}
+                                    onClick={() => {
+                                        setRotate(rotate + 90);
+                                        saveRotatedImage(rotate);
+                                    }}
                                 />
                                 <FontAwesomeIcon
                                     icon={faRotateLeft}
                                     className="icon"
-                                    onClick={() => setRotate(rotate - 90)}
+                                    onClick={() => {
+                                        setRotate(rotate - 90);
+                                        saveRotatedImage(rotate);
+                                    }}
                                 />
                                 <img
                                     src="/images/flipHorizontalIcon.svg"

@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState } from "react";
 import LoginForm from "./LoginForm";
 import RegisterForm from "./RegisterForm";
 import themeConfig from "src/configs/themeConfig";
@@ -31,10 +31,10 @@ const AuthView = () => {
         <div id="auth-view" style={{ display: 'grid', gridTemplateColumns: "50% 50%" }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', textAlign: 'center', width: '90%' }}>
                 <div>
-                    <div style={{ fontWeight: 600, fontSize: '50px' }}>
+                    <div style={{ fontWeight: 600, fontSize: '50px', color: 'white' }}>
                         Welcome to {themeConfig.templateName}! 👋🏻
                     </div>
-                    <div style={{ marginTop: '10px', lineHeight: '40px', fontSize: '18px' }}>
+                    <div style={{ marginTop: '10px', lineHeight: '40px', fontSize: '18px', color: 'white' }}>
                         Explore our user-friendly image storage and sharing service at <span style={{ fontWeight: '800', fontSize: '22px' }}>{themeConfig.templateName}</span>, helping you organize and manage your image collections efficiently
                     </div>
                 </div>

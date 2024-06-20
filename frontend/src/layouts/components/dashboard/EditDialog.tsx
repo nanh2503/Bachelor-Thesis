@@ -1,63 +1,88 @@
+import styled from 'styled-components';
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField } from "@mui/material";
-import { useState } from "react";
-import { useDispatch } from "src/app/hooks";
-import { updateImage, updateVideo } from "src/app/redux/slices/fileSlice";
-import { updateData } from "src/services/fileServices";
+import { ChangeEvent, PropsWithoutRef, useState } from "react";
+import { User } from "src/app/redux/slices/userSlice";
 
-const EditDialog = (props: { editId: string, editTitle: string, editDescription: string, fileType: string, tagList: string[] }) => {
-    const { editId, editTitle, editDescription, fileType, tagList } = props;
+interface UserState {
+    username: string,
+    email: string,
+    role: string,
+}
 
-    const dispatch = useDispatch();
+const StyledDialog = styled(Dialog)`
+    .MuiDialogTitle-root {
+        background-color: #f0f0f0; /* Example background color */
+    }
 
-    const [isOpen, setOpen] = useState(false);
-    const [title, setTitle] = useState(editTitle);
-    const [description, setDescription] = useState(editDescription);
+    .MuiDialogContent-root {
+        padding: 20px;
+    }
 
-    const handleTitleChange = (newTitle: string) => {
-        setTitle(newTitle)
-    };
+    .MuiDialogActions-root {
+        padding: 10px 20px;
+        justify-content: flex-end;
+    }
+`;
 
-    const handleDescriptionChange = (newDescription: string) => {
-        setDescription(newDescription)
-    };
+const EditDialog = (props: PropsWithoutRef<{
+    user: User;
+    isOpen: boolean;
+    onClose: () => void
+}>) => {
+    const { user, isOpen, onClose } = props;
+
+    const [values, setValues] = useState<UserState>({
+        username: user.username,
+        email: user.email,
+        role: user.role
+    })
+
+    const handleChange = (prop: keyof UserState) => (event: ChangeEvent<HTMLInputElement>) => {
+        setValues({ ...values, [prop]: event.target.value })
+    }
 
     const handleSaveChanges = async () => {
         try {
-            if (fileType === 'image') {
-                dispatch(updateImage({ editId, editTitle, editDescription, editTagList: tagList }))
-            } else {
-                dispatch(updateVideo({ editId, editTitle, editDescription, editTagList: tagList }))
-            }
-
-            await updateData(editId, editTitle, editDescription)
+            // await updateUser()
+            console.log("Edit User success");
         } catch (error) {
             console.error('Error during save:', error);
         }
 
-        // Đóng dialog
-        setOpen(false);
+        onClose();
     };
 
     return (
-        <Dialog open={isOpen} onClose={() => setOpen(false)}>
-            <DialogTitle>Edit Item</DialogTitle>
+        <StyledDialog open={isOpen} onClose={onClose}>
+            <DialogTitle>Edit User</DialogTitle>
             <DialogContent>
                 <TextField
-                    label="Title"
-                    value={title}
-                    onChange={(e) => handleTitleChange(e.target.value)}
+                    label="User"
+                    value={values.username}
+                    onChange={handleChange("username")}
+                    fullWidth
+                    margin="normal"
                 />
                 <TextField
-                    label="Description"
-                    value={description}
-                    onChange={(e) => handleDescriptionChange(e.target.value)}
+                    label="Email"
+                    value={values.email}
+                    onChange={handleChange("email")}
+                    fullWidth
+                    margin="normal"
+                />
+                <TextField
+                    label="Role"
+                    value={values.role}
+                    onChange={handleChange("role")}
+                    fullWidth
+                    margin="normal"
                 />
             </DialogContent>
             <DialogActions>
-                <Button onClick={() => setOpen(false)}>Cancel</Button>
+                <Button onClick={() => onClose()}>Cancel</Button>
                 <Button onClick={handleSaveChanges}>Save</Button>
             </DialogActions>
-        </Dialog>
+        </StyledDialog>
     )
 }
 

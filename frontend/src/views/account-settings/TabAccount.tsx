@@ -23,7 +23,6 @@ import { useDispatch, useSelector } from 'src/app/hooks'
 import DatePickerWrapper from 'src/@core/styles/libs/react-datepicker'
 import DatePicker from 'react-datepicker'
 import { handleUpdateUserInfoService } from 'src/services/userServices';
-import { AxiosError, AxiosResponse } from 'axios';
 import { setUserInfo } from 'src/app/redux/slices/userInfoSlice';
 
 interface userInfoState {
@@ -101,16 +100,9 @@ const TabAccount = () => {
           dispatch(setUserInfo(data.userInfo))
         }
       }
-
-
     } catch (e) {
-      const errorResponse = ((e as AxiosError).response ?? {}) as AxiosResponse;
-      if (errorResponse.data) {
-        setValues(prevState => ({ ...prevState, errMessage: errorResponse.data.message }));
-      } else {
-        // Xử lý trường hợp 'data' không tồn tại trong 'errorResponse'
-        console.error('Data is undefined in errorResponse:', errorResponse);
-      }
+      const error = e as { data: { errMessage: string } }
+      setValues(prevState => ({ ...prevState, errMessage: error.data.errMessage }));
     }
   }
 

@@ -5,7 +5,8 @@ html {
 }
 
 body {
-  margin: 0
+  margin: 0;
+  background: url('/images/bg_table.png') center / cover;
 }
 
 img {
@@ -583,66 +584,4 @@ input{
   border-color: #007BFF;
   outline: none;
   box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
-}
-
-.auth-form {
-  background-color: white;
-  min-width: 100%;
-  margin: 0 auto;
-  padding: 30px 0;
-  border-radius: 6px;
-  @media (max-width: 576px) {
-    width: 100%;
-  }
-
-  .title {
-    font-size: 35px;
-    font-weight: bold;
-    text-align: center;
-    padding-bottom: 10px;
-  }
-
-  .desc{
-    margin-bottom: 40px;
-    text-align: center;
-    font-size: 18px;
-  }
-
-  .auth-form-item {
-    display: flex;
-    align-items: center;
-    margin-left: 10px;
-
-    .item-name {
-      font-size: 20px;
-      font-weight: 600;
-      width: 20%;
-    }
-
-    .input-item {
-      border-radius: 10px;
-      padding: 10px;
-      margin: 5x;
-      width: 100%;
-    }
-  }
-
-  .auth-form-btn {
-    text-align: center;
-
-    .btn-submit {
-      background: var(--ks-primary-color-main);
-      font-size: 20px;
-      font-weight: bold;
-      border-radius: 20px;
-      padding: 7px 40px;
-      border: none;
-    }
-  }
-}
-
-.auth-error-msg {
-  color: red;
-  font-size: 14px;
-  border-top: 1px solid red;
 }

@@ -27,3 +27,17 @@ export const handleForgetPasswordService = (email: string) => {
 export const handleResetPasswordService = (password: string, cfPassword: string) => {
     return axios.post("/api/resetPassword", { password, cfPassword })
 }
+
+export const handleGetAllUserService = (accessToken: string, arg?: string) => {
+    return axios.get("/api/get-user", {
+        params: { arg },
+        headers: { token: `Bearer ${accessToken}` }
+    })
+}
+
+export const handleDeleteUserService = (accessToken: string, _id: string) => {
+    return axios.delete("/api/delete-user", {
+        params: { _id },
+        headers: { token: `Bearer ${accessToken}` }
+    })
+}

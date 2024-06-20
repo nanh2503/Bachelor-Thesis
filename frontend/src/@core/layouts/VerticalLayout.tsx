@@ -35,15 +35,17 @@ const VerticalLayoutWrapper = styled('div')({
 const MainContentWrapper = styled(Box)<BoxProps>({
   flexGrow: 1,
   minWidth: 0,
-  display: 'flex',
   minHeight: '100vh',
+  display: 'flex',
   flexDirection: 'column'
 })
 
 const ContentWrapper = styled('main')(({ theme }) => ({
   flexGrow: 1,
   width: '100%',
-  padding: theme.spacing(6),
+  paddingTop: theme.spacing(10),
+  paddingLeft: theme.spacing(6),
+  paddingRight: theme.spacing(6),
   transition: 'padding .25s ease-in-out',
   [theme.breakpoints.down('sm')]: {
     paddingLeft: theme.spacing(4),
@@ -55,7 +57,7 @@ const VerticalLayout = (props: LayoutProps) => {
   // ** Props
   const { settings, children, scrollToTop, scrollToBottom } = props
 
-  const isLoggedIn = useSelector((state) => state.localStorage.loginState.isLoggedIn);
+  const isLoggedIn = useSelector((state) => state.localStorage.userState.isLoggedIn);
 
   // ** Vars
   const { contentWidth } = settings
@@ -83,7 +85,10 @@ const VerticalLayout = (props: LayoutProps) => {
 
         <MainContentWrapper className='layout-content-wrapper'>
           {/* AppBar Component */}
-          <AppBar toggleNavVisibility={toggleNavVisibility} {...props} />
+
+          {isLoggedIn && (
+            <AppBar toggleNavVisibility={toggleNavVisibility} {...props} />
+          )}
 
           {/* Content */}
           <ContentWrapper

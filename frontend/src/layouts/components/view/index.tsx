@@ -21,11 +21,16 @@ const ViewForm = (props: { data: string | string[] }) => {
     const [tagNull, setTagNull] = useState(false);
 
     useEffect(() => {
-        if (fileView && fileView.file) {
-            setFile(fileView.file);
-            setTitle(fileView.title);
-            setDes(fileView.file.description);
-            setTagList(fileView.tagList);
+        if (fileView) {
+            console.log('fileView: ', fileView);
+            if (fileView.file) {
+                setFile(fileView.file);
+                setDes(fileView.file.description);
+            }
+            if (fileView.title)
+                setTitle(fileView.title);
+            if (fileView.tagList)
+                setTagList(fileView.tagList);
         }
     }, [data, fileView])
 

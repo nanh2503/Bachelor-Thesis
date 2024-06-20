@@ -7,8 +7,10 @@ import {
   useMediaQuery,
   InputAdornment,
   Button,
-  Typography
+  Typography,
 } from '@mui/material';
+
+import { useTheme } from '@mui/material/styles'
 
 // ** Icons Imports
 import { Menu, Magnify } from 'mdi-material-ui';
@@ -17,7 +19,6 @@ import { Menu, Magnify } from 'mdi-material-ui';
 import { Settings } from 'src/@core/context/settingsContext'
 
 // ** Components
-import ModeToggler from 'src/@core/layouts/components/shared-components/ModeToggler'
 import UserDropdown from 'src/@core/layouts/components/shared-components/UserDropdown'
 import { useDispatch, useSelector } from 'src/app/hooks'
 import { clearFiles } from 'src/app/redux/slices/uploadFileSlice';
@@ -32,11 +33,12 @@ interface Props {
 
 const AppBarContent = (props: Props) => {
   // ** Props
-  const { hidden, settings, saveSettings, toggleNavVisibility } = props
+  const { hidden, toggleNavVisibility } = props
 
   const dispatch = useDispatch();
+  const theme = useTheme();
 
-  const isLoggedIn = useSelector((state) => state.localStorage.loginState.isLoggedIn);
+  const userInfo = useSelector((state) => state.localStorage.userInfoState.userInfo)
 
   // ** Hook
   const hiddenSm = useMediaQuery((theme: Theme) => theme.breakpoints.down('md'))
@@ -47,86 +49,81 @@ const AppBarContent = (props: Props) => {
   const tleft = isLargestScreen ? 382 : isMediumScreen ? 24 : 285
   const tright = isLargestScreen ? 120.8 : 25
 
+
   return (
     <>
-      {isLoggedIn && (
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', zIndex: 10, position: 'fixed', backgroundColor: 'white', borderRadius: '6px', padding: '20px', left: tleft, right: tright, boxShadow: '0px 2px 10px 0px rgba(58, 53, 65, 0.1)' }}>
-          <Box className='actions-left' sx={{ mr: 2, display: 'flex', alignItems: 'center' }}>
-            {hidden ? (
-              <IconButton
-                color='inherit'
-                onClick={toggleNavVisibility}
-                sx={{ ml: -2.75, ...(hiddenSm ? {} : { mr: 3.5 }) }}
-              >
-                <Menu />
-              </IconButton>
-            ) : null}
+      <Box sx={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        zIndex: 10,
+        position: 'fixed',
+        borderRadius: '6px',
+        padding: '20px',
+        left: tleft,
+        right: tright,
+        boxShadow: theme.palette.mode === 'light' ? '0px 2px 10px 0px rgba(58, 53, 65, 0.1)' : '0 4px 8px rgba(255, 255, 255, 0.1)'
+      }}>
+        <Box className='actions-left' sx={{ mr: 2, display: 'flex', alignItems: 'center' }}>
+          {hidden ? (
+            <IconButton
+              color='inherit'
+              onClick={toggleNavVisibility}
+              sx={{ ml: -2.75, ...(hiddenSm ? {} : { mr: 3.5 }) }}
+            >
+              <Menu style={{ width: 30, height: 30, marginTop: 10, color: '#fff' }} />
+            </IconButton>
+          ) : null}
+          <Button
+            variant='contained'
+            href="/upload"
+            onClick={() => dispatch(clearFiles())}
+            sx={{
+              backgroundColor: '#1bb76e',
+              borderRadius: '3px',
+              width: 'auto',
+              mt: 3,
+            }}
+            startIcon={
+              <img src="/images/icon-new-post.svg" />
+            }
+          >
+            <Typography
+              sx={{
+                color: 'white',
+                fontSize: isLargeScreen ? '16px' : !hiddenSm ? '14px' : '0px'
+              }}
+            >
+              New Post
+            </Typography>
+          </Button>
+
+          <TextField
+            size='small'
+            sx={{ '& .MuiOutlinedInput-root': { borderRadius: 1, backgroundColor: '#312D4B', color: 'white', width: textFieldWidth, mt: 3, ml: 5 } }}
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position='end'>
+                  <Magnify fontSize='medium' style={{ color: '#fff' }} />
+                </InputAdornment>
+              )
+            }}
+            placeholder='Images, #tags, @users oh my!'
+          />
+        </Box>
+        <Box className='actions-right' sx={{ display: 'flex', alignItems: 'center' }}>
+          <Box>
             <Button
               variant='contained'
-              href="/upload"
-              onClick={() => dispatch(clearFiles())}
-              sx={{
-                backgroundColor: '#1bb76e',
-                borderRadius: '3px',
-                width: 'auto',
-                mt: 3,
-              }}
-              startIcon={
-                <img src="https://s.imgur.com/desktop-assets/desktop-assets/icon-new-post.da483e9d9559c3b4e912.svg" />
-              }
+              href='/login'
+              sx={{ color: 'white', backgroundColor: 'green', border: 'none', mt: 3, mr: 3 }}
             >
-              <Typography
-                sx={{
-                  color: 'white',
-                  fontSize: isLargeScreen ? '16px' : !hiddenSm ? '14px' : '0px'
-                }}
-              >
-                New Post
-              </Typography>
+              LOGIN
             </Button>
-
-            <TextField
-              size='small'
-              sx={
-                settings.mode === 'light'
-                  ? { '& .MuiOutlinedInput-root': { borderRadius: 1, backgroundColor: 'white', color: 'black', width: textFieldWidth, mt: 3, ml: 5 } }
-                  : { '& .MuiOutlinedInput-root': { borderRadius: 1, backgroundColor: '#312D4B', color: 'white', width: textFieldWidth, mt: 3, ml: 5 } }}
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position='end'>
-                    <Magnify fontSize='medium' />
-                  </InputAdornment>
-                )
-              }}
-              placeholder='Images, #tags, @users oh my!'
-            />
           </Box>
-          <Box className='actions-right' sx={{ display: 'flex', alignItems: 'center' }}>
-            {!isLoggedIn && (
-              <Box>
-                <Button
-                  variant='contained'
-                  href='/login'
-                  sx={{ color: 'white', backgroundColor: 'green', border: 'none', mt: 3 }}
-                >
-                  LOGIN
-                </Button>
-              </Box>
-            )}
-            <ModeToggler settings={settings} saveSettings={saveSettings} />
-            {!isLoggedIn && (
-              <Box>
-                <img
-                  alt='Avatar'
-                  style={{ width: 40, height: 40, borderRadius: 50 }}
-                  src={"/images/avatars/male.png"}
-                />
-              </Box>
-            )}
-            {isLoggedIn && <UserDropdown />}
-          </Box>
+          <UserDropdown />
         </Box>
-      )}
+      </Box>
     </>
   )
 }

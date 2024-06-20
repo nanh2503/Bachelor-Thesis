@@ -2,7 +2,7 @@
 import { ReactNode } from 'react'
 
 // ** MUI Imports
-import {Box} from '@mui/material'
+import { Box } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 
 // ** Type Import
@@ -20,9 +20,6 @@ interface Props {
 const Footer = (props: Props) => {
   // ** Props
   const { settings, footerContent: userFooterContent } = props
-
-  // ** Hook
-  const theme = useTheme()
 
   // ** Vars
   const { contentWidth } = settings
@@ -44,7 +41,7 @@ const Footer = (props: Props) => {
           width: '100%',
           borderTopLeftRadius: 14,
           borderTopRightRadius: 14,
-          padding: theme.spacing(4, 6),
+          paddingLeft: 4,
           ...(contentWidth === 'boxed' && { '@media (min-width:1440px)': { maxWidth: 1440 } })
         }}
       >

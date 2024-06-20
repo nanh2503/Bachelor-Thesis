@@ -1,11 +1,11 @@
 import { combineReducers } from 'redux';
-import loginReducer from '../slices/loginSlice';
+import userReducer from '../slices/userSlice';
 import fileListReducer from '../slices/fileSlice';
 import userInfoReducer from '../slices/userInfoSlice';
 import uploadFileReducer from '../slices/uploadFileSlice';
 
 export const rootReducers = combineReducers({
-    loginState: loginReducer,
+    userState: userReducer,
     fileListState: fileListReducer,
     userInfoState: userInfoReducer,
     uploadFileState: uploadFileReducer,

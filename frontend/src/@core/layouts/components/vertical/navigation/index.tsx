@@ -25,6 +25,7 @@ import { BadgeContentSpan } from '../../shared-components/UserDropdown'
 import Avatar from '@mui/material/Avatar'
 import Typography from '@mui/material/Typography'
 import { useSelector } from 'src/app/hooks'
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 
 interface Props {
   hidden: boolean
@@ -67,7 +68,7 @@ const Navigation = (props: Props) => {
   // ** States
   const [groupActive, setGroupActive] = useState<string[]>([])
   const [currentActiveGroup, setCurrentActiveGroup] = useState<string[]>([])
-  const isLoggedIn = useSelector((state) => state.localStorage.loginState.isLoggedIn)
+  const isLoggedIn = useSelector((state) => state.localStorage.userState.isLoggedIn)
 
   const userInfo = useSelector((state) => state.localStorage.userInfoState.userInfo)
 
@@ -112,25 +113,23 @@ const Navigation = (props: Props) => {
   return (
     <Drawer {...props}>
       <VerticalNavHeader {...props} />
-      {isLoggedIn && (
-        <Box sx={{ pt: 2, pb: 3, px: 4, ml: 3, mt: 2 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <Badge
-              overlap='circular'
-              badgeContent={<BadgeContentSpan />}
-              anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-            >
-              <Avatar alt='{userInfo?.username}' src={userInfo?.avatar ?? '/images/avatars/male.png'} sx={{ width: '2.5rem', height: '2.5rem' }} />
-            </Badge>
-            <Box sx={{ display: 'flex', marginLeft: 3, alignItems: 'flex-start', flexDirection: 'column' }}>
-              <Typography sx={{ fontWeight: 600 }}>{userInfo?.username}</Typography>
-              <Typography variant='body2' sx={{ fontSize: '0.8rem', color: 'text.disabled' }}>
-                {userInfo?.email}
-              </Typography>
-            </Box>
+      <Box sx={{ pt: 7, pb: 3, px: 4, ml: 3, mt: 2 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <Badge
+            overlap='circular'
+            badgeContent={<BadgeContentSpan />}
+            anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+          >
+            <Avatar alt='{userInfo?.username}' src={userInfo?.avatar ?? '/images/avatars/male.png'} sx={{ width: '2.5rem', height: '2.5rem' }} />
+          </Badge>
+          <Box sx={{ display: 'flex', marginLeft: 3, alignItems: 'flex-start', flexDirection: 'column' }}>
+            <Typography sx={{ fontWeight: 600, fontSize: 18 }}>{userInfo?.username}</Typography>
+            <Typography variant='body2' sx={{ fontSize: 13 }}>
+              {userInfo?.email}
+            </Typography>
           </Box>
         </Box>
-      )}
+      </Box>
       <StyledBoxForShadow
         ref={shadowRef}
         sx={{

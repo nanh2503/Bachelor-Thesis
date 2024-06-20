@@ -59,8 +59,8 @@ const VerticalNavHeader = (props: Props) => {
         <Link href='/' passHref>
           <StyledLink>
             <svg
-              width={50}
-              height={50}
+              width={60}
+              height={60}
               version='1.1'
               viewBox='0 0 30 23'
               xmlns='http://www.w3.org/2000/svg'
@@ -74,7 +74,7 @@ const VerticalNavHeader = (props: Props) => {
                 </g>
               </g>
             </svg>
-            <HeaderTitle variant='h5' sx={{ ml: 3, mt: 3 }}>
+            <HeaderTitle variant='h4' sx={{ ml: 3, mt: 3 }}>
               {themeConfig.templateName}
             </HeaderTitle>
           </StyledLink>

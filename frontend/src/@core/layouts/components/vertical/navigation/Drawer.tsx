@@ -2,7 +2,7 @@
 import { ReactNode } from 'react'
 
 // ** MUI Imports
-import { styled, useTheme } from '@mui/material/styles'
+import { styled } from '@mui/material/styles'
 import MuiSwipeableDrawer, { SwipeableDrawerProps } from '@mui/material/SwipeableDrawer'
 
 // ** Type Import
@@ -40,9 +40,6 @@ const Drawer = (props: Props) => {
   // ** Props
   const { hidden, children, navWidth, navVisible, setNavVisible } = props
 
-  // ** Hook
-  const theme = useTheme()
-
   // Drawer Props for Mobile & Tablet screens
   const MobileDrawerProps = {
     open: navVisible,
@@ -70,7 +67,7 @@ const Drawer = (props: Props) => {
         width: navWidth,
         '& .MuiDrawer-paper': {
           borderRight: 0,
-          backgroundColor: theme.palette.background.default
+          backgroundColor: '#fffb'
         }
       }}
     >

@@ -28,7 +28,7 @@ import {
   HelpCircleOutline
 } from 'mdi-material-ui';
 
-import { logoutUser } from 'src/app/redux/slices/loginSlice'
+import { logoutUser } from 'src/app/redux/slices/userSlice'
 import { useDispatch, useSelector } from 'src/app/hooks'
 import { setFileList } from 'src/app/redux/slices/fileSlice'
 
@@ -96,7 +96,7 @@ const UserDropdown = () => {
         <img
           alt='Avatar'
           onClick={handleDropdownOpen}
-          style={{ width: 40, height: 40, borderRadius: 50 }}
+          style={{ width: 40, height: 40, borderRadius: 50, marginTop: 7 }}
           src={avt}
         />
       </Badge>

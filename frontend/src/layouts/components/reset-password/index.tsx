@@ -41,7 +41,8 @@ const ResetPasswordForm = () => {
                 router.push("/login")
             }
         } catch (e) {
-            setValues(prevState => ({ ...prevState, errMessage: e.data.errMessage }));
+            const error = e as { data: { errMessage: string } }
+            setValues(prevState => ({ ...prevState, errMessage: error.data.errMessage }));
         }
     }
 

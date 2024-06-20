@@ -6,12 +6,13 @@ import { ThreeDots } from 'react-loader-spinner';
 import { useDispatch, useSelector } from 'src/app/hooks';
 import UploadForm from '../upload';
 import { setTitles, setDescriptions } from 'src/app/redux/slices/uploadFileSlice';
-import convertFileToBase64 from 'src/utils/convertToBase64';
+import { convertFileToBase64 } from 'src/utils/convertToBase64';
 import { base64ToFileImage, base64ToFileVideo } from 'src/utils/convertBase64ToFile';
 import { updateFileList } from 'src/app/redux/slices/fileSlice';
+import { getSignatureForUpload, uploadFile } from 'src/utils/uploadFileToCloud';
 
 const ReviewForm = () => {
-    const user = useSelector((state) => state.localStorage.loginState.user)
+    const user = useSelector((state) => state.localStorage.userState.user)
     const imagesReview = useSelector((state) => state.indexedDB.uploadFileState.imagesReview)
     const videosReview = useSelector((state) => state.indexedDB.uploadFileState.videosReview)
     const titles = useSelector((state) => state.indexedDB.uploadFileState.title)
@@ -76,46 +77,7 @@ const ReviewForm = () => {
         setAddMoreDialogOpen(false);
     }
 
-    const uploadFile = async (type: string, timestamp: number, signature: string, files: File[]) => {
-        const folder = type === 'image' ? 'images' : 'videos';
 
-        try {
-            const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
-            const resourceType = type === 'image' ? 'image' : 'video';
-
-            const uploadPromises = files.map(async (file) => {
-                const data = new FormData();
-                data.append("file", file);
-                data.append("timestamp", timestamp.toString());
-                data.append("signature", signature);
-                data.append("api_key", process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY || '');
-                data.append("folder", folder);
-
-                const api = `https://api.cloudinary.com/v1_1/${cloudName}/${resourceType}/upload`;
-                const res = await handleUploadCloudService(api, data);
-                const { secure_url } = res.data;
-
-                return secure_url;
-            });
-
-            const uploadedUrls = await Promise.all(uploadPromises);
-
-            return uploadedUrls;
-        } catch (error) {
-            console.error(error);
-            throw new Error("Failed to upload files");
-        }
-    }
-
-    const getSignatureForUpload = async (folder: string) => {
-        try {
-            const res = await handleGetSignatureForUpload(folder);
-
-            return res.data;
-        } catch (error) {
-            console.error(error);
-        }
-    }
 
     const fetchNewestData = async (arg: string) => {
         try {
