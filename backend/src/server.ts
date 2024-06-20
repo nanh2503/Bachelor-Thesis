@@ -5,13 +5,14 @@ import { webRoutes } from "./routes/web"
 import connectDB from "./configs/connectDB";
 import { errorHandler } from "./middlewares/error";
 import cors from 'cors';
-
+import cookieParser from "cookie-parser";
 
 dotenv.config();
 
 let app = express()
 
 app.use(cors())
+app.use(cookieParser());
 
 app.use((req, res, next) => {
     /**Request methods you wish to allow*/

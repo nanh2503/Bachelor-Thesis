@@ -79,8 +79,10 @@ export const handleFetchDataService = async (arg: string, page?: number): Promis
         }
         else {
             if (page) {
+                if (page < 0) page = 1;
                 const limit = 1;
                 const skip = (page - 1) * limit;
+                console.log('check arg: ', arg);
 
                 const fileList = await FileList.aggregate([
                     { $match: { username: arg } },

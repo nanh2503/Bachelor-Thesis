@@ -43,7 +43,7 @@ export const handleUpload = async (req: Request, res: Response): Promise<void> =
     res.status(200).json(response);
 }
 
-export const handleFetchData = async (req: Request, res: Response): Promise<void | File[]> => {
+export const handleFetchData = async (req: Request, res: Response): Promise<void | FileListInterface[]> => {
     const arg = req.query.arg;
     const page = parseInt(req.query.page?.toString() ?? '1', 10);
 
@@ -69,7 +69,7 @@ export const handleFetchData = async (req: Request, res: Response): Promise<void
 
 }
 
-export const handleGetFavoriteFile = async (req: Request, res: Response): Promise<void | File[]> => {
+export const handleGetFavoriteFile = async (req: Request, res: Response): Promise<void | FileListInterface[]> => {
     const username = req.query.username;
     const page = parseInt(req.query.page?.toString() ?? '1', 10);
 
@@ -94,7 +94,7 @@ export const handleGetFavoriteFile = async (req: Request, res: Response): Promis
     res.status(200).json(response)
 }
 
-export const updateData = async (req: Request, res: Response): Promise<void | File> => {
+export const updateData = async (req: Request, res: Response): Promise<void | FileListInterface> => {
     const { username, fileType, id, title, description, tagList } = req.body;
 
     if (!id || !username) {
@@ -118,7 +118,7 @@ export const updateData = async (req: Request, res: Response): Promise<void | Fi
     res.status(200).json(response)
 }
 
-export const deleteData = async (req: Request, res: Response): Promise<void | File> => {
+export const deleteData = async (req: Request, res: Response): Promise<void | FileListInterface> => {
     const { username, fileType, id } = req.query;
 
     if (!username || !id || !fileType) {
@@ -142,7 +142,7 @@ export const deleteData = async (req: Request, res: Response): Promise<void | Fi
     res.status(200).json(response)
 }
 
-export const handleClickIncrease = async (req: Request, res: Response): Promise<void | File> => {
+export const handleClickIncrease = async (req: Request, res: Response): Promise<void | FileListInterface> => {
     const { username, fileType, id } = req.body;
 
     if (!username || !fileType || !id) {
@@ -166,7 +166,7 @@ export const handleClickIncrease = async (req: Request, res: Response): Promise<
     res.status(200).json(response)
 }
 
-export const handleSetFavoriteFile = async (req: Request, res: Response): Promise<void | File> => {
+export const handleSetFavoriteFile = async (req: Request, res: Response): Promise<void | FileListInterface> => {
     const { username, fileType, id } = req.body;
 
     if (!username || !fileType || !id) {

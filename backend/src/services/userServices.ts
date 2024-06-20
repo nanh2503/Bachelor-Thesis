@@ -5,6 +5,7 @@ import bcrypt from 'bcrypt';
 import UserOTPVerification from "../models/UserOTPVerification";
 import SMTPTransport from "nodemailer/lib/smtp-transport";
 import { OAuth2Client } from 'google-auth-library';
+import jwt from 'jsonwebtoken';
 
 let tempAcc: { email: string, username: string, password: string } = {
     email: '',
@@ -14,10 +15,19 @@ let tempAcc: { email: string, username: string, password: string } = {
 
 const sendOTPVerificationEmail = async (email: string) => {
     try {
-        const oAuth2CLient = new OAuth2Client(process.env.CLIENT_ID, process.env.CLIENT_SECRET, process.env.REDIRECT_URI);
-        oAuth2CLient.setCredentials({ refresh_token: process.env.REFRESH_TOKEN });
+        const oAuth2Client = new OAuth2Client(
+            process.env.CLIENT_ID,
+            process.env.CLIENT_SECRET,
+            process.env.REDIRECT_URI
+        );
+        oAuth2Client.setCredentials({ refresh_token: process.env.REFRESH_TOKEN });
 
-        const accessToken = await oAuth2CLient.getAccessToken();
+        const accessToken = await oAuth2Client.getAccessToken();
+
+        if (!accessToken) {
+            throw new Error('Failed to obtain access token');
+        }
+
         const transporter = nodemailer.createTransport({
             service: 'gmail',
             auth: {
@@ -26,48 +36,51 @@ const sendOTPVerificationEmail = async (email: string) => {
                 clientId: process.env.CLIENT_ID,
                 clientSecret: process.env.CLIENT_SECRET,
                 refreshToken: process.env.REFRESH_TOKEN,
-                accessToken: accessToken.token
+                accessToken: accessToken,
             },
         } as SMTPTransport.Options);
 
         const otp = `${Math.floor(1000 + Math.random() * 9000)}`;
-        // hash the otp
         const saltRounds = 10;
         const hashedOTP = await bcrypt.hash(otp, saltRounds);
 
-        let userOTP = await UserOTPVerification.findOne({ email: email })
+        let userOTP = await UserOTPVerification.findOne({ email: email });
         if (userOTP) {
             userOTP.otp = hashedOTP;
             userOTP.createAt = new Date();
             userOTP.expiresAt = new Date(Date.now() + 3600000);
-
             await userOTP.save();
         } else {
-            const newOTPVerification = await new UserOTPVerification({
+            const newOTPVerification = new UserOTPVerification({
                 email: email,
                 otp: hashedOTP,
                 createAt: new Date(),
                 expiresAt: new Date(Date.now() + 3600000),
             });
-
-            // save otp record
             await newOTPVerification.save();
         }
 
-        await transporter.sendMail({
+        const info = await transporter.sendMail({
             from: process.env.MAIL_USERNAME,
             to: email,
             subject: 'VERIFY YOUR EMAIL',
-            html: `<p style="text-align: center;"><strong style="font-size: 25px; margin:40px 0;">Email Verification</strong></p>
-            <p>It seems you are registering at NAUIV website and trying to verify your email.</p>
-            <p>Here is the verification code. Please copy it and verify your Email.</p>
-            <p style="text-align: center; background-color: #e2ebff"><strong style="font-size: 25px; padding: 20px; margin:20px 0;"">code: ${otp}</strong></p>
-            <p>If this email is not intended to you please ignore and delete it. Thank you for understanding.</p>`
-        })
+            html: `
+                <p style="text-align: center;">
+                    <strong style="font-size: 25px; margin: 40px 0;">Email Verification</strong>
+                </p>
+                <p>It seems you are registering at NAUIV website and trying to verify your email.</p>
+                <p>Here is the verification code. Please copy it and verify your Email.</p>
+                <p style="text-align: center; background-color: #e2ebff">
+                    <strong style="font-size: 25px; padding: 20px; margin: 20px 0;">code: ${otp}</strong>
+                </p>
+                <p>If this email is not intended for you, please ignore and delete it. Thank you for understanding.</p>
+            `,
+        });
+
     } catch (err) {
-        console.error(err);
+        console.error('Error sending OTP verification email:', err);
     }
-}
+};
 
 export const handleCheckOTP = (otp: string): Promise<UserData> => {
     return new Promise(async (resolve, reject) => {
@@ -182,12 +195,39 @@ export const handleUserLogin = (email: string, password: string): Promise<UserDa
                 if (user) {
                     let check = await bcrypt.compare(password, user.password);
                     if (check) {
-                        userData.errCode = 0,
-                            userData.errMessage = 'Login success',
-                            userData.user = user
+                        const accessKey = process.env.JWT_ACCESS_KEY
+                        const refreshKey = process.env.JWT_REFRESH_KEY
+
+                        if (accessKey && refreshKey) {
+                            const accessToken = jwt.sign(
+                                {
+                                    id: user.id,
+                                    admin: user.admin
+                                },
+                                accessKey,
+                                { expiresIn: "2d" }
+                            );
+
+                            const refreshToken = jwt.sign(
+                                {
+                                    id: user.id,
+                                    admin: user.admin
+                                },
+                                refreshKey,
+                                { expiresIn: "365d" }
+                            )
+
+                            const { password, ...others } = user._doc;
+
+                            userData.errCode = 0;
+                            userData.errMessage = 'Login success';
+                            userData.user = others;
+                            userData.accessToken = accessToken;
+                            userData.refreshToken = refreshToken;
+                        }
                     } else {
-                        userData.errCode = 3,
-                            userData.errMessage = 'Password is not true'
+                        userData.errCode = 3;
+                        userData.errMessage = 'Password is not true';
                     }
                 } else {
                     userData.errCode = 2;
@@ -267,5 +307,51 @@ export const handleResetPassword = (password: string, cfPassword: string): Promi
     })
 }
 
+export const handleGetUserService = async (arg: string): Promise<UserData> => {
+    try {
+        let userData: UserData = { errCode: -1, errMessage: '', user: [] };
+        if (arg === 'All') {
+            const userList = await User.find({}, { _id: 1, username: 1, email: 1, role: 1 });
+
+            userData.errCode = 0;
+            userData.errMessage = 'Get All User successful!';
+            userData.user = userList;
+        }
+        else {
+            const userList = await User.find({}, { _id: 1, username: 1, email: 1, role: 1 });
+
+            userData.errCode = 0;
+            userData.errMessage = 'Get User successful!';
+            userData.user = userList;
+        }
+
+        return userData;
+    } catch (e) {
+        console.error(e);
+        throw e;
+    }
+};
+
+export const handleDeleteUserService = async (_id: string): Promise<UserData> => {
+    try {
+        let userData: UserData = { errCode: -1, errMessage: '', user: [] };
+        let isExist = await User.findOne({ _id: _id })
+
+        if (isExist) {
+            const user = await User.deleteOne({ _id: _id })
+
+            userData.errCode = 0;
+            userData.errMessage = 'Delete user successful!';
+        } else {
+            userData.errCode = 1;
+            userData.errMessage = "This user isn't exist in the system. Please try again!";
+        }
+
+        return userData;
+    } catch (e) {
+        console.error(e);
+        throw e;
+    }
+}
 
 
