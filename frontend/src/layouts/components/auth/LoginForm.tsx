@@ -137,7 +137,7 @@ const LoginForm = (props: PropsWithoutRef<{
   }
 
   return (
-    <Box className='content-center' sx={{ minWidth: '100%', display: 'flex', alignItems: 'center' }}>
+    <Box className='content-center' sx={{ minWidth: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       <Card sx={{ zIndex: 1 }}>
         <CardContent sx={{ padding: theme => `${theme.spacing(1, 9, 7)} !important` }}>
           <Box sx={{ mb: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>

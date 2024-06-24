@@ -30,7 +30,6 @@ import {
 
 import { logoutUser } from 'src/app/redux/slices/userSlice'
 import { useDispatch, useSelector } from 'src/app/hooks'
-import { setFileList } from 'src/app/redux/slices/fileSlice'
 
 // ** Styled Components
 export const BadgeContentSpan = styled('span')(({ theme }) => ({
@@ -65,7 +64,6 @@ const UserDropdown = () => {
   const handleLogOut = () => {
     router.push("/login")
     dispatch(logoutUser())
-    dispatch(setFileList([]))
   }
 
   const styles = {
@@ -96,7 +94,7 @@ const UserDropdown = () => {
         <img
           alt='Avatar'
           onClick={handleDropdownOpen}
-          style={{ width: 40, height: 40, borderRadius: 50, marginTop: 7 }}
+          style={{ width: 50, height: 50, borderRadius: 50, marginTop: 7, border: '1px solid #9E69FD' }}
           src={avt}
         />
       </Badge>
@@ -115,10 +113,10 @@ const UserDropdown = () => {
               badgeContent={<BadgeContentSpan />}
               anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
             >
-              <img alt='Avatar' src={avt} style={{ width: 40, height: 40, borderRadius: 50 }} />
+              <img alt='Avatar' src={avt} style={{ width: 45, height: 45, borderRadius: 50, border: '1px solid #9E69FD' }} />
             </Badge>
             <Box sx={{ display: 'flex', marginLeft: 3, alignItems: 'flex-start', flexDirection: 'column' }}>
-              <Typography sx={{ fontWeight: 600 }}>{userInfo?.username}</Typography>
+              <Typography sx={{ fontWeight: 600, fontSize: 20, fontFamily: 'monospace' }}>{userInfo?.username}</Typography>
               <Typography variant='body2' sx={{ fontSize: '0.8rem', color: 'text.disabled' }}>
                 {userInfo?.email}
               </Typography>
@@ -134,33 +132,8 @@ const UserDropdown = () => {
         </MenuItem>
         <MenuItem sx={{ p: 0 }} onClick={() => handleDropdownClose()}>
           <Box sx={styles}>
-            <EmailOutline sx={{ marginRight: 2 }} />
-            Inbox
-          </Box>
-        </MenuItem>
-        <MenuItem sx={{ p: 0 }} onClick={() => handleDropdownClose()}>
-          <Box sx={styles}>
-            <MessageOutline sx={{ marginRight: 2 }} />
-            Chat
-          </Box>
-        </MenuItem>
-        <Divider />
-        <MenuItem sx={{ p: 0 }} onClick={() => handleDropdownClose()}>
-          <Box sx={styles}>
             <CogOutline sx={{ marginRight: 2 }} />
             Settings
-          </Box>
-        </MenuItem>
-        <MenuItem sx={{ p: 0 }} onClick={() => handleDropdownClose()}>
-          <Box sx={styles}>
-            <CurrencyUsd sx={{ marginRight: 2 }} />
-            Pricing
-          </Box>
-        </MenuItem>
-        <MenuItem sx={{ p: 0 }} onClick={() => handleDropdownClose()}>
-          <Box sx={styles}>
-            <HelpCircleOutline sx={{ marginRight: 2 }} />
-            FAQ
           </Box>
         </MenuItem>
         <Divider />

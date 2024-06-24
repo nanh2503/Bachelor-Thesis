@@ -295,11 +295,11 @@ const CropImageForm = (props: { data: string | string[] }) => {
             //Upload image file
             const imageUrl = await uploadFile('image', imageTimestamp, imageSignature, [imageFile]);
 
-            const username = user?.username;
+            const userId = user?._id;
 
-            if (!!username) {
+            if (!!userId) {
                 //Send backend api request
-                await handleUploadBackendService(username, imageUrl, [], '', [], []);
+                await handleUploadBackendService(userId, imageUrl, [], '', [], []);
             }
 
             setLoading(false);
@@ -325,13 +325,13 @@ const CropImageForm = (props: { data: string | string[] }) => {
             //Upload image file
             const imageUrl = await uploadFile('image', imageTimestamp, imageSignature, [imageFile]);
 
-            const username = user?.username;
+            const userId = user?._id;
 
-            if (!!username) {
+            if (!!userId) {
                 //Send backend api request
-                await handleUploadBackendService(username, imageUrl, [], '', [], []);
+                await handleUploadBackendService(userId, imageUrl, [], '', [], []);
 
-                await deleteData(username, data[0], data[1]);
+                await deleteData(userId, data[0], data[1]);
             }
 
             router.push("/")

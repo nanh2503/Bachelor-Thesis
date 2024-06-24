@@ -74,7 +74,7 @@ const VerticalNavHeader = (props: Props) => {
                 </g>
               </g>
             </svg>
-            <HeaderTitle variant='h4' sx={{ ml: 3, mt: 3 }}>
+            <HeaderTitle variant='h4' sx={{ mt: 3 }}>
               {themeConfig.templateName}
             </HeaderTitle>
           </StyledLink>

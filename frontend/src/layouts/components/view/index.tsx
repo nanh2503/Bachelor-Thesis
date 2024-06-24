@@ -6,13 +6,12 @@ import { Image, Video } from "src/app/redux/slices/fileSlice";
 import { updateData } from "src/services/fileServices";
 
 const ViewForm = (props: { data: string | string[] }) => {
-    const dispatch = useDispatch();
     const router = useRouter();
 
     const { data } = props
 
     const fileView = useSelector((state) => state.indexedDB.fileListState.fileView);
-    const user = useSelector((state) => state.localStorage.userInfoState.userInfo);
+    const user = useSelector((state) => state.localStorage.userState.user);
 
     const [file, setFile] = useState<Image | Video | null>(null)
     const [title, setTitle] = useState("")
@@ -70,7 +69,7 @@ const ViewForm = (props: { data: string | string[] }) => {
 
         try {
             if (user) {
-                const res = await updateData(user.username, data[0], data[1], title, des, tagList);
+                const res = await updateData(user._id, data[0], data[1], title, des, tagList);
                 console.log('res: ', res);
             }
         } catch (error) {

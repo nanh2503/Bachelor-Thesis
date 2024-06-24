@@ -17,20 +17,20 @@ type ThemeConfig = {
 
 const themeConfig: ThemeConfig = {
   // ** Layout Configs
-  templateName: 'NAUIV' /* App Name */,
-  mode: 'light' /* light | dark */,
-  contentWidth: 'boxed' /* full | boxed */,
+  templateName: 'NAUIV',
+  mode: 'light',
+  contentWidth: 'boxed',
 
   // ** Routing Configs
-  routingLoader: true /* true | false */,
+  routingLoader: true,
 
   // ** Navigation (Menu) Configs
-  menuTextTruncate: true /* true | false */,
-  navigationSize: 260 /* Number in PX(Pixels) /*! Note: This is for Vertical navigation menu only */,
+  menuTextTruncate: true,
+  navigationSize: 260,
 
   // ** Other Configs
-  responsiveFontSizes: true /* true | false */,
-  disableRipple: false /* true | false */
+  responsiveFontSizes: true,
+  disableRipple: false
 }
 
 export default themeConfig

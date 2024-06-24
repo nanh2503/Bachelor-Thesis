@@ -32,7 +32,9 @@ const Footer = (props: Props) => {
         zIndex: 10,
         display: 'flex',
         alignItems: 'center',
-        justifyContent: 'center'
+        justifyContent: 'center',
+        position: 'absolute',
+        bottom: 0
       }}
     >
       <Box

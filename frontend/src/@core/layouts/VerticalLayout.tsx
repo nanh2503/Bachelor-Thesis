@@ -1,141 +1,90 @@
-// ** React Imports
-import { useState } from 'react'
-
-// ** MUI Imports
-import Fab from '@mui/material/Fab'
-import { styled } from '@mui/material/styles'
-import Box, { BoxProps } from '@mui/material/Box'
-
-// ** Icons Imports
-import ArrowUp from 'mdi-material-ui/ArrowUp'
-
-// ** Theme Config Import
-import themeConfig from 'src/configs/themeConfig'
-
-// ** Type Import
+import React, { useState } from 'react';
+import { useSelector } from 'react-redux';
+import styles from '/styles/verticalLayout.module.scss';
+import { ArrowUp, ArrowDown } from 'mdi-material-ui'
 import { LayoutProps } from 'src/@core/layouts/types'
-
-// ** Components
 import AppBar from './components/vertical/appBar'
 import Navigation from './components/vertical/navigation'
 import Footer from './components/shared-components/footer'
 import ScrollToTop from 'src/@core/components/scroll-to-top'
-
-// ** Styled Component
-import DatePickerWrapper from 'src/@core/styles/libs/react-datepicker'
-import { useSelector } from 'src/app/hooks'
 import ScrollToBottom from '../components/scroll-to-bottom'
-import { ArrowDown } from 'mdi-material-ui'
-
-const VerticalLayoutWrapper = styled('div')({
-  height: '100%',
-  display: 'flex'
-})
-
-const MainContentWrapper = styled(Box)<BoxProps>({
-  flexGrow: 1,
-  minWidth: 0,
-  minHeight: '100vh',
-  display: 'flex',
-  flexDirection: 'column'
-})
-
-const ContentWrapper = styled('main')(({ theme }) => ({
-  flexGrow: 1,
-  width: '100%',
-  paddingTop: theme.spacing(10),
-  paddingLeft: theme.spacing(6),
-  paddingRight: theme.spacing(6),
-  transition: 'padding .25s ease-in-out',
-  [theme.breakpoints.down('sm')]: {
-    paddingLeft: theme.spacing(4),
-    paddingRight: theme.spacing(4)
-  }
-}))
+import AppBarContent from 'src/layouts/components/vertical/AppBarContent';
+import classNames from 'classnames';
 
 const VerticalLayout = (props: LayoutProps) => {
-  // ** Props
-  const { settings, children, scrollToTop, scrollToBottom } = props
+  const { children, scrollToTop, scrollToBottom, hidden } = props;
 
-  const isLoggedIn = useSelector((state) => state.localStorage.userState.isLoggedIn);
+  const { isLoggedIn, user } = useSelector((state: any) => state.localStorage.userState);
 
-  // ** Vars
-  const { contentWidth } = settings
-  const navWidth = themeConfig.navigationSize
+  const [navVisible, setNavVisible] = useState<boolean>(false);
+  const toggleNavVisibility = () => setNavVisible(!navVisible);
 
-  // ** States
-  const [navVisible, setNavVisible] = useState<boolean>(false)
+  const isUserLoggedIn = isLoggedIn && user?.role === 'USER';
 
-  // ** Toggle Functions
-  const toggleNavVisibility = () => setNavVisible(!navVisible)
+  const appBarContent = classNames({
+    [styles.appBarContent]: isUserLoggedIn,
+    [styles.hiddenAppBar]: !isUserLoggedIn,
+  });
+
+  console.log('appBarContent: ', appBarContent);
 
   return (
-    <>
-      <VerticalLayoutWrapper className='layout-wrapper'>
+    <div className={styles.container}>
+      <div className={styles.layoutContainer}>
         {/* Navigation Menu */}
-        {isLoggedIn && (
-          <Navigation
-            navWidth={navWidth}
-            navVisible={navVisible}
-            setNavVisible={setNavVisible}
-            toggleNavVisibility={toggleNavVisibility}
-            {...props}
-          />
-        )}
-
-        <MainContentWrapper className='layout-content-wrapper'>
-          {/* AppBar Component */}
-
-          {isLoggedIn && (
-            <AppBar toggleNavVisibility={toggleNavVisibility} {...props} />
+        <div className={styles.verticalNav}>
+          {!hidden && isLoggedIn && (
+            <Navigation
+              navVisible={navVisible}
+              setNavVisible={setNavVisible}
+              toggleNavVisibility={toggleNavVisibility}
+              {...props}
+            />
           )}
+        </div>
+
+        <div className={styles.layoutContent}>
+          {/* AppBar Component */}
+          <div className={styles.appBar}>
+            {isUserLoggedIn ? (
+              <div className={styles.appBarContent}>
+                <AppBarContent toggleNavVisibility={toggleNavVisibility} {...props} />
+              </div>
+            ) : null}
+          </div>
 
           {/* Content */}
-          <ContentWrapper
-            className='layout-page-content'
-            sx={{
-              ...(contentWidth === 'boxed' && {
-                mx: 'auto',
-                '@media (min-width:1440px)': { maxWidth: 1440 },
-                '@media (min-width:1200px)': { maxWidth: '100%' }
-              })
-            }}
-          >
+          <div className={styles.layoutPage}>
             {children}
-          </ContentWrapper>
+          </div>
 
-          {/* Footer Component */}
           <Footer {...props} />
-
-          {/* Portal for React Datepicker */}
-          <DatePickerWrapper sx={{ zIndex: 11 }}>
-            <Box id='react-datepicker-portal'></Box>
-          </DatePickerWrapper>
-        </MainContentWrapper>
-      </VerticalLayoutWrapper>
+        </div>
+      </div>
 
       {/* Scroll to top button */}
       {scrollToTop ? (
         scrollToTop(props)
       ) : (
-        <ScrollToTop className='mui-fixed'>
-          <Fab color='primary' size='small' aria-label='scroll back to top'>
+        <ScrollToTop className={styles.fixedButton}>
+          <button className={styles.fab} aria-label='scroll back to top'>
             <ArrowUp />
-          </Fab>
+          </button>
         </ScrollToTop>
       )}
 
+      {/* Scroll to bottom button */}
       {scrollToBottom ? (
         scrollToBottom(props)
       ) : (
-        <ScrollToBottom className='mui-fixed'>
-          <Fab color='primary' size='small' aria-label='scroll back to top'>
+        <ScrollToBottom className={styles.fixedButton}>
+          <button className={styles.fab} aria-label='scroll down to bottom'>
             <ArrowDown />
-          </Fab>
+          </button>
         </ScrollToBottom>
       )}
-    </>
-  )
-}
+    </div>
+  );
+};
 
-export default VerticalLayout
+export default VerticalLayout;

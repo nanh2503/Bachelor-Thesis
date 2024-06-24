@@ -90,7 +90,7 @@ const DefaultPalette = (mode: PaletteMode, themeColor: ThemeColor) => {
     text: {
       primary: `rgba(${mainColor}, 0.87)`,
       secondary: `rgba(${mainColor}, 0.68)`,
-      disabled: `rgba(${mainColor}, 0.38)`
+      disabled: `rgba(${mainColor}, 0.9)`
     },
     divider: `rgba(${mainColor}, 0.12)`,
 

@@ -7,8 +7,11 @@ import { faTrash } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import ReactPaginate from 'react-paginate';
 import DeleteDialog from '../dashboard/DeleteDialog';
+import { Magnify } from 'mdi-material-ui';
+import { useRouter } from 'next/router';
 
 const AdminUserManagement: React.FC = () => {
+  const router = useRouter();
   const accessToken = useSelector((state) => state.localStorage.userState.accessToken);
 
   const [users, setUsers] = useState<User[]>([]);
@@ -17,27 +20,30 @@ const AdminUserManagement: React.FC = () => {
   const [deleteUser, setDeleteUser] = useState<User>()
   const [currentPage, setCurrentPage] = useState(0);
   const usersPerPage = 5;
-  const [arg, setArg] = useState("All");
+  const [searchTerm, setSearchTerm] = useState('');
 
-  console.log('check accessToken: ', accessToken);
+  const fetchUsers = async () => {
+    console.log('fetch data');
+    const userData = await handleGetAllUserService(accessToken, "All");
+    console.log('check userData: ', userData);
+
+    const sortedUsers = userData.data.user.sort((a: User, b: User) => {
+      if (a.role === 'ADMIN' && b.role !== 'ADMIN') return -1;
+      if (a.role !== 'ADMIN' && b.role === 'ADMIN') return 1;
+
+      return 0;
+    });
+
+    setUsers(sortedUsers);
+    setLoading(false);
+  };
 
   useEffect(() => {
-    const fetchUsers = async () => {
-      const userData = await handleGetAllUserService(accessToken, arg);
-      console.log('check userData: ', userData);
-
-      const sortedUsers = userData.data.user.sort((a: User, b: User) => {
-        if (a.role === 'ADMIN' && b.role !== 'ADMIN') return -1;
-        if (a.role !== 'ADMIN' && b.role === 'ADMIN') return 1;
-
-        return 0;
-      });
-
-      setUsers(sortedUsers);
-      setLoading(false);
-    };
-
-    fetchUsers();
+    if (!!accessToken) {
+      fetchUsers();
+    } else {
+      router.push('/login');
+    }
   }, []);
 
   if (loading) {
@@ -46,8 +52,14 @@ const AdminUserManagement: React.FC = () => {
 
   // Tính toán dữ liệu phân trang
   const offset = currentPage * usersPerPage;
-  const currentPageData = users.slice(offset, offset + usersPerPage);
-  const pageCount = Math.ceil(users.length / usersPerPage);
+  const filteredUsers = users.filter((user) =>
+    user._id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.role.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+  const currentPageData = filteredUsers.slice(offset, offset + usersPerPage);
+  const pageCount = Math.ceil(filteredUsers.length / usersPerPage);
 
   const handlePageClick = ({ selected }: { selected: number }) => {
     setCurrentPage(selected);
@@ -68,43 +80,65 @@ const AdminUserManagement: React.FC = () => {
     setOpenDeleteDialog(false);
   }
 
+  const handleSearchInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    console.log('check event.target.value: ', event.target.value);
+    setSearchTerm(event.target.value);
+    setCurrentPage(0);
+  };
+
   return (
     <div className={styles.container}>
-      <h1>User Management</h1>
-      <table className={styles.userTable}>
-        <thead>
-          <tr>
-            <th>No.</th>
-            <th>ID</th>
-            <th>Username</th>
-            <th>Email</th>
-            <th>Role</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {currentPageData.map((user, index) => (
-            <tr key={user._id}>
-              <td>{offset + index + 1}</td>
-              <td>{user._id}</td>
-              <td>{user.username}</td>
-              <td>{user.email}</td>
-              <td>
-                <strong>
-                  {user.role}
-                </strong>
-              </td>
-              <td>
-                <FontAwesomeIcon
-                  icon={faTrash}
-                  className={styles.icon}
-                  onClick={() => handleOpenDeleteDialog(user)}
-                />
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <div className={styles.title}>User Management</div>
+      <div style={{ display: 'flex', justifyContent: 'center' }}>
+        <div className={styles.content}>
+          <div className={styles.searchContainer}>
+            <input
+              type="text"
+              placeholder="Search users..."
+              value={searchTerm}
+              onChange={handleSearchInputChange}
+              className={styles.searchInput}
+            />
+            <button>
+              <Magnify />
+            </button>
+          </div>
+          <table className={styles.userTable}>
+            <thead>
+              <tr>
+                <th>No.</th>
+                <th>ID</th>
+                <th>Username</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {currentPageData.map((user, index) => (
+                <tr key={user._id}>
+                  <td>{offset + index + 1}</td>
+                  <td>{user._id}</td>
+                  <td>{user.username}</td>
+                  <td>{user.email}</td>
+                  <td>
+                    <strong>
+                      {user.role}
+                    </strong>
+                  </td>
+                  <td>
+                    <FontAwesomeIcon
+                      icon={faTrash}
+                      className={styles.icon}
+                      onClick={() => handleOpenDeleteDialog(user)}
+                    />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
 
       <ReactPaginate
         previousLabel={'Prev'}

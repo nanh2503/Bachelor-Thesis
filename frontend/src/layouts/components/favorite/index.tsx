@@ -12,7 +12,7 @@ const FavoriteComponent = () => {
     const dispatch = useDispatch();
     const router = useRouter();
 
-    const user = useSelector((state) => state.localStorage.userInfoState.userInfo);
+    const user = useSelector((state) => state.localStorage.userState.user);
     const { favorImageNum, favorVideoNum, fileDisFavor } = useSelector((state) => state.indexedDB.fileListState);
 
     const [favoriteFileList, setFavoriteFileList] = useState<FileList[]>([]);
@@ -21,11 +21,11 @@ const FavoriteComponent = () => {
     const loadingRef = useRef(false);
     const [reachedEnd, setReachedEnd] = useState(false);
 
-    const loadMoreFiles = useCallback(async (username: string, pageNumber: number) => {
+    const loadMoreFiles = useCallback(async (userId: string, pageNumber: number) => {
         if (!loadingRef.current && !reachedEnd) {
             loadingRef.current = true;
             try {
-                const newFileList = await handleGetFavoriteFile(username, pageNumber);
+                const newFileList = await handleGetFavoriteFile(userId, pageNumber);
 
                 if (!newFileList.data.file[0]) {
                     setReachedEnd(true);
@@ -50,7 +50,7 @@ const FavoriteComponent = () => {
         if (user) {
             const intervalId = setInterval(() => {
                 if (!loadingRef.current && !reachedEnd) {
-                    loadMoreFiles(user.username, page);
+                    loadMoreFiles(user._id, page);
                     setPage(prevPage => prevPage + 1);
                 }
             }, 200);
@@ -89,7 +89,7 @@ const FavoriteComponent = () => {
         router.push(`/view/${fileView}/${file._id}`)
 
         if (user) {
-            await clickIncrease(user.username, fileView, file._id);
+            await clickIncrease(user._id, fileView, file._id);
         }
     }
 

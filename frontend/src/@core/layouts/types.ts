@@ -24,7 +24,11 @@ export type NavSectionTitle = {
   subject?: string
 }
 
-export type VerticalNavItemsType = (NavLink | NavSectionTitle)[]
+export type VerticalNavItemsType = {
+  title: string
+  icon?: string | string[] | ReactNode
+  path?: string
+}[];
 
 export type LayoutProps = {
   hidden: boolean
@@ -36,10 +40,7 @@ export type LayoutProps = {
   saveSettings: (values: Settings) => void
   footerContent?: (props?: any) => ReactNode
   verticalAppBarContent?: (props?: any) => ReactNode
-  verticalNavMenuContent?: (props?: any) => ReactNode
   verticalNavMenuBranding?: (props?: any) => ReactNode
-  afterVerticalNavMenuContent?: (props?: any) => ReactNode
-  beforeVerticalNavMenuContent?: (props?: any) => ReactNode
 }
 
 export type BlankLayoutProps = {

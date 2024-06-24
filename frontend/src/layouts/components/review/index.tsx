@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/router';
 import { Input, Button, Dialog } from '@mui/material';
-import { handleFetchData, handleGetSignatureForUpload, handleUploadBackendService, handleUploadCloudService } from 'src/services/fileServices';
+import { handleFetchData, handleUploadBackendService } from 'src/services/fileServices';
 import { ThreeDots } from 'react-loader-spinner';
 import { useDispatch, useSelector } from 'src/app/hooks';
 import UploadForm from '../upload';
@@ -10,6 +10,7 @@ import { convertFileToBase64 } from 'src/utils/convertToBase64';
 import { base64ToFileImage, base64ToFileVideo } from 'src/utils/convertBase64ToFile';
 import { updateFileList } from 'src/app/redux/slices/fileSlice';
 import { getSignatureForUpload, uploadFile } from 'src/utils/uploadFileToCloud';
+import styles from '/styles/review.module.scss';
 
 const ReviewForm = () => {
     const user = useSelector((state) => state.localStorage.userState.user)
@@ -77,8 +78,6 @@ const ReviewForm = () => {
         setAddMoreDialogOpen(false);
     }
 
-
-
     const fetchNewestData = async (arg: string) => {
         try {
             const response = await handleFetchData(arg);
@@ -136,11 +135,11 @@ const ReviewForm = () => {
             //Upload video file
             const videoUrl = await uploadFile('video', videoTimestamp, videoSignature, videoFiles);
 
-            const username = user?.username;
+            const userId = user?._id;
 
-            if (!!username) {
+            if (!!userId) {
                 //Send backend api request
-                await handleUploadBackendService(username, imageUrl, videoUrl, titles, descriptions, tagList);
+                await handleUploadBackendService(userId, imageUrl, videoUrl, titles, descriptions, tagList);
             }
 
             // const newFile = await fetchNewestData('newest')
@@ -173,12 +172,12 @@ const ReviewForm = () => {
                         setTagList([...tagList, newTag]);
                         const tagElement = document.createElement('span');
                         tagElement.textContent = newTag;
-                        tagElement.classList.add('tags-input');
+                        tagElement.classList.add(styles.tagsInput);
 
                         //Tạo nút x để xóa tag
                         const closeButton = document.createElement('button');
                         closeButton.textContent = 'x';
-                        closeButton.classList.add('close-button');
+                        closeButton.classList.add(styles.closeButton);
 
                         //Xử lý sự kiện click vào nút x để xóa tag
                         closeButton.addEventListener('click', () => {
@@ -217,128 +216,109 @@ const ReviewForm = () => {
 
     return (
         <div>
-            <h1>Review Uploaded Files</h1>
-            <div className='container'>
-                <div className='container-left'>
-                    <div className='title-container'>
-                        <Input
-                            type='text'
-                            placeholder='Enter title'
-                            style={{ fontWeight: 800, fontSize: '30px' }}
-                            value={titles}
-                            onChange={(e) => handleTitleChange(e.target.value)}
-                        />
+            <div className={styles.container}>
+                <h1>Review Uploaded Files</h1>
+                <div className={styles.content}>
+                    <div style={{ display: 'flex', justifyContent: 'center' }}>
+                        <div className={styles.containerLeft}>
+                            <div className={styles.titleContainer}>
+                                <input
+                                    type='text'
+                                    placeholder='Give your post a unique title...'
+                                    value={titles}
+                                    onChange={(e) => handleTitleChange(e.target.value)}
+                                />
+                            </div>
+
+                            <div className={styles.fileItem}>
+                                <div className={styles.imageContainer}>
+                                    {imagesReview.map((image: string, index: number) => {
+                                        return (
+                                            <div key={index}>
+                                                <img src={image} alt={`Uploaded Image File ${index + 1}`} className={styles.fileImage} />
+                                                <div className={styles.descriptionContainer}>
+                                                    <input
+                                                        placeholder='Add description'
+                                                        value={descriptions[index]}
+                                                        onChange={(e) => handleDescriptionChange(index, e.target.value)}
+                                                    />
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                                <div className={styles.videoContainer}>
+                                    {videosReview.map((video: string, index: number) => {
+                                        const indexVideo = index + imagesReview.length;
+
+                                        return (
+                                            <div key={indexVideo}>
+                                                <video controls>
+                                                    <source src={video} type='video/mp4' className={styles.fileVideo} />
+                                                </video>
+                                                <div className={styles.descriptionContainer}>
+                                                    <input
+                                                        placeholder='Add a description'
+                                                        value={descriptions[indexVideo]}
+                                                        onChange={(e) => handleDescriptionChange(indexVideo, e.target.value)}
+                                                    />
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
-                    <div className='file-item'>
-                        <div className='image-container'>
-                            {imagesReview.map((image: string, index: number) => {
-                                return (
-                                    <div key={index}>
-                                        <img src={image} alt={`Uploaded Image File ${index + 1}`} className='file-image' />
-                                        <div className='description-container'>
-                                            <input
-                                                placeholder='Add description'
-                                                value={descriptions[index]}
-                                                onChange={(e) => handleDescriptionChange(index, e.target.value)}
-                                                className='description-input'
-                                            />
-                                        </div>
-                                    </div>
-                                );
-                            })}
+                    <div className={styles.containerRight}>
+                        <div className={styles.postContainer}>
+                            <div className={styles.title}>POST</div>
+                            <div className={styles.postButton}>
+                                <Button
+                                    sx={{
+                                        backgroundColor: 'green',
+                                        '&:hover': {
+                                            backgroundColor: 'limegreen',
+                                        },
+                                    }}
+                                    onClick={handleAddImages}
+                                >To Community</Button>
+
+                                <Button
+                                    sx={{
+                                        backgroundColor: 'gray',
+                                        '&:hover': {
+                                            backgroundColor: '#CC9900',
+                                        },
+                                    }}
+
+                                >Share Post</Button>
+                            </div>
                         </div>
-                        <div className='video-container'>
-                            {videosReview.map((video: string, index: number) => {
-                                const indexVideo = index + imagesReview.length;
 
-                                return (
-                                    <div key={indexVideo}>
-                                        <video controls>
-                                            <source src={video} type='video/mp4' className='file-video' />
-                                        </video>
-                                        <div className='description-container'>
-                                            <input
-                                                placeholder='Add description'
-                                                value={descriptions[indexVideo]}
-                                                onChange={(e) => handleDescriptionChange(indexVideo, e.target.value)}
-                                                className='description-input'
-                                            />
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </div>
+                        <div className={styles.addButton}>
+                            <div className={styles.addTagButton}>
+                                <div className={styles.title}>ADD TAGS</div>
+                                <div className={styles.tags}>
+                                    <span
+                                        className={styles.tagsInput}
+                                        contentEditable="true"
+                                        onClick={() => setTagNull(true)}
+                                        onBlur={() => setTagNull(false)}
+                                        onKeyPress={handleSaveTags}
+                                    >
+                                        {!tagNull ? '✚ Tag' : ''}
+                                    </span>
+                                </div>
+                            </div>
 
-                    <Button
-                        sx={{
-                            backgroundColor: '#FF6699',
-                            padding: '10px 40px',
-                            color: 'white',
-                            transformX: '-30%',
-                            left: '30%',
-                            borderRadius: '30px',
-                            fontWeight: 700,
-                            fontSize: '16px',
-                            '&:hover': {
-                                backgroundColor: '#FF6666',
-                            },
-                        }}
-                        onClick={handleOpenAddMoreDialog} className='add-images-button'>
-                        ✚ Add Files
-                    </Button>
-
-                </div>
-
-                <div className='container-right'>
-                    <div className='post-button'>
-                        <div style={{ fontWeight: 1000, fontSize: 22 }}>POST</div>
-                        <div style={{ marginTop: 20, display: 'flex', gap: 20 }}>
                             <Button
-                                sx={{
-                                    backgroundColor: 'green',
-                                    padding: '20px 50px',
-                                    color: 'white',
-                                    borderRadius: '10px',
-                                    fontSize: '16px',
-                                    fontWeight: 600,
-                                    '&:hover': {
-                                        backgroundColor: 'limegreen',
-                                    },
-                                }}
-                                onClick={handleAddImages}
-                            >To Community</Button>
-
-                            <Button
-                                sx={{
-                                    backgroundColor: 'gray',
-                                    padding: '20px 50px',
-                                    color: 'white',
-                                    borderRadius: '10px',
-                                    fontSize: '16px',
-                                    fontWeight: 600,
-                                    '&:hover': {
-                                        backgroundColor: '#CC9900',
-                                    },
-                                }}
-
-                            >Share Post</Button>
-                        </div>
-                    </div>
-
-                    <div className='add-tag-button'>
-                        <div style={{ fontWeight: 1000, fontSize: 22, marginTop: 100 }}>ADD TAGS</div>
-                        <div className='tags'>
-                            <span
-                                className='tags-input'
-                                contentEditable="true"
-                                onClick={() => setTagNull(true)}
-                                onBlur={() => setTagNull(false)}
-                                onKeyPress={handleSaveTags}
+                                className={styles.addImagesButton}
+                                onClick={handleOpenAddMoreDialog}
                             >
-                                {!tagNull ? '✚ Tag' : ''}
-                            </span>
+                                ✚ Add Files
+                            </Button>
                         </div>
                     </div>
                 </div>
@@ -350,8 +330,6 @@ const ReviewForm = () => {
                 color='#4fa94d'
                 ariaLabel='three-dots-loading'
                 wrapperStyle={{}}
-
-                // wrapperClassName=""
                 visible={true}
             />
             }

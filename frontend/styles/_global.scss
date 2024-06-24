@@ -1,3 +1,7 @@
+:root {
+  --primary-bg-color: #fffb;
+}
+
 html {
   line-height: 1.15;
   -ms-text-size-adjust: 100%;
@@ -294,7 +298,6 @@ input {
 
 .file-item {
   margin-bottom: 20px;
-  
 }
 
 .file-image,
@@ -310,7 +313,7 @@ input {
   gap: 15px;
 }
 
-.tags-view,.tags-input{
+.tags-view{
   border: none;
   outline: none;
   background-color: #585d6a;
@@ -362,23 +365,6 @@ input {
   } 
 }
 
-.container-box {
-  margin: 20px auto;
-  column-count: 4;
-
-  @media screen and (max-width: 1200px) {
-    column-count: 3;
-  }
-
-  @media screen and (max-width: 768px) {
-    column-count: 2;
-  }
-
-  @media screen and (max-width: 480px) {
-    column-count: 1;
-  }
-}
-
 .file-container {
   border: 1px solid gray;
   padding: 10px;
@@ -425,39 +411,6 @@ input {
   &:hover {
     color: #ffcc00;
   }
-}
-
-.heart-icon{
-  margin-left: 10px;
-}
-
-.heart-active{
-  color: #ffcc00;
-}
-
-.mes {
-  display: none;
-  background-color: #333b4c;
-  color: white;
-  padding: 5px 10px;
-  position: absolute;
-  z-index: 10;
-  border-radius: 10px; 
-  left: -25%;
-  margin-top: 5px;
-}
-
-.mes::before {
-  content: '';
-  left: 40%;
-  top: -17px;
-  position: absolute;
-  border: 10px solid transparent;
-  border-bottom-color: #333b4c; 
-}
-
-.copy-link-icon:hover + .mes {
-  display: block;
 }
 
 .icon{
@@ -547,7 +500,6 @@ input{
   min-height: 1.75rem;
   outline: none;
   padding: 7px;
-  margin-bottom: 20px;
 
   &:hover{
     border-color: rgb(52, 72, 197);
@@ -566,22 +518,5 @@ input{
   top: 120px
 }
 
-.folder-selector label {
-  font-weight: 800;
-  font-size: 20px;
-  margin-right: 10px;
-}
 
-.folder-selector select {
-  font-weight: 600;
-  font-size: 16px;
-  padding: 5px 10px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-}
 
-.folder-selector select:focus {
-  border-color: #007BFF;
-  outline: none;
-  box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
-}

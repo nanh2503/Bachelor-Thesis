@@ -6,110 +6,152 @@
   backdrop-filter: blur(7px);
   box-shadow: 0 .4rem .8rem #0005;
   border-radius: .8rem;
-  overflow: hidden;
 
-  h1 {
+  .title {
     text-align: center;
-    padding: .5rem .8rem;
+    padding-top:20px;
+    padding-bottom: 10px;
     font-weight: 800;
     color: black;
+    font-size: 35px;
   }
 
-  .userTable {
-    width: 90%;
-    background-color: #fffb;
-    margin: .8rem auto;
-    border-radius: .6rem;
+  .content{
     overflow: auto;
-    border-collapse: collapse;
-    color: black;
-    font-size: 17px;
+    display: flex;
+    flex-direction: column;
+    width: 90%;
+    justify-content: center;
 
-    th, td{
-      padding: 0.8rem;
+    .searchContainer {
+      background-color: #fffb;
+      display: flex;
+      border-radius: 30px;
+      height: 50px;
+      align-items: center;
+      margin-left: auto;
+      margin-bottom: 10px;
+      cursor: pointer;
+
+      &:hover{
+        .searchInput{
+          width: 300px;
+          padding: 10px 15px;
+        }
+      }
+
+      .searchInput {
+        font-size: 18px;
+        border: none;
+        background: none;
+        padding-left: 1.5rem;
+        width: 0;
+        padding: 0;
+        transition: all 0.25s ease-in-out;
+
+      }
+
+      button {
+        height: 30px;
+        width: 30px;
+        background: none;
+        border: none;
+        margin-right: 1rem;
+        border-radius: 50%;
+        margin-left: 0.5rem;
+        font-size: 30px;
+      }
     }
 
-    th:first-of-type{
-      border-top-left-radius: .6rem ;
-    }
-
-    th:last-of-type{
-      border-top-right-radius: .6rem;
-    }
-
-    th{
-      position: sticky;
-      top:0;
-      left:0;
-      background-color: #d5d1defe;
-      font-size: 18px;
-    }
-
-    tr:nth-child(even){
-      background-color: #0000000b;
-    }
-
-    tr:hover{
-      background-color: #fff6;
-    }
-
-    td {
-      text-align: center;
-
-      .icon {
-        cursor: pointer;
-        padding: 15px 10px;
-        height: 22px;
+    .userTable {
+      width: 100%;
+      background-color: #fffb;
+      margin: 0.8rem auto;
+      border-radius: 0.6rem;
+      overflow: hidden;
+      border-collapse: collapse;
+      color: black;
+      font-size: 17px;
+    
+      th, td {
+        padding: 0.8rem;
+      }
+    
+      th {
+        position: sticky;
+        top: 0;
+        left: 0;
+        background-color: #d5d1defe;
+        font-size: 18px;
+        &:first-of-type {
+          border-top-left-radius: 0.6rem;
+        }
+        &:last-of-type {
+          border-top-right-radius: 0.6rem;
+        }
+      }
+    
+      tr:nth-child(even) {
+        background-color: rgba(0, 0, 0, 0.05);
+      }
+    
+      tr:hover {
+        background-color: #fff6;
+      }
+    
+      td {
+        text-align: center;
         position: relative;
-        z-index: 1;
-        border-radius: 10px;
-      }
-
-      .icon:first-of-type {
-        color: #11A529;
-        &:hover {
-          background-color: #ECFFEF;
+    
+        .icon {
+          cursor: pointer;
+          padding: 15px 10px;
+          height: 22px;
+          z-index: 1;
+          border-radius: 10px;
+    
+          &:first-of-type {
+            color: #11a529;
+            &:hover {
+              background-color: #ecffef;
+            }
+          }
+    
+          &:last-of-type {
+            color: #f93333;
+            &:hover {
+              background-color: #ffefef;
+            }
+          }
+        }
+    
+        &:first-of-type {
+          font-weight: bold;
         }
       }
+    } 
 
-      .icon:last-of-type {
-        color: #F93333;
-        &:hover {
-          background-color: #FFEFEF;
-        }
-      }
+    &::-webkit-scrollbar {
+      width: 0.5rem;
+      height: 0.5rem;
     }
-
-    td:first-of-type {
-      font-weight: bold;
-      text-align: center;
+  
+    &::-webkit-scrollbar-thumb {
+      border-radius: 0.5rem;
+      background-color: rgba(0, 0, 0, 0.3);
+      visibility: hidden;
     }
-
-    td:last-of-type {
-      text-align: center;
+  
+    &:hover::-webkit-scrollbar-thumb {
+      visibility: visible;
     }
-
   }
 
-  .userTable::-webkit-scrollbar{
-    width: 0.5rem;
-    height: 0.5rem;
-  }
-
-  .userTable::-webkit-scrollbar-thumb{
-    border-radius: .5rem;
-    background-color: #0004;
-    visibility: hidden;
-  }
-
-  .userTable:hover::-webkit-scrollbar-thumb{
-    visibility: visible;
-  }
 
   .pagination {
     text-align: center;
-    margin: 20px 20px;
     user-select: none;
+    padding-bottom: 10px;
 
     li {
       display: inline-block;

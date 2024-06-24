@@ -8,6 +8,7 @@ import { FileList, Image, Video, setClickNumFile, setFavoriteFile, setFileView }
 import { clickIncrease, setFavoriteFileService } from "src/services/fileServices";
 import DeleteDialog from "./DeleteDialog";
 import { convertURLCloudToBase64 } from "src/utils/convertToBase64";
+import styles from '/styles/icon.module.scss'
 
 const MenuIcons = (props: { file: FileList, media: Image | Video, menuType: string }) => {
     const { file, media, menuType } = props;
@@ -53,7 +54,7 @@ const MenuIcons = (props: { file: FileList, media: Image | Video, menuType: stri
             dispatch(setClickNumFile({ fileId: media._id, fileType: menuType }));
             router.push(`/view/${menuType}/${media?._id}`);
 
-            await clickIncrease(user.username, menuType, media?._id);
+            await clickIncrease(user._id, menuType, media?._id);
         }
     }
 
@@ -63,7 +64,7 @@ const MenuIcons = (props: { file: FileList, media: Image | Video, menuType: stri
         router.push(`/edit/${menuType}/${media?._id}`)
 
         if (user) {
-            await clickIncrease(user.username, menuType, media?._id);
+            await clickIncrease(user._id, menuType, media?._id);
         }
     }
 
@@ -113,53 +114,53 @@ const MenuIcons = (props: { file: FileList, media: Image | Video, menuType: stri
         if (user) {
             media.isFavorite = !media.isFavorite;
             dispatch(setFavoriteFile({ fileType: menuType, fileId: media._id, isFavor: media.isFavorite ? true : false }))
-            await setFavoriteFileService(user.username, menuType, media._id);
+            await setFavoriteFileService(user._id, menuType, media._id);
         }
     }
 
     return (
         <div>
             <div style={{ position: 'absolute', top: 0, left: 0, paddingTop: '10px', zIndex: 1 }}>
-                <div className='icon-container'>
+                <div className={styles.iconContainer}>
                     <FontAwesomeIcon
                         icon={faHeart}
-                        className={`heart-icon ${media.isFavorite ? 'heart-active' : ''}`}
+                        className={`${styles.heartIcon} ${media.isFavorite ? styles.heartActive : ''}`}
                         onClick={handleSetFavoriteFile}
                     />
                 </div>
             </div>
 
             <div style={{ position: 'absolute', top: 0, right: 0, paddingTop: '10px', zIndex: 1 }}>
-                <div className='icon-container'>
+                <div className={styles.iconContainer}>
                     <FontAwesomeIcon
                         icon={faLink}
-                        className="copy-link-icon"
+                        className={styles.copyLinkIcon}
                         onClick={() => handleClickToCopy(urlFile)}
                         onMouseLeave={() => setCopyMes(false)}
                     />
-                    <div className='mes'>
+                    <div className={styles.mes}>
                         {!copyMes ? " Copy Link" : "Copied!"}
                     </div>
                 </div>
-                <div className='icon-container'>
+                <div className={styles.iconContainer}>
                     <FontAwesomeIcon
                         icon={faEllipsisVertical}
                         aria-haspopup="true"
-                        className="menu-icon"
+                        className={styles.menuIcon}
                         onClick={handleMenuOpen}
                     />
                     <Menu
                         anchorEl={anchorEl}
                         open={Boolean(anchorEl)}
                         onClose={handleMenuClose}
-                        sx={{ '& .MuiMenu-paper': { width: 200, marginTop: 2 } }}
+                        classes={{ paper: styles.menu }}
                         anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
                         transformOrigin={{ vertical: 'top', horizontal: 'left' }}
                     >
                         <MenuItem sx={{ p: 0 }} onClick={handleViewFileOnMenu}>
                             <FontAwesomeIcon
                                 icon={faUpDownLeftRight}
-                                className='icon'
+                                className={styles.icon}
                             />
                             Open
                         </MenuItem>
@@ -170,7 +171,7 @@ const MenuIcons = (props: { file: FileList, media: Image | Video, menuType: stri
                             >
                                 <FontAwesomeIcon
                                     icon={faEdit}
-                                    className='icon'
+                                    className={styles.icon}
                                 />
                                 Edit
                             </MenuItem>
@@ -179,7 +180,7 @@ const MenuIcons = (props: { file: FileList, media: Image | Video, menuType: stri
                         <MenuItem sx={{ p: 0 }} onClick={handleMenuClose}>
                             <FontAwesomeIcon
                                 icon={faDownload}
-                                className='icon'
+                                className={styles.icon}
                             />
                             <a href={base64Code} download style={{ textDecoration: 'none', color: '#534f5a' }}>
                                 Download
@@ -189,33 +190,33 @@ const MenuIcons = (props: { file: FileList, media: Image | Video, menuType: stri
                         <MenuItem sx={{ p: 0 }} onClick={handleSubMenuOpen}>
                             <FontAwesomeIcon
                                 icon={faShareNodes}
-                                className='icon'
+                                className={styles.icon}
                             />
                             Share
                             <FontAwesomeIcon
                                 icon={faChevronRight}
-                                className={`icon-right ${Boolean(subAnchorEl) ? 'active' : ''}`}
+                                className={`${styles.iconRight} ${Boolean(subAnchorEl) ? styles.active : ''}`}
                             />
                         </MenuItem>
                         <Menu
                             anchorEl={subAnchorEl}
                             open={Boolean(subAnchorEl)}
                             onClose={handleSubMenuClose}
-                            sx={{ '& .MuiMenu-paper': { width: 200, marginTop: -10, marginLeft: 1 } }}
+                            classes={{ paper: styles.subMenu }}
                             anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
                             transformOrigin={{ vertical: 'top', horizontal: 'left' }}
                         >
                             <MenuItem sx={{ p: 0 }} onClick={handleCopyLink}>
                                 <FontAwesomeIcon
                                     icon={faPaperclip}
-                                    className='icon'
+                                    className={styles.icon}
                                 />
                                 Public link
                             </MenuItem>
                             <MenuItem sx={{ p: 0 }} onClick={() => handleClickToCopy(base64Code)}>
                                 <FontAwesomeIcon
                                     icon={faLink}
-                                    className='icon'
+                                    className={styles.icon}
                                 />
                                 Base64 Code
                             </MenuItem>
@@ -224,7 +225,7 @@ const MenuIcons = (props: { file: FileList, media: Image | Video, menuType: stri
                         <MenuItem sx={{ p: 0 }} onClick={handleOpenDeleteDialog}>
                             <FontAwesomeIcon
                                 icon={faTrash}
-                                className='icon'
+                                className={styles.icon}
                             />
                             Delete
                         </MenuItem>

@@ -1,0 +1,78 @@
+.container{
+  .layoutContainer {
+    height: 100%;
+    display: flex;
+
+    .verticalNav {
+      width: 15%;
+      min-width: 200px;
+
+      @media screen and (max-width:1200px) {
+        display: none;
+      }
+    }
+    
+    .layoutContent {
+      width: 100%;
+      min-height: 100vh;
+
+      @media screen and (max-width:1200px) {
+        width: 100%;
+      }
+
+      .appBar{
+        width: 100%;
+
+        .appBarContent{
+          height: 10vh;
+        }
+  
+        .hiddenAppBar{
+          height: 0;
+        }
+      }
+
+      .layoutPage {
+        width: 90%;
+        margin: 0 auto;
+        padding-top: 2.5rem;
+        // padding-left: 2rem;
+        transition: padding 0.25s ease-in-out;
+        height: 55vh;
+
+        @media (max-width: 600px) {
+          width: 100%;
+          padding-left: 1rem;
+          padding-right: 0;
+        }
+
+        @media screen and (max-width:1545px) {
+          width: 95%;
+        }
+      }
+    }
+  }
+  
+  .fixedButton {
+    position: fixed;
+    bottom: 1rem;
+    right: 1rem;
+
+    .fab {
+      background-color: #1976d2;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    
+      &:hover {
+        background-color: #115293;
+      }
+    }
+  }
+}

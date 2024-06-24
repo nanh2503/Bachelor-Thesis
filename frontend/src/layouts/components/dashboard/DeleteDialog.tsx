@@ -17,7 +17,7 @@ const DeleteDialog = ({ deleteId, fileType, deleteType, onDelete, onCancel }: De
 
     const dispatch = useDispatch();
 
-    const user = useSelector((state) => state.localStorage.userInfoState.userInfo);
+    const user = useSelector((state) => state.localStorage.userState.user);
     const accessToken = useSelector((state) => state.localStorage.userState.accessToken);
 
     const [isOpen, setOpen] = useState(true);
@@ -37,7 +37,7 @@ const DeleteDialog = ({ deleteId, fileType, deleteType, onDelete, onCancel }: De
             if (user) {
                 if (deleteType === 'file' && fileType) {
                     dispatch(deleteFile({ type: fileType, deleteId: deleteId }));
-                    await deleteData(user?.username, fileType, deleteId);
+                    await deleteData(user?._id, fileType, deleteId);
                 } else {
                     console.log('check deleteId: ', deleteId);
                     if (onDelete) {

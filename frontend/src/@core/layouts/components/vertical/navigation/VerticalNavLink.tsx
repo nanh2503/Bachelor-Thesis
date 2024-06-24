@@ -113,19 +113,7 @@ const VerticalNavLink = ({ item, navVisible, toggleNavVisibility }: Props) => {
           </ListItemIcon>
 
           <MenuItemTextMetaWrapper>
-            <Typography {...(themeConfig.menuTextTruncate && { noWrap: true })}>{item.title}</Typography>
-            {item.badgeContent ? (
-              <Chip
-                label={item.badgeContent}
-                color={item.badgeColor || 'primary'}
-                sx={{
-                  height: 20,
-                  fontWeight: 500,
-                  marginLeft: 1.25,
-                  '& .MuiChip-label': { px: 1.5, textTransform: 'capitalize' }
-                }}
-              />
-            ) : null}
+            <Typography style={{ color: '#000' }}>{item.title}</Typography>
           </MenuItemTextMetaWrapper>
         </MenuNavLink>
       </Link>

@@ -1,15 +1,9 @@
-// ** Icon imports
 import { HomeOutline, AccountCogOutline } from 'mdi-material-ui';
-import FavoriteIcon from '@mui/icons-material/Favorite';
-import CollectionsBookmarkIcon from '@mui/icons-material/CollectionsBookmark';
-import PeopleAltIcon from '@mui/icons-material/PeopleAlt';
-
-// ** Type import
+import { CollectionsBookmark, Favorite } from '@mui/icons-material';
 import { VerticalNavItemsType } from 'src/@core/layouts/types';
 
 const navigation = (role: string): VerticalNavItemsType => {
   if (role === "ADMIN") {
-    // Navigation for Admin
     return [
       {
         title: 'Dashboard',
@@ -17,13 +11,8 @@ const navigation = (role: string): VerticalNavItemsType => {
         path: '/'
       },
       {
-        title: 'Manage Users',
-        icon: PeopleAltIcon,
-        path: '/manage-users'
-      },
-      {
         title: 'Collections',
-        icon: CollectionsBookmarkIcon,
+        icon: CollectionsBookmark,
         path: '/collection'
       },
       {
@@ -33,7 +22,6 @@ const navigation = (role: string): VerticalNavItemsType => {
       }
     ];
   } else {
-    // Navigation for User
     return [
       {
         title: 'Dashboard',
@@ -42,12 +30,12 @@ const navigation = (role: string): VerticalNavItemsType => {
       },
       {
         title: 'Favorite',
-        icon: FavoriteIcon,
+        icon: Favorite,
         path: '/favorite'
       },
       {
         title: 'Collections',
-        icon: CollectionsBookmarkIcon,
+        icon: CollectionsBookmark,
         path: '/collection'
       },
       {

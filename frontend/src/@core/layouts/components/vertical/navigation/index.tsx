@@ -1,126 +1,62 @@
-// ** React Import
-import { ReactNode, useRef, useState } from 'react'
-
-// ** MUI Import
-import List from '@mui/material/List'
-import Box, { BoxProps } from '@mui/material/Box'
-import { styled, useTheme } from '@mui/material/styles'
-
-// ** Third Party Components
-import PerfectScrollbar from 'react-perfect-scrollbar'
-
-// ** Type Import
-import { Settings } from 'src/@core/context/settingsContext'
-import { VerticalNavItemsType } from 'src/@core/layouts/types'
-
-// ** Component Imports
-import Drawer from './Drawer'
-import VerticalNavItems from './VerticalNavItems'
-import VerticalNavHeader from './VerticalNavHeader'
-
-// ** Util Import
-import { hexToRGBA } from 'src/@core/utils/hex-to-rgba'
-import { Badge } from '@mui/material'
-import { BadgeContentSpan } from '../../shared-components/UserDropdown'
-import Avatar from '@mui/material/Avatar'
-import Typography from '@mui/material/Typography'
-import { useSelector } from 'src/app/hooks'
-import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import { ReactNode, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { useRouter } from 'next/router';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faArrowCircleLeft } from "@fortawesome/free-solid-svg-icons";
+import Avatar from '@mui/material/Avatar';
+import Badge from '@mui/material/Badge';
+import Typography from '@mui/material/Typography';
+import Box from '@mui/material/Box';
+import VerticalNavItems from './VerticalNavItems';
+import VerticalNavHeader from './VerticalNavHeader';
+import { BadgeContentSpan } from '../../shared-components/UserDropdown';
+import { logoutUser } from 'src/app/redux/slices/userSlice';
+import { Settings } from 'src/@core/context/settingsContext';
+import { VerticalNavItemsType } from 'src/@core/layouts/types';
+import styles from '/styles/navigation.module.scss'; // Import combined CSS module
+import { List } from '@mui/material';
 
 interface Props {
-  hidden: boolean
-  navWidth: number
-  settings: Settings
-  children: ReactNode
-  navVisible: boolean
-  toggleNavVisibility: () => void
-  setNavVisible: (value: boolean) => void
-  verticalNavItems?: VerticalNavItemsType
-  saveSettings: (values: Settings) => void
-  verticalNavMenuContent?: (props?: any) => ReactNode
-  afterVerticalNavMenuContent?: (props?: any) => ReactNode
-  beforeVerticalNavMenuContent?: (props?: any) => ReactNode
+  hidden: boolean;
+  settings: Settings;
+  children: ReactNode;
+  navVisible: boolean;
+  toggleNavVisibility: () => void;
+  setNavVisible: (value: boolean) => void;
+  verticalNavItems?: VerticalNavItemsType;
+  saveSettings: (values: Settings) => void;
 }
 
-const StyledBoxForShadow = styled(Box)<BoxProps>({
-  top: 50,
-  left: -8,
-  zIndex: 2,
-  height: 75,
-  display: 'none',
-  position: 'absolute',
-  pointerEvents: 'none',
-  width: 'calc(100% + 15px)',
-  '&.d-block': {
-    display: 'block'
-  }
-})
-
 const Navigation = (props: Props) => {
-  // ** Props
   const {
     hidden,
-    afterVerticalNavMenuContent,
-    beforeVerticalNavMenuContent,
-    verticalNavMenuContent: userVerticalNavMenuContent
-  } = props
+    navVisible,
+  } = props;
 
-  // ** States
-  const [groupActive, setGroupActive] = useState<string[]>([])
-  const [currentActiveGroup, setCurrentActiveGroup] = useState<string[]>([])
-  const isLoggedIn = useSelector((state) => state.localStorage.userState.isLoggedIn)
+  const router = useRouter();
+  const dispatch = useDispatch();
+  const [groupActive, setGroupActive] = useState<string[]>([]);
+  const [currentActiveGroup, setCurrentActiveGroup] = useState<string[]>([]);
+  const userInfo = useSelector((state: any) => state.localStorage.userInfoState.userInfo);
 
-  const userInfo = useSelector((state) => state.localStorage.userInfoState.userInfo)
+  const handleLogOut = () => {
+    router.push("/login");
+    dispatch(logoutUser());
+  };
 
-  // ** Ref
-  const shadowRef = useRef(null)
-
-  // ** Hooks
-  const theme = useTheme()
-
-  // ** Fixes Navigation InfiniteScroll
-  const handleInfiniteScroll = (ref: HTMLElement) => {
-    if (ref) {
-      // @ts-ignore
-      ref._getBoundingClientRect = ref.getBoundingClientRect
-
-      ref.getBoundingClientRect = () => {
-        // @ts-ignore
-        const original = ref._getBoundingClientRect()
-
-        return { ...original, height: Math.floor(original.height) }
-      }
-    }
-  }
-
-  // ** Scroll Menu
-  const scrollMenu = (container: any) => {
-    container = hidden ? container.target : container
-    if (shadowRef && container.scrollTop > 0) {
-      // @ts-ignore
-      if (!shadowRef.current.classList.contains('d-block')) {
-        // @ts-ignore
-        shadowRef.current.classList.add('d-block')
-      }
-    } else {
-      // @ts-ignore
-      shadowRef.current.classList.remove('d-block')
-    }
-  }
-
-  const ScrollWrapper = hidden ? Box : PerfectScrollbar
+  console.log('check navVisible: ', navVisible);
 
   return (
-    <Drawer {...props}>
+    <div className={styles.drawer}>
       <VerticalNavHeader {...props} />
-      <Box sx={{ pt: 7, pb: 3, px: 4, ml: 3, mt: 2 }}>
+      <Box sx={{ pt: 7, pb: 3, px: 4, mt: 2 }}>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Badge
             overlap='circular'
             badgeContent={<BadgeContentSpan />}
             anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
           >
-            <Avatar alt='{userInfo?.username}' src={userInfo?.avatar ?? '/images/avatars/male.png'} sx={{ width: '2.5rem', height: '2.5rem' }} />
+            <Avatar alt={userInfo?.username} src={userInfo?.avatar ?? '/images/avatars/male.png'} sx={{ width: '3rem', height: '3rem', border: '1px solid #9E69FD' }} />
           </Badge>
           <Box sx={{ display: 'flex', marginLeft: 3, alignItems: 'flex-start', flexDirection: 'column' }}>
             <Typography sx={{ fontWeight: 600, fontSize: 18 }}>{userInfo?.username}</Typography>
@@ -130,35 +66,17 @@ const Navigation = (props: Props) => {
           </Box>
         </Box>
       </Box>
-      <StyledBoxForShadow
-        ref={shadowRef}
-        sx={{
-          background: `linear-gradient(${theme.palette.background.default} 40%,${hexToRGBA(
-            theme.palette.background.default,
-            0.1
-          )} 95%,${hexToRGBA(theme.palette.background.default, 0.05)})`
-        }}
-      />
       <Box sx={{ height: '100%', position: 'relative', overflow: 'hidden' }}>
-        {/* @ts-ignore */}
-        <ScrollWrapper
-          {...(hidden
-            ? {
-              onScroll: (container: any) => scrollMenu(container),
-              sx: { height: '100%', overflowY: 'auto', overflowX: 'hidden' }
-            }
-            : {
-              options: { wheelPropagation: false },
-              onScrollY: (container: any) => scrollMenu(container),
-              containerRef: (ref: any) => handleInfiniteScroll(ref)
-            })}
+        <Box
+          sx={{
+            height: '100%',
+            overflowY: hidden ? 'auto' : 'hidden',
+            overflowX: 'hidden',
+          }}
         >
-          {beforeVerticalNavMenuContent ? beforeVerticalNavMenuContent(props) : null}
           <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-            {userVerticalNavMenuContent ? (
-              userVerticalNavMenuContent(props)
-            ) : (
-              <List className='nav-items' sx={{ transition: 'padding .25s ease', pr: 4.5 }}>
+            <div>
+              <List className={styles.navItems} sx={{ transition: 'padding .25s ease', pr: 4.5 }}>
                 <VerticalNavItems
                   groupActive={groupActive}
                   setGroupActive={setGroupActive}
@@ -167,13 +85,18 @@ const Navigation = (props: Props) => {
                   {...props}
                 />
               </List>
-            )}
+              <div className={styles.btnMenu}>
+                <button className={styles.logout} onClick={handleLogOut}>
+                  <FontAwesomeIcon icon={faArrowCircleLeft} className={styles.icon} />
+                  <span className="px-2">Log Out</span>
+                </button>
+              </div>
+            </div>
           </Box>
-        </ScrollWrapper>
+        </Box>
       </Box>
-      {afterVerticalNavMenuContent ? afterVerticalNavMenuContent(props) : null}
-    </Drawer>
-  )
-}
+    </div>
+  );
+};
 
-export default Navigation
+export default Navigation;

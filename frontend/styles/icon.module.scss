@@ -1,0 +1,89 @@
+.iconContainer {
+    display: inline-block;
+}
+
+.heartIcon,
+.copyLinkIcon,
+.menuIcon {
+    color: #fff;
+    margin-right: 10px;
+    cursor: pointer;
+    transition: color 0.3s ease-in-out;
+    background-color: rgba(0, 0, 0, 0.7);
+    padding: 10px 10px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    position: relative;
+    z-index: 1;
+    margin-left: 10px;
+
+    &:hover {
+        color: #ffcc00;
+    }
+
+    &.heartActive {
+        color: #ffcc00;
+    }
+}
+
+.mes {
+    display: none;
+    background-color: #333b4c;
+    color: white;
+    padding: 5px 10px;
+    position: absolute;
+    z-index: 10;
+    border-radius: 10px; 
+    left: -25%;
+    margin-top: 5px;
+
+    &::before {
+        content: '';
+        left: 40%;
+        top: -17px;
+        position: absolute;
+        border: 10px solid transparent;
+        border-bottom-color: #333b4c; 
+    }
+}
+
+.menu, .subMenu {
+    width: 200px;
+
+    .icon {
+        margin: 5px 10px;
+        cursor: pointer;
+        padding: 15px 10px;
+        height: 22px;
+        position: relative;
+        z-index: 1;
+        border-radius: 10px;
+
+        &:hover {
+            background-color: rgb(116, 193, 116);
+        }
+    }
+}
+
+.subMenu{
+    margin-top: -45px;
+    margin-left: 3px;
+}
+
+.copyLinkIcon:hover + .mes {
+    display: block;
+}
+
+.iconRight {
+    margin-left: 70px;
+    transform: rotate(-90deg);
+    transition: 0.3s;
+    cursor: pointer;
+
+    &.active {
+        transform: rotate(0deg);
+        transition: 0.3s;
+    }
+}
+

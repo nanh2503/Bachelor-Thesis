@@ -94,7 +94,7 @@ const UploadForm = (props: PropsWithoutRef<{
   }
 
   return (
-    <div id='upload-form' contentEditable="true" className="Dialog UploadDialog">
+    <div id='upload-form' contentEditable="true" className="Dialog UploadDialog" style={{ display: 'flex', justifyContent: 'center', margin: 'auto auto', alignItems: 'center' }}>
       <div className="Dialog-wrapper">
         <button type="button" aria-label="close" className="PopUpClose" onClick={handleClose}>
           <img src="/images/pages/upload/close.svg" alt="Close" />
