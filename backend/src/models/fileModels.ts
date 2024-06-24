@@ -22,7 +22,7 @@ export interface FileInterface {
 }
 
 export interface FileListInterface extends Document {
-    username: string;
+    userId: string;
     fileList: FileInterface[];
     imagesNum: number;
     videosNum: number;
@@ -86,7 +86,7 @@ const fileSchema = new mongoose.Schema<FileInterface>(
 
 const schema = new mongoose.Schema<FileListInterface>(
     {
-        username: {
+        userId: {
             type: String,
             required: true
         },

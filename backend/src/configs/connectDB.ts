@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 
 export default async function connectDB() {
     try {
+        console.log('connect MongoDB');
         const dbUrl = process.env.DATABASE_URL || '';
         if (!dbUrl) {
             throw new Error("DATABASE_URL is not defined in the environment variable");

@@ -1,7 +1,7 @@
 import { FileData } from "../controllers/fileController";
 import FileList, { FileImage, FileVideo } from "../models/fileModels";
 
-export const handleUploadFile = (username: string, imageUrl: string[], videoUrl: string[], title: string, description: string[], tagList: string[]): Promise<FileData> => {
+export const handleUploadFile = (userId: string, imageUrl: string[], videoUrl: string[], title: string, description: string[], tagList: string[]): Promise<FileData> => {
     return new Promise(async (resolve, reject) => {
         try {
             let fileData: FileData = { errCode: -1, errMessage: '' };
@@ -27,11 +27,11 @@ export const handleUploadFile = (username: string, imageUrl: string[], videoUrl:
                 tagList: tagList
             }
 
-            const userFileList = await FileList.findOne({ username: username })
+            const userFileList = await FileList.findOne({ userId: userId })
 
             if (!userFileList) {
                 const newFileList = new FileList({
-                    username: username,
+                    userId: userId,
                     fileList: fileList,
                     imagesNum: imageUrl.length,
                     videosNum: videoUrl.length
@@ -40,7 +40,7 @@ export const handleUploadFile = (username: string, imageUrl: string[], videoUrl:
                 await newFileList.save();
                 fileData.file = newFileList.toObject();
             } else {
-                userFileList.username = username;
+                userFileList.userId = userId;
                 userFileList.fileList = [...userFileList.fileList, fileList]
                 userFileList.imagesNum += imageUrl.length;
                 userFileList.videosNum += videoUrl.length;
@@ -61,9 +61,10 @@ export const handleUploadFile = (username: string, imageUrl: string[], videoUrl:
 export const handleFetchDataService = async (arg: string, page?: number): Promise<FileData> => {
     try {
         let fileData: FileData = { errCode: -1, errMessage: '', file: [] };
+        console.log('check arg: ', arg);
 
         if (arg === 'All') {
-            const fileList = await FileList.find({}, { _id: 1, fileList: 1, imagesNum: 1, videosNum: 1 });
+            const fileList = await FileList.find({}, { _id: 1, userId: 1, fileList: 1, imagesNum: 1, videosNum: 1 });
 
             fileData.errCode = 0;
             fileData.errMessage = 'Get File successful!';
@@ -85,7 +86,7 @@ export const handleFetchDataService = async (arg: string, page?: number): Promis
                 console.log('check arg: ', arg);
 
                 const fileList = await FileList.aggregate([
-                    { $match: { username: arg } },
+                    { $match: { userId: arg } },
                     {
                         $project: {
                             fileList: { $slice: ["$fileList", skip, limit] },
@@ -108,7 +109,7 @@ export const handleFetchDataService = async (arg: string, page?: number): Promis
     }
 };
 
-export const hanldeGetFavoriteFileService = (username: string, page?: number): Promise<FileData> => {
+export const hanldeGetFavoriteFileService = (userId: string, page?: number): Promise<FileData> => {
     return new Promise(async (resolve, reject) => {
         try {
             let fileData: FileData = { errCode: -1, errMessage: '' };
@@ -118,7 +119,7 @@ export const hanldeGetFavoriteFileService = (username: string, page?: number): P
                 const skip = (page - 1) * limit;
 
                 const fileList = await FileList.aggregate([
-                    { $match: { username: username } },
+                    { $match: { userId: userId } },
                     {
                         $project: {
                             fileList: {
@@ -163,11 +164,11 @@ export const hanldeGetFavoriteFileService = (username: string, page?: number): P
     })
 }
 
-export const handleUpdateDataService = async (username: string, fileType: string, id: string, title: string, description: string, tagList: string[]): Promise<FileData> => {
+export const handleUpdateDataService = async (userId: string, fileType: string, id: string, title: string, description: string, tagList: string[]): Promise<FileData> => {
     try {
         let fileData: FileData = { errCode: -1, errMessage: '', file: [] };
 
-        let existingData = await FileList.findOne({ username: username })
+        let existingData = await FileList.findOne({ userId: userId })
 
         if (!existingData) {
             fileData.errCode = 2;
@@ -206,10 +207,10 @@ export const handleUpdateDataService = async (username: string, fileType: string
     }
 }
 
-export const handleDeleteDataService = async (username: string, fileType: string, id: string): Promise<FileData> => {
+export const handleDeleteDataService = async (userId: string, fileType: string, id: string): Promise<FileData> => {
     try {
         let fileData: FileData = { errCode: -1, errMessage: '', file: [] };
-        let existingData = await FileList.findOne({ username: username })
+        let existingData = await FileList.findOne({ userId: userId })
 
         if (!existingData) {
             fileData.errCode = 2;
@@ -261,10 +262,10 @@ export const handleDeleteDataService = async (username: string, fileType: string
     }
 };
 
-export const handleClickService = async (username: string, fileType: string, id: string): Promise<FileData> => {
+export const handleClickService = async (userId: string, fileType: string, id: string): Promise<FileData> => {
     try {
         let fileData: FileData = { errCode: -1, errMessage: '', file: [] }
-        let existingData = await FileList.findOne({ username: username })
+        let existingData = await FileList.findOne({ userId: userId })
 
         if (!existingData) {
             fileData.errCode = 2;
@@ -306,11 +307,11 @@ export const handleClickService = async (username: string, fileType: string, id:
     }
 }
 
-export const handleSetFavoriteService = async (username: string, fileType: string, id: string): Promise<FileData> => {
+export const handleSetFavoriteService = async (userId: string, fileType: string, id: string): Promise<FileData> => {
 
     try {
         let fileData: FileData = { errCode: -1, errMessage: '', file: [] }
-        let existingData = await FileList.findOne({ username: username })
+        let existingData = await FileList.findOne({ userId: userId })
 
         if (!existingData) {
             fileData.errCode = 2;
