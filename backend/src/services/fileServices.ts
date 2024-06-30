@@ -1,70 +1,95 @@
+import mongoose, { Types } from "mongoose";
 import { FileData } from "../controllers/fileController";
-import FileList, { FileImage, FileVideo } from "../models/fileModels";
+import FileList, { FileInterface, FileListInterface } from "../models/fileModels";
+import ImageModel from "../models/imageModels";
+import VideoModel from "../models/videoModels";
 
 export const handleUploadFile = (userId: string, imageUrl: string[], videoUrl: string[], title: string, description: string[], tagList: string[]): Promise<FileData> => {
+
     return new Promise(async (resolve, reject) => {
         try {
-            let fileData: FileData = { errCode: -1, errMessage: '' };
+            let fileData: FileData = { errCode: -1, errMessage: '', file: [] };
 
-            const images = imageUrl.map((image, index) => ({
-                imageUrl: image || '',
-                description: description[index] || '',
-                clickNum: 0,
-                isFavorite: false,
-            }));
-
-            const videos = videoUrl.map((video, index) => ({
-                videoUrl: video || '',
-                description: description[index + imageUrl.length] || '',
-                clickNum: 0,
-                isFavorite: false,
-            }));
-
-            const fileList = {
-                images: images as unknown as FileImage[],
-                videos: videos as unknown as FileVideo[],
-                title: title,
-                tagList: tagList
+            // Lưu các ảnh vào ImageModel và thu thập các ObjectId
+            const imageIds: Types.ObjectId[] = [];
+            for (let i = 0; i < imageUrl.length; i++) {
+                const image = new ImageModel({
+                    imageUrl: imageUrl[i],
+                    description: description[i] || '',
+                    clickNum: 0,
+                    isFavorite: false,
+                });
+                const savedImage = await image.save();
+                imageIds.push(savedImage._id);
             }
 
-            const userFileList = await FileList.findOne({ userId: userId })
+            // Lưu các video vào VideoModel và thu thập các ObjectId
+            const videoIds: Types.ObjectId[] = [];
+            for (let i = 0; i < videoUrl.length; i++) {
+                const video = new VideoModel({
+                    videoUrl: videoUrl[i],
+                    description: description[i + imageUrl.length] || '',
+                    clickNum: 0,
+                    isFavorite: false,
+                });
+                const savedVideo = await video.save();
+                videoIds.push(savedVideo._id);
+            }
 
-            if (!userFileList) {
-                const newFileList = new FileList({
-                    userId: userId,
-                    fileList: fileList,
-                    imagesNum: imageUrl.length,
-                    videosNum: videoUrl.length
-                })
+            const newFile: FileInterface = {
+                _id: new mongoose.Types.ObjectId(),
+                imageIds,
+                videoIds,
+                title,
+                tagList,
+            };
 
-                await newFileList.save();
-                fileData.file = newFileList.toObject();
+            // Kiểm tra xem người dùng đã có danh sách tệp hay chưa
+            let fileList = await FileList.findOne({ userId });
+
+            if (!fileList) {
+                // Tạo danh sách tệp mới nếu chưa tồn tại
+                fileList = new FileList({
+                    userId,
+                    fileList: [newFile],
+                    imagesNum: imageIds.length,
+                    videosNum: videoIds.length,
+                });
             } else {
-                userFileList.userId = userId;
-                userFileList.fileList = [...userFileList.fileList, fileList]
-                userFileList.imagesNum += imageUrl.length;
-                userFileList.videosNum += videoUrl.length;
-
-                await userFileList.save();
+                // Cập nhật danh sách tệp hiện có
+                fileList.fileList.push(newFile);
+                fileList.imagesNum += imageIds.length;
+                fileList.videosNum += videoIds.length;
             }
+
+            // Lưu tệp danh sách đã cập nhật vào MongoDB
+            await fileList.save();
 
             fileData.errCode = 0;
             fileData.errMessage = 'Upload File successful!';
+            fileData.file = fileList.toObject(); // Convert to plain JavaScript object
 
             resolve(fileData);
-        } catch (e) {
-            reject(e);
+        } catch (error) {
+            console.error('Error in handleUploadFile:', error);
+            reject(error);
         }
-    })
-}
+    });
+};
 
 export const handleFetchDataService = async (arg: string, page?: number): Promise<FileData> => {
     try {
         let fileData: FileData = { errCode: -1, errMessage: '', file: [] };
-        console.log('check arg: ', arg);
 
         if (arg === 'All') {
-            const fileList = await FileList.find({}, { _id: 1, userId: 1, fileList: 1, imagesNum: 1, videosNum: 1 });
+            const fileList = await FileList.find({}, { _id: 1, userId: 1, fileList: 1, imagesNum: 1, videosNum: 1 })
+                .populate({
+                    path: 'fileList',
+                    populate: [
+                        { path: 'imageIds', model: 'Image' },
+                        { path: 'videoIds', model: 'Video' }
+                    ]
+                });
 
             fileData.errCode = 0;
             fileData.errMessage = 'Get File successful!';
@@ -72,18 +97,23 @@ export const handleFetchDataService = async (arg: string, page?: number): Promis
         } else if (arg === 'newest') {
             const fileList = await FileList.find({}, { _id: 1, fileList: 1, imagesNum: 1, videosNum: 1 })
                 .sort({ createdAt: -1 })
-                .limit(1);
+                .limit(1)
+                .populate({
+                    path: 'fileList',
+                    populate: [
+                        { path: 'imageIds', model: 'Image' },
+                        { path: 'videoIds', model: 'Video' }
+                    ]
+                });
 
             fileData.errCode = 0;
             fileData.errMessage = 'Get Newest File successful!';
             fileData.file = fileList;
-        }
-        else {
+        } else {
             if (page) {
                 if (page < 0) page = 1;
                 const limit = 1;
                 const skip = (page - 1) * limit;
-                console.log('check arg: ', arg);
 
                 const fileList = await FileList.aggregate([
                     { $match: { userId: arg } },
@@ -94,111 +124,156 @@ export const handleFetchDataService = async (arg: string, page?: number): Promis
                             videosNum: 1
                         }
                     }
-                ])
+                ]);
+
+                // Extract file IDs for further population
+                const fileIds = fileList.map(file => file.fileList.map((f: FileInterface) => f._id)).flat();
+
+                // Populate images and videos
+                const populatedFiles = await FileList.populate(fileList, [
+                    { path: 'fileList.imageIds', model: 'Image' },
+                    { path: 'fileList.videoIds', model: 'Video' }
+                ]);
 
                 fileData.errCode = 0;
                 fileData.errMessage = 'Get File successful!';
-                fileData.file = fileList;
+                fileData.file = populatedFiles;
             }
         }
 
         return fileData;
     } catch (e) {
-        console.error(e);
+        console.error('Error in handleFetchDataService:', e);
         throw e;
     }
 };
 
-export const hanldeGetFavoriteFileService = (userId: string, page?: number): Promise<FileData> => {
-    return new Promise(async (resolve, reject) => {
-        try {
-            let fileData: FileData = { errCode: -1, errMessage: '' };
+export const hanldeGetFavoriteFileService = async (userId: string, page?: number): Promise<FileData> => {
+    try {
+        let fileData: FileData = { errCode: -1, errMessage: '' };
 
-            if (page) {
-                const limit = 1;
-                const skip = (page - 1) * limit;
+        if (page) {
+            const limit = 10;
+            const skip = (page - 1) * limit;
 
-                const fileList = await FileList.aggregate([
-                    { $match: { userId: userId } },
-                    {
-                        $project: {
-                            fileList: {
-                                $map: {
-                                    input: "$fileList",
-                                    as: "file",
-                                    in: {
-                                        images: {
-                                            $filter: {
-                                                input: "$$file.images",
-                                                as: "image",
-                                                cond: { $eq: ["$$image.isFavorite", true] }
-                                            }
-                                        },
-                                        videos: {
-                                            $filter: {
-                                                input: "$$file.videos",
-                                                as: "video",
-                                                cond: { $eq: ["$$video.isFavorite", true] }
-                                            }
-                                        },
-                                        title: "$$file.title",
-                                        tagList: "$$file.tagList",
-                                    }
-                                }
+            const fileList: Partial<FileListInterface>[] = await FileList.aggregate([
+                { $match: { userId } },
+                { $unwind: '$fileList' },
+                {
+                    $lookup: {
+                        from: 'images',
+                        localField: 'fileList.imageIds',
+                        foreignField: '_id',
+                        as: 'images'
+                    }
+                },
+                {
+                    $lookup: {
+                        from: 'videos',
+                        localField: 'fileList.videoIds',
+                        foreignField: '_id',
+                        as: 'videos'
+                    }
+                },
+                {
+                    $project: {
+                        _id: '$fileList._id',
+                        images: {
+                            $filter: {
+                                input: '$images',
+                                as: 'image',
+                                cond: { $eq: ['$$image.isFavorite', true] }
                             }
-                        }
-                    },
-                    { $skip: skip },
-                    { $limit: limit }
-                ]);
+                        },
+                        videos: {
+                            $filter: {
+                                input: '$videos',
+                                as: 'video',
+                                cond: { $eq: ['$$video.isFavorite', true] }
+                            }
+                        },
+                        title: '$fileList.title',
+                        tagList: '$fileList.tagList'
+                    }
+                },
+                {
+                    $match: {
+                        $or: [
+                            { 'images': { $exists: true, $ne: [] } },
+                            { 'videos': { $exists: true, $ne: [] } }
+                        ]
+                    }
+                },
+                { $skip: skip },
+                { $limit: limit }
+            ]);
 
-                fileData.errCode = 0;
-                fileData.errMessage = 'Get File successful!';
-                fileData.file = fileList;
-            }
 
-            resolve(fileData);
-        } catch (e) {
-            reject(e);
+            console.log('check fileList: ', fileList);
+
+            fileData.errCode = 0;
+            fileData.errMessage = 'Get File successful!';
+            fileData.file = fileList;
+
+            return fileData;
         }
-    })
-}
+
+        throw new Error('Invalid page number');
+    } catch (error) {
+        console.error('Error in Get Favorite Files:', error);
+        throw new Error('Failed to get favorite files');
+    }
+};
 
 export const handleUpdateDataService = async (userId: string, fileType: string, id: string, title: string, description: string, tagList: string[]): Promise<FileData> => {
     try {
         let fileData: FileData = { errCode: -1, errMessage: '', file: [] };
 
-        let existingData = await FileList.findOne({ userId: userId })
+        let existingFileList = await FileList.findOne({ userId: userId });
 
-        if (!existingData) {
+        if (!existingFileList) {
             fileData.errCode = 2;
             fileData.errMessage = 'Data not found!';
             return fileData;
         }
 
-        for (let file of existingData.fileList)
-            if (fileType === 'image') {
-                let updateFile = file.images.find(image => image.id === id);
-                if (updateFile) {
-                    file.title = title;
-                    updateFile.description = description;
-                    file.tagList = tagList;
-                }
+        if (fileType === 'image') {
+            const image = await ImageModel.findById(id);
+            if (image) {
+                image.description = description;
+                await image.save();
             } else {
-                let updateFile = file.videos.find(video => video.id === id);
-                if (updateFile) {
-                    file.title = title;
-                    updateFile.description = description;
-                    file.tagList = tagList;
-                }
+                fileData.errCode = 3;
+                fileData.errMessage = 'Image not found';
+                return fileData;
             }
+        } else if (fileType === 'video') {
+            const video = await VideoModel.findById(id);
+            if (video) {
+                video.description = description;
+                await video.save();
+            } else {
+                fileData.errCode = 3;
+                fileData.errMessage = 'Video not found';
+                return fileData;
+            }
+        } else {
+            fileData.errCode = 3;
+            fileData.errMessage = 'Invalid file type';
+            return fileData;
+        }
 
-        // Lưu dữ liệu đã cập nhật vào MongoDB
-        await existingData.save();
+        existingFileList.fileList.forEach(file => {
+            if (file._id.toString() === id && file.imageIds.length > 0) {
+                file.title = title;
+                file.tagList = tagList;
+            }
+        });
+
+        await existingFileList.save();
 
         fileData.errCode = 0;
-        fileData.errMessage = 'Image data updated successfully!';
-
+        fileData.errMessage = `${fileType.charAt(0).toUpperCase() + fileType.slice(1)} data updated successfully!`;
 
         return fileData;
     } catch (e) {
@@ -210,9 +285,9 @@ export const handleUpdateDataService = async (userId: string, fileType: string, 
 export const handleDeleteDataService = async (userId: string, fileType: string, id: string): Promise<FileData> => {
     try {
         let fileData: FileData = { errCode: -1, errMessage: '', file: [] };
-        let existingData = await FileList.findOne({ userId: userId })
+        let existingFileList = await FileList.findOne({ userId: userId });
 
-        if (!existingData) {
+        if (!existingFileList) {
             fileData.errCode = 2;
             fileData.errMessage = 'Data not found';
             return fileData;
@@ -220,40 +295,43 @@ export const handleDeleteDataService = async (userId: string, fileType: string, 
 
         let fileUpdated = false;
 
-        for (let file of existingData.fileList)
-            if (fileType === 'image') {
-                let updateFile = file.images.find(image => image.id === id);
-                if (updateFile) {
-                    file.images = file.images.filter(image => image.id !== id)
-                    existingData.imagesNum -= 1;
-                    fileUpdated = true;
-
-                    if (file.images.length === 0 && file.videos.length === 0) {
-                        existingData.fileList = existingData.fileList.filter(f => f !== file);
-                    }
-                }
+        if (fileType === 'image') {
+            const image = await ImageModel.findById(id);
+            if (image) {
+                await ImageModel.findByIdAndDelete(id);
+                existingFileList.imagesNum -= 1;
+                fileUpdated = true;
             } else {
-                let updateFile = file.videos.find(video => video.id === id);
-                if (updateFile) {
-                    file.videos = file.videos.filter(video => video.id !== id);
-                    existingData.videosNum -= 1;
-                    fileUpdated = true;
-
-                    if (file.images.length === 0 && file.videos.length === 0) {
-                        existingData.fileList = existingData.fileList.filter(f => f !== file);
-                    }
-                }
+                fileData.errCode = 3;
+                fileData.errMessage = 'Image not found';
+                return fileData;
             }
-
-        if (!fileUpdated) {
+        } else if (fileType === 'video') {
+            const video = await VideoModel.findById(id);
+            if (video) {
+                await VideoModel.findByIdAndDelete(id);
+                existingFileList.videosNum -= 1;
+                fileUpdated = true;
+            } else {
+                fileData.errCode = 3;
+                fileData.errMessage = 'Video not found';
+                return fileData;
+            }
+        } else {
             fileData.errCode = 3;
-            fileData.errMessage = 'File not found';
+            fileData.errMessage = 'Invalid file type';
             return fileData;
         }
 
-        await existingData.save();
+        if (!fileUpdated) {
+            fileData.errCode = 3;
+            fileData.errMessage = 'File not found in user file list';
+            return fileData;
+        }
+
+        await existingFileList.save();
         fileData.errCode = 0;
-        fileData.errMessage = 'File updated successfully!';
+        fileData.errMessage = 'File deleted successfully';
 
         return fileData;
     } catch (e) {
@@ -264,10 +342,11 @@ export const handleDeleteDataService = async (userId: string, fileType: string, 
 
 export const handleClickService = async (userId: string, fileType: string, id: string): Promise<FileData> => {
     try {
-        let fileData: FileData = { errCode: -1, errMessage: '', file: [] }
-        let existingData = await FileList.findOne({ userId: userId })
+        let fileData: FileData = { errCode: -1, errMessage: '', file: [] };
 
-        if (!existingData) {
+        let existingFileList = await FileList.findOne({ userId: userId });
+
+        if (!existingFileList) {
             fileData.errCode = 2;
             fileData.errMessage = 'Data not found';
             return fileData;
@@ -275,20 +354,33 @@ export const handleClickService = async (userId: string, fileType: string, id: s
 
         let fileUpdated = false;
 
-        for (let file of existingData.fileList)
-            if (fileType === 'image') {
-                let updateFile = file.images.find(image => image.id === id);
-                if (updateFile) {
-                    updateFile.clickNum += 1
-                    fileUpdated = true;
-                }
+        if (fileType === 'image') {
+            const image = await ImageModel.findById(id);
+            if (image) {
+                image.clickNum += 1;
+                await image.save();
+                fileUpdated = true;
             } else {
-                let updateFile = file.videos.find(video => video.id === id);
-                if (updateFile) {
-                    updateFile.clickNum += 1
-                    fileUpdated = true;
-                }
+                fileData.errCode = 3;
+                fileData.errMessage = 'Image not found';
+                return fileData;
             }
+        } else if (fileType === 'video') {
+            const video = await VideoModel.findById(id);
+            if (video) {
+                video.clickNum += 1;
+                await video.save();
+                fileUpdated = true;
+            } else {
+                fileData.errCode = 3;
+                fileData.errMessage = 'Video not found';
+                return fileData;
+            }
+        } else {
+            fileData.errCode = 3;
+            fileData.errMessage = 'Invalid file type';
+            return fileData;
+        }
 
         if (!fileUpdated) {
             fileData.errCode = 3;
@@ -296,54 +388,64 @@ export const handleClickService = async (userId: string, fileType: string, id: s
             return fileData;
         }
 
-        await existingData.save();
         fileData.errCode = 0;
-        fileData.errMessage = 'Click increasing!'
+        fileData.errMessage = 'Click increasing!';
 
         return fileData;
     } catch (e) {
         console.error(e);
-        throw (e);
+        throw e;
     }
 }
 
 export const handleSetFavoriteService = async (userId: string, fileType: string, id: string): Promise<FileData> => {
 
     try {
-        let fileData: FileData = { errCode: -1, errMessage: '', file: [] }
-        let existingData = await FileList.findOne({ userId: userId })
+        let fileData: FileData = { errCode: -1, errMessage: '', file: [] };
 
-        if (!existingData) {
+        let existingFileList = await FileList.findOne({ userId: userId });
+
+        if (!existingFileList) {
             fileData.errCode = 2;
             fileData.errMessage = 'Data not found';
             return fileData;
         }
 
-        let updateFile: { isFavorite: boolean } | undefined = undefined;
+        if (fileType === 'image') {
+            const image = await ImageModel.findById(id);
+            console.log('check image: ', image);
 
-        for (let file of existingData.fileList) {
-            if (fileType === 'image') {
-                updateFile = file.images.find(image => image.id === id);
-                if (updateFile) break;
-            } else if (fileType === 'video') {
-                updateFile = file.videos.find(video => video.id === id);
-                if (updateFile) break;
+            if (image) {
+                image.isFavorite = !image.isFavorite;
+                await image.save();
+                fileData.errCode = 0;
+                fileData.errMessage = 'Set favorite successful!';
+            } else {
+                fileData.errCode = 3;
+                fileData.errMessage = 'Image not found';
+                return fileData;
             }
-        }
-
-        if (updateFile) {
-            updateFile.isFavorite = !updateFile.isFavorite;
-            await existingData.save(); // Lưu thay đổi
-            fileData.errCode = 0;
-            fileData.errMessage = 'Set favorite successful!';
+        } else if (fileType === 'video') {
+            const video = await VideoModel.findById(id);
+            if (video) {
+                video.isFavorite = !video.isFavorite;
+                await video.save();
+                fileData.errCode = 0;
+                fileData.errMessage = 'Set favorite successful!';
+            } else {
+                fileData.errCode = 3;
+                fileData.errMessage = 'Video not found';
+                return fileData;
+            }
         } else {
-            fileData.errCode = 2;
-            fileData.errMessage = 'File not found!';
+            fileData.errCode = 3;
+            fileData.errMessage = 'Invalid file type';
+            return fileData;
         }
 
         return fileData;
     } catch (e) {
         console.error(e);
-        throw (e);
+        throw e;
     }
 }

@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { UserInfoInterface } from "../models/userInfoModels";
-import { handleSetUserInfoService, handleUpdateUserInfoService } from "../services/userInfoServices";
+import { handleSetUserInfoService, handleUpdateUserInfoService } from "../services/userInfoService";
 
 export interface UserInfoData {
     errCode: number;

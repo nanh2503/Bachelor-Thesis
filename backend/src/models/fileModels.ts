@@ -1,24 +1,11 @@
-import mongoose, { Document } from "mongoose";
-
-export interface FileImage extends Document {
-    imageUrl: string;
-    description: string;
-    clickNum: number;
-    isFavorite: boolean;
-}
-
-export interface FileVideo extends Document {
-    videoUrl: string;
-    description: string;
-    clickNum: number;
-    isFavorite: boolean;
-}
+import mongoose, { Document, Schema } from "mongoose";
 
 export interface FileInterface {
-    images: FileImage[];
-    videos: FileVideo[];
-    title: string;
-    tagList: string[];
+    _id: mongoose.Types.ObjectId;
+    imageIds: mongoose.Types.ObjectId[];
+    videoIds: mongoose.Types.ObjectId[];
+    title?: string;
+    tagList?: string[];
 }
 
 export interface FileListInterface extends Document {
@@ -28,80 +15,45 @@ export interface FileListInterface extends Document {
     videosNum: number;
 }
 
-const imageSchema = new mongoose.Schema<FileImage>({
-    imageUrl: {
+const fileSchema = new Schema<FileInterface>({
+    imageIds: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Image'
+    }],
+    videoIds: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Video'
+    }],
+    title: {
         type: String,
         required: false,
     },
-    description: {
-        type: String,
+    tagList: {
+        type: [String],
         required: false,
     },
-    clickNum: {
-        type: Number,
-        required: false,
-    },
-    isFavorite: {
-        type: Boolean,
-        required: false,
-    }
 });
 
-const videoSchema = new mongoose.Schema<FileVideo>({
-    videoUrl: {
+const fileListSchema = new Schema<FileListInterface>({
+    userId: {
         type: String,
-        required: false,
+        required: true,
     },
-    description: {
-        type: String,
-        required: false,
-    },
-    clickNum: {
+    fileList: [fileSchema],
+    imagesNum: {
         type: Number,
-        required: false,
+        required: true,
     },
-    isFavorite: {
-        type: Boolean,
-        required: false,
-    }
+    videosNum: {
+        type: Number,
+        required: true,
+    },
+}, {
+    timestamps: true,
 });
 
-const fileSchema = new mongoose.Schema<FileInterface>(
-    {
-        images: [imageSchema],
-        videos: [videoSchema],
-        title: {
-            type: String,
-            required: false,
-        },
-        tagList: {
-            type: [String],
-            required: false
-        },
-    },
-    {
-        timestamps: true,
-    }
-);
+fileListSchema.index({ userId: 1 });
 
-const schema = new mongoose.Schema<FileListInterface>(
-    {
-        userId: {
-            type: String,
-            required: true
-        },
-        fileList: [fileSchema],
-        imagesNum: {
-            type: Number,
-            required: true,
-        },
-        videosNum: {
-            type: Number,
-            required: true,
-        },
-    }
-)
-
-const FileList = mongoose.model<FileListInterface>('fileList', schema);
+const FileList = mongoose.model<FileListInterface>('FileList', fileListSchema);
 
 export default FileList;

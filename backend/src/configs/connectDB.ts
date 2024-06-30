@@ -1,4 +1,13 @@
 import mongoose from "mongoose";
+import ImageModel from "../models/imageModels";
+import VideoModel from "../models/videoModels";
+import FileList from "../models/fileModels";
+import FileItemModel from "../models/fileItemModels";
+
+mongoose.model('Image', ImageModel.schema);
+mongoose.model('Video', VideoModel.schema);
+mongoose.model('FileList', FileList.schema);
+mongoose.model('FileItem', FileItemModel.schema);
 
 export default async function connectDB() {
     try {

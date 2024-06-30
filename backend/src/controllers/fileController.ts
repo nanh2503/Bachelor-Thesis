@@ -12,6 +12,8 @@ export interface FileData {
 export const handleUpload = async (req: Request, res: Response): Promise<void> => {
     const { userId, imageUrl, videoUrl, titles, descriptions, tagList } = req.body;
 
+    console.log('check controller');
+
     if (!userId) {
         const errorResponse: FileData = {
             errCode: 1,

@@ -12,7 +12,8 @@ export interface UserInfoInterface {
 const schema = new mongoose.Schema<UserInfoInterface>({
     email: {
         type: String,
-        required: true
+        required: true,
+        unique: true,
     },
     username: {
         type: String,
