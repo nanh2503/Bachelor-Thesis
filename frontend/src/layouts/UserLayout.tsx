@@ -1,11 +1,11 @@
 import { ReactNode } from 'react'
 import { Theme } from '@mui/material/styles'
 import useMediaQuery from '@mui/material/useMediaQuery'
-import VerticalLayout from 'src/@core/layouts/VerticalLayout'
-import navigation from 'src/navigation/vertical'
-import VerticalAppBarContent from './components/vertical/AppBarContent'
+import VerticalLayout from 'src/layouts/VerticalLayout'
+import VerticalAppBarContent from './appBar/AppBarContent'
 import { useSettings } from 'src/@core/hooks/useSettings'
 import { useSelector } from 'src/app/hooks'
+import navigation from './navigation-list'
 
 interface Props {
   children: ReactNode

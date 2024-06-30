@@ -1,4 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { FileItemInterface } from "src/components/common/SelectAlbumDialog";
 
 export interface Image {
     _id: string,
@@ -18,8 +19,8 @@ export interface Video {
 
 export interface FileList {
     _id: string,
-    images: Image[],
-    videos: Video[],
+    imageIds: Image[],
+    videoIds: Video[],
     title: string,
     tagList: string[]
 }
@@ -33,7 +34,7 @@ export interface FileListState {
     favorVideoNum: number,
     fileDelete: { type: string | null, id: string | null } | null,
     fileEdit: { type: string | null, id: string | null } | null,
-    fileView: { file: Image | Video | null, title: string | null, tagList: string[] | null } | null,
+    fileView: { file: Image | Video | FileItemInterface | null, title: string | null, tagList: string[] | null } | null,
     fileDisFavor: { type: string | null, id: string | null } | null,
 }
 
@@ -60,7 +61,7 @@ const fileListState = createSlice({
             state.imagesNum = imagesNum;
             state.videosNum = videosNum;
         },
-        setFavoriteFileList: (state, action: PayloadAction<{ favorImageNum: number, favorVideoNum: number }>) => {
+        setFavorFileList: (state, action: PayloadAction<{ favorImageNum: number, favorVideoNum: number }>) => {
             const { favorImageNum, favorVideoNum } = action.payload;
 
             state.favorImageNum = favorImageNum;
@@ -72,7 +73,7 @@ const fileListState = createSlice({
             state.imagesNum += imagesNum;
             state.videosNum += videosNum;
         },
-        setFileView: (state, action: PayloadAction<{ file: Image | Video, title?: string, tagList?: string[] }>) => {
+        setFileView: (state, action: PayloadAction<{ file: Image | Video | FileItemInterface, title?: string, tagList?: string[] }>) => {
             const { file, title, tagList } = action.payload;
             console.log('check state file: ', file);
 
@@ -85,12 +86,12 @@ const fileListState = createSlice({
         updateImage: (state, action: PayloadAction<{ editId: string; editTitle: string; editDescription: string; editTagList: string[] }>) => {
             const { editId, editTitle, editDescription, editTagList } = action.payload;
             const updatedFiles = state.file.map(file => {
-                if (file.images.some(image => image._id === editId)) {
+                if (file.imageIds.some(image => image._id === editId)) {
                     return {
                         ...file,
                         title: editTitle,
                         tagList: editTagList,
-                        images: file.images.map(image => {
+                        imageIds: file.imageIds.map(image => {
                             if (image._id === editId) {
                                 return {
                                     ...image,
@@ -124,12 +125,12 @@ const fileListState = createSlice({
         updateVideo: (state, action: PayloadAction<{ editId: string; editTitle: string; editDescription: string; editTagList: string[] }>) => {
             const { editId, editTitle, editDescription, editTagList } = action.payload;
             const updatedFiles = state.file.map(file => {
-                if (file.videos.some(video => video._id === editId)) {
+                if (file.videoIds.some(video => video._id === editId)) {
                     return {
                         ...file,
                         title: editTitle,
                         tagList: editTagList,
-                        videos: file.videos.map(video => {
+                        videoIds: file.videoIds.map(video => {
                             if (video._id === editId) {
                                 return {
                                     ...video,
@@ -155,10 +156,10 @@ const fileListState = createSlice({
             let updateFile;
             if (fileType === 'image') {
                 updateFile = state.file.map(file => {
-                    if (file.images.some(image => image._id === fileId)) {
+                    if (file.imageIds.some(image => image._id === fileId)) {
                         return {
                             ...file,
-                            images: file.images.map(image => {
+                            imageIds: file.imageIds.map(image => {
                                 if (image._id === fileId) {
                                     return {
                                         ...image,
@@ -175,10 +176,10 @@ const fileListState = createSlice({
                 })
             } else {
                 updateFile = state.file.map(file => {
-                    if (file.videos.some(video => video._id === fileId)) {
+                    if (file.videoIds.some(video => video._id === fileId)) {
                         return {
                             ...file,
-                            videos: file.videos.map(video => {
+                            videoIds: file.videoIds.map(video => {
                                 if (video._id === fileId) {
                                     return {
                                         ...video,
@@ -222,6 +223,6 @@ const fileListState = createSlice({
     }
 })
 
-export const { setFileList, setFavoriteFileList, updateFileList, updateImage, deleteFile, updateVideo, setClickNumFile, setFavoriteFile, setFileView } = fileListState.actions;
+export const { setFileList, setFavorFileList, updateFileList, updateImage, deleteFile, updateVideo, setClickNumFile, setFavoriteFile, setFileView } = fileListState.actions;
 export default fileListState.reducer;
 

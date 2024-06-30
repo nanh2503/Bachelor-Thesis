@@ -25,7 +25,6 @@ import ThemeComponent from 'src/@core/theme/ThemeComponent'
 import { SettingsConsumer, SettingsProvider } from 'src/@core/context/settingsContext'
 
 // ** Utils Imports
-import { createEmotionCache } from 'src/@core/utils/create-emotion-cache'
 
 // ** React Perfect Scrollbar Style
 import 'react-perfect-scrollbar/dist/css/styles.css'
@@ -35,6 +34,7 @@ import '/styles/_global.scss'
 
 import { persistor, wrapper } from "../app/store";
 import { PersistGate } from 'redux-persist/integration/react'
+import { createEmotionCache } from 'src/@core/utils/create-emotion-cache'
 
 type Page<P = {}> = NextPage<P> & {
   getLayout?: (page: ReactNode) => ReactNode;
@@ -82,6 +82,7 @@ const App = (props: ExtendedAppProps) => {
             <meta name='keywords' content='Material Design, MUI, Admin Template, React Admin Template' />
             <meta name='viewport' content='initial-scale=1, width=device-width' />
           </Head>
+
         </PersistGate>
 
         <SettingsProvider>
